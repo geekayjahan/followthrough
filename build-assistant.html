@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WS2 · Build Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board:#f2efe6;         /* warm paper */
+    --panel:#ffffff;
+    --panel-edge:#ddd6c6;
+    --steel:#b9b09c;
+    --ink:#1e2a21;
+    --ink-dim:#68705f;
+    --phosphor:#15803d;      /* signal green, dark enough for white */
+    --phosphor-deep:#0b5a2a;
+    --amber:#b45309;         /* burnt orange */
+    --red:#b91c1c;
+    --tint-green:#d9f0e2;
+    --tint-amber:#fbeed7;
+    --lamp-off:#e3ddcd;
+    --shadow:0 1px 3px rgba(60,55,40,.10),0 1px 2px rgba(60,55,40,.06);
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+    --display:"Chakra Petch","Arial Narrow",Impact,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--board);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:14px;
+    overflow-x:hidden;
+    min-height:100vh;
+    display:flex;flex-direction:column;
+  }
+
+  /* ── header ─────────────────────────────────────── */
+  header{
+    display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;
+    padding:20px 32px 12px;
+    border-bottom:2px solid var(--ink);
+  }
+  .brand{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:.06em;color:var(--ink);text-transform:uppercase}
+  .brand .tick{color:var(--phosphor)}
+  .thesis{font-size:13.5px;color:var(--ink-dim);letter-spacing:.02em}
+  .thesis b{color:var(--amber);font-weight:600}
+  .clock{margin-left:auto;font-size:14px;color:var(--ink);letter-spacing:.12em}
+  .clock .lamp{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--phosphor);box-shadow:0 0 0 2px var(--tint-green);margin-right:8px;animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  #serveHint{
+    display:none;margin:14px 32px 0;padding:12px 16px;
+    border:1px dashed var(--amber);color:#7c3d09;
+    font-size:13.5px;letter-spacing:.02em;background:var(--tint-amber);
+  }
+  #serveHint code{color:var(--amber);font-weight:600}
+
+  /* ── pipeline rail ──────────────────────────────── */
+  main{flex:1;padding:20px 32px 12px;display:flex;flex-direction:column;gap:16px}
+  .rail{
+    display:grid;
+    grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr 24px 1fr;
+    gap:0;align-items:stretch;
+  }
+  .bay{
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-top:4px solid var(--steel);
+    box-shadow:var(--shadow);
+    padding:12px 14px 12px;
+    display:flex;flex-direction:column;gap:9px;
+    opacity:0;transform:translateY(10px);
+    animation:bayIn .5s ease forwards;
+    position:relative;
+    cursor:pointer;
+  }
+  .bay:nth-child(1){animation-delay:.05s}
+  .bay:nth-child(3){animation-delay:.15s}
+  .bay:nth-child(5){animation-delay:.25s}
+  .bay:nth-child(7){animation-delay:.35s}
+  .bay:nth-child(9){animation-delay:.45s}
+  @keyframes bayIn{to{opacity:1;transform:none}}
+  .bay.live{border-top-color:var(--phosphor);box-shadow:0 2px 8px rgba(21,128,61,.18),var(--shadow)}
+  .bay.live .stageTag{color:var(--phosphor)}
+  .bay.selected{border-color:var(--amber);border-top-color:var(--amber);background:var(--tint-amber)}
+  .bay.selected .stageTag{color:var(--amber)}
+  .bayHead{display:flex;align-items:baseline;gap:9px}
+  .stageTag{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--ink-dim);text-transform:uppercase;transition:color .4s}
+  .stageName{font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+  .bayCount{margin-left:auto;font-size:12px;color:var(--ink-dim)}
+  .bayCount .lit{color:var(--phosphor);font-weight:600}
+
+  .arrow{
+    align-self:center;justify-self:center;
+    color:var(--steel);font-size:18px;font-family:var(--display);
+    user-select:none;padding-top:8px;
+  }
+
+  /* tiles */
+  .tiles{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+  .tile{
+    display:flex;align-items:center;gap:9px;
+    padding:7px 9px;
+    border:1px dashed var(--steel);
+    background:transparent;color:var(--ink-dim);
+    font-family:var(--mono);font-size:13px;letter-spacing:.01em;
+    cursor:default;text-align:left;width:100%;
+    transition:border-color .3s,color .3s,background .3s;
+  }
+  .tile .lamp{
+    width:10px;height:10px;border-radius:50%;flex:none;
+    background:var(--lamp-off);border:1px solid var(--steel);
+    transition:background .2s;
+  }
+  .tile.on{
+    border:1px solid var(--phosphor-deep);
+    background:var(--tint-green);
+    color:var(--phosphor-deep);font-weight:500;cursor:pointer;
+  }
+  .tile.on:hover{background:#c3e8d2;border-color:var(--phosphor)}
+  .tile.on .lamp{
+    background:var(--phosphor);border-color:var(--phosphor-deep);
+    box-shadow:0 0 0 2px #fff inset;
+    animation:flickOn .45s steps(3,end)
+  }
+  @keyframes flickOn{0%{opacity:.2}40%{opacity:1}55%{opacity:.4}100%{opacity:1}}
+  .tile .kind{margin-left:auto;font-size:11px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+  .tile.on .kind{color:var(--phosphor)}
+
+  /* ── tab bar + panels ───────────────────────────── */
+  .tabbar{
+    display:flex;gap:2px;align-items:center;
+    border-bottom:2px solid var(--panel-edge);
+  }
+  .tabbtn{
+    font-family:var(--display);font-weight:600;font-size:14px;
+    letter-spacing:.16em;text-transform:uppercase;
+    background:none;border:none;border-bottom:3px solid transparent;
+    color:var(--ink-dim);padding:8px 18px;cursor:pointer;margin-bottom:-2px;
+  }
+  .tabbtn:hover{color:var(--ink)}
+  .tabbtn.active{color:var(--phosphor-deep);border-bottom-color:var(--phosphor)}
+  #scopeChip{
+    margin-left:auto;font-size:12px;color:var(--amber);letter-spacing:.08em;
+    display:none;align-items:center;gap:8px;padding-right:6px;
+  }
+  #scopeChip button{
+    background:none;border:1px solid var(--amber);color:var(--amber);
+    font-family:var(--mono);font-size:11px;padding:2px 8px;cursor:pointer;
+  }
+  .tabpanel{display:none;min-height:200px}
+  .tabpanel.active{display:block;flex:1;overflow:auto;animation:panelIn .25s ease}
+  @keyframes panelIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* NOW */
+  .nowGrid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;min-height:100%;align-items:stretch}
+  .panelBox{
+    background:var(--panel);border:1px solid var(--panel-edge);
+    box-shadow:var(--shadow);
+    padding:14px 16px;
+  }
+  .panelBox h3{
+    font-family:var(--display);font-size:13px;font-weight:700;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--amber);
+    margin-bottom:10px;
+  }
+  .bigStage{font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);letter-spacing:.04em;text-transform:uppercase}
+  .bigStage small{display:block;font-size:13px;color:var(--ink-dim);letter-spacing:.06em;margin-top:4px;text-transform:none;font-family:var(--mono);font-weight:400}
+  .featCard{border:1px solid var(--phosphor-deep);border-left:4px solid var(--phosphor);background:var(--tint-green);padding:12px 14px;margin-top:10px}
+  .featCard .fname{color:var(--phosphor-deep);font-weight:600;font-size:14px}
+  .featCard .fio{font-size:13px;color:var(--ink);margin-top:6px}
+  .featCard .fdone{font-size:12.5px;color:var(--ink-dim);margin-top:4px}
+  .nextUp{border:1px dashed var(--steel);background:var(--panel);padding:10px 12px;margin-top:10px;font-size:13px;color:var(--ink-dim)}
+  .nextUp b{color:var(--ink)}
+  .traceList{display:flex;flex-direction:column;gap:8px}
+  .traceLine{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+  .traceLine b{color:var(--phosphor);font-weight:600}
+  .traceLine .why{color:var(--ink)}
+
+  /* TASKS */
+  .groupHead{
+    font-family:var(--display);font-size:13px;font-weight:700;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--amber);
+    margin:16px 0 8px;
+  }
+  .groupHead:first-child{margin-top:0}
+  .featRow{
+    border:1px solid var(--panel-edge);background:var(--panel);
+    box-shadow:var(--shadow);
+    padding:10px 12px;margin-bottom:7px;
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+    font-size:13.5px;
+  }
+  .featRow .lamp{width:10px;height:10px;border-radius:50%;flex:none;background:var(--lamp-off);border:1px solid var(--steel)}
+  .featRow.doing{background:var(--tint-amber);border-color:var(--amber)}
+  .featRow.doing .lamp{background:var(--amber);border-color:var(--amber)}
+  .featRow.done .lamp{background:var(--phosphor);border-color:var(--phosphor-deep)}
+  .featRow .fname{color:var(--ink);font-weight:600;min-width:180px}
+  .featRow .fio{color:var(--ink-dim);flex:1;min-width:200px}
+  .featRow .why{flex-basis:100%;font-size:12.5px;color:var(--ink-dim)}
+  .featRow .why b{color:var(--phosphor-deep)}
+  .cmtBtn{
+    background:none;border:1px solid var(--steel);color:var(--ink-dim);
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    padding:3px 9px;cursor:pointer;
+  }
+  .cmtBtn:hover{border-color:var(--amber);color:var(--amber)}
+  .cmtChips{flex-basis:100%;display:flex;flex-direction:column;gap:4px}
+  .cmtChip{font-size:12.5px;color:var(--ink-dim);display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+  .cmtQuote{flex-basis:100%;font-style:italic;color:var(--ink-dim);border-left:2px solid var(--amber);padding-left:8px;margin-bottom:2px}
+  .cmtChip .status{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;border:1px solid transparent;flex:none}
+  .cmtChip .status.new{background:var(--amber);color:#fff}
+  .cmtChip .status.picked-up{background:none;color:var(--amber);border-color:var(--amber)}
+  .cmtChip .status.done{background:var(--lamp-off);color:var(--ink-dim)}
+  .cmtChip .status.answering{background:var(--amber);color:#fff;animation:pulse 2.4s infinite}
+  .cmtChip .status.answered{background:var(--phosphor);color:#fff}
+  .cmtChip .ans{color:var(--ink)}
+  .cmtForm{flex-basis:100%;display:none;gap:8px;margin-top:6px}
+  .cmtForm.open{display:flex}
+  .cmtForm textarea{
+    flex:1;background:var(--panel);border:1px solid var(--steel);color:var(--ink);
+    font-family:var(--mono);font-size:13.5px;padding:8px;min-height:40px;resize:vertical;
+  }
+  .cmtForm button{
+    background:var(--amber);border:none;color:#fff;font-family:var(--display);
+    font-weight:700;font-size:12px;letter-spacing:.1em;padding:0 14px;cursor:pointer;text-transform:uppercase;
+  }
+  .artList .tile{margin-bottom:6px}
+  .empty{font-size:13px;color:var(--ink-dim);padding:14px 2px;font-style:italic}
+
+  /* LOG */
+  .logRow{
+    display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;
+    border-bottom:1px solid var(--panel-edge);
+    padding:8px 4px;font-size:13px;
+  }
+  .logRow .ts{color:var(--ink-dim);font-size:11.5px;flex:none;width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .logRow .chip{
+    font-family:var(--display);font-weight:600;font-size:11px;letter-spacing:.1em;
+    background:var(--phosphor);color:#fff;border-radius:3px;
+    padding:1px 8px;flex:none;text-transform:uppercase;
+  }
+  .logRow .art{color:var(--ink);flex:none}
+  .logRow .art a{color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber)}
+  .logRow .why{color:var(--ink-dim);flex:1;min-width:240px}
+
+  /* ── why feed (table) + footer ──────────────────── */
+  .whyWrap{
+    flex:none;
+    border:1px solid var(--panel-edge);background:var(--panel);
+    box-shadow:var(--shadow);
+    padding:10px 14px 6px;
+  }
+  .whyWrap h4{
+    font-family:var(--display);font-size:13px;font-weight:700;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--amber);
+    margin-bottom:8px;
+  }
+  .whyScroll{max-height:132px;overflow-y:auto}
+  .whyTable{width:100%;border-collapse:collapse;font-size:13.5px}
+  .whyTable td{padding:5px 12px 5px 0;vertical-align:top;border-top:1px solid var(--panel-edge)}
+  .whyTable tr:first-child td{border-top:none}
+  .whyTable .c-stage{
+    white-space:nowrap;width:1%;font-family:var(--display);font-weight:600;
+    letter-spacing:.04em;color:var(--phosphor);
+  }
+  .whyTable .c-art{white-space:nowrap;width:1%;color:var(--ink-dim)}
+  .whyTable .c-why{color:var(--ink);line-height:1.5}
+  .whyTable tr.latest td:first-child{border-left:3px solid var(--phosphor);padding-left:9px}
+  .whyTable tr.flash td{animation:whyflash 1.8s ease}
+  @keyframes whyflash{0%{background:var(--tint-green)}100%{background:transparent}}
+
+  footer{
+    display:flex;gap:18px;align-items:center;
+    padding:8px 32px 12px;font-size:12.5px;color:var(--ink-dim);letter-spacing:.04em;flex-wrap:wrap;
+  }
+  footer .sep{color:var(--steel)}
+
+  /* ── drawer ─────────────────────────────────────── */
+  #shade{position:fixed;inset:0;background:rgba(40,38,30,.45);backdrop-filter:blur(2px);z-index:20;display:none}
+  #shade.open{display:block}
+  #drawer{
+    position:fixed;top:0;right:0;bottom:0;width:min(760px,94vw);z-index:21;
+    background:var(--panel);border-left:3px solid var(--phosphor);
+    box-shadow:-6px 0 24px rgba(60,55,40,.25);
+    transform:translateX(102%);transition:transform .3s ease;
+    display:flex;flex-direction:column;
+  }
+  #drawer.open{transform:none}
+  .drawerHead{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 20px;border-bottom:1px solid var(--panel-edge);background:var(--board);
+  }
+  .drawerHead .lamp{width:9px;height:9px;border-radius:50%;background:var(--phosphor);box-shadow:0 0 0 2px var(--tint-green)}
+  #drawerTitle{font-family:var(--display);font-size:15px;letter-spacing:.08em;color:var(--ink);text-transform:uppercase}
+  #drawerOpenTab{
+    background:var(--panel);border:1px solid var(--steel);color:var(--ink-dim);
+    font-family:var(--mono);font-size:12px;padding:4px 10px;cursor:pointer;letter-spacing:.06em;
+    margin-left:auto;
+  }
+  #drawerOpenTab:hover{color:var(--phosphor-deep);border-color:var(--phosphor)}
+  #drawerClose{
+    background:var(--panel);border:1px solid var(--steel);color:var(--ink-dim);
+    font-family:var(--mono);font-size:12px;padding:4px 10px;cursor:pointer;letter-spacing:.1em;
+  }
+  #drawerClose:hover{color:var(--amber);border-color:var(--amber)}
+  #drawerBody{flex:1;overflow:auto;padding:18px 24px;font-size:13.5px;line-height:1.7}
+  #drawerBody pre{white-space:pre-wrap;word-break:break-word}
+  #drawerBody iframe{width:100%;height:100%;min-height:60vh;border:1px solid var(--panel-edge);background:#fff}
+  #drawerBody .mdH{color:var(--amber);font-weight:600}
+  #drawerBody .mdCode{color:var(--phosphor-deep)}
+  #drawerBody .jKey{color:var(--amber)}
+  #drawerBody .jStr{color:var(--phosphor-deep)}
+  #drawerBody .jNum{color:#1d4ed8}
+  #drawerChips{padding:0 20px}
+  #drawerChips .cmtChips{border-top:1px solid var(--panel-edge);padding:10px 0 4px}
+  .drawerCmt{border-top:1px solid var(--panel-edge);padding:12px 20px;display:flex;gap:8px;background:var(--board)}
+  .drawerCmt textarea{
+    flex:1;background:var(--panel);border:1px solid var(--steel);color:var(--ink);
+    font-family:var(--mono);font-size:13.5px;padding:8px;min-height:42px;resize:vertical;
+  }
+  .drawerCmt button{
+    background:var(--amber);border:none;color:#fff;font-family:var(--display);
+    font-weight:700;font-size:12px;letter-spacing:.1em;padding:0 14px;cursor:pointer;text-transform:uppercase;
+  }
+
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--panel);border:1px solid var(--phosphor);color:var(--phosphor-deep);
+    box-shadow:var(--shadow);
+    font-size:13.5px;padding:10px 18px;z-index:40;transition:transform .25s ease;letter-spacing:.04em;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:1100px){
+    .rail{grid-template-columns:1fr;gap:10px}
+    .arrow{transform:rotate(90deg);padding:0}
+    .nowGrid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">WS2 <span class="tick">//</span> Build Assistant</div>
+  <div class="thesis"><b>The spec is the product.</b> Code is the disposable thing you regenerate from it.</div>
+  <div class="clock"><span class="lamp"></span><span id="clock">--:--:--</span></div>
+</header>
+
+<div id="serveHint">
+  Run the kit server from the kit root — <code>node scripts/serve.mjs</code> — then open
+  <code>http://localhost:4000/build-assistant.html</code>. Tiles, logs, and comments all need it.
+</div>
+
+<main>
+  <section class="rail" id="rail"></section>
+
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="now">Now</button>
+    <button class="tabbtn" data-tab="tasks">Tasks</button>
+    <button class="tabbtn" data-tab="log">Log</button>
+    <span id="scopeChip">scoped to <b id="scopeName"></b> <button id="scopeClear">show all</button></span>
+  </div>
+
+  <section class="tabpanel active" id="panel-now"></section>
+  <section class="tabpanel" id="panel-tasks"></section>
+  <section class="tabpanel" id="panel-log"></section>
+
+  <section class="whyWrap">
+    <h4>Why feed — newest first</h4>
+    <div class="whyScroll"><table class="whyTable"><tbody id="whyBody">
+      <tr><td class="c-why">waiting for app/claude-progress.txt — every artifact lands with one line of why</td></tr>
+    </tbody></table></div>
+  </section>
+</main>
+
+<footer>
+  <span>S1 SPEC → S2 BUILD → S3 EVAL → S4 DEBUG → S5 STRIP</span>
+  <span class="sep">|</span>
+  <span>artifacts land in <b>app/</b> · polling every 5s</span>
+  <span class="sep">|</span>
+  <span>click a bay to drill into that stage</span>
+  <span class="sep">|</span>
+  <span>comments feed the builder — <b>app/comments.json</b></span>
+  <span class="sep">|</span>
+  <span>educational — see the README's fine print</span>
+</footer>
+
+<div id="drawer">
+  <div class="drawerHead">
+    <span class="lamp"></span>
+    <span id="drawerTitle">artifact</span>
+    <button id="drawerOpenTab">OPEN IN TAB ↗</button>
+    <button id="drawerClose">ESC · CLOSE</button>
+  </div>
+  <div id="drawerBody"></div>
+  <div id="drawerChips"></div>
+  <div class="drawerCmt">
+    <textarea id="drawerCmtText" placeholder="Comment on this artifact — it feeds back into the builder…"></textarea>
+    <button id="drawerCmtSend">Send</button>
+  </div>
+</div>
+<div id="shade"></div>
+<div id="toast"></div>
+
+<script>
+/* ── the loop, as data ─────────────────────────────── */
+const STAGES = [
+  { tag:"S1", name:"Spec",  verb:"interview to a sharp problem, write the spec",
+    tiles:[
+      {f:"app/spec.html",           kind:"html"},
+      {f:"app/CLAUDE.md",           kind:"md"},
+      {f:"app/spec-summary.json",   kind:"json"},
+      {f:"app/evals.md",            kind:"md"},
+      {f:"app/ambiguity-audit.html",kind:"html", label:"ambiguity-audit.html · audit"},
+    ]},
+  { tag:"S2", name:"Build", verb:"three agents turn the spec into a running app",
+    tiles:[
+      {f:"app/feature-list.json",   kind:"json"},
+      {f:"app/app-spec.json",       kind:"json"},
+    ]},
+  { tag:"S3", name:"Eval",  verb:"the review panel grades the build, pass/fail",
+    tiles:[
+      {f:"app/eval-results.html",   kind:"html"},
+    ]},
+  { tag:"S4", name:"Debug", verb:"one change, re-run, receipt — per bug",
+    tiles:[
+      {f:"app/debug-log.html",      kind:"html"},
+    ]},
+  { tag:"S5", name:"Strip", verb:"a new model ships; cut what the traces say is dead",
+    tiles:[
+      {f:"app/recall-notice.html",  kind:"html"},
+      {f:"app/strip-plan.html",     kind:"html"},
+      {f:"app/strip-page.html",     kind:"html"},
+    ]},
+];
+const TRACE = "app/claude-progress.txt";
+const FEATURES = "app/feature-list.json";
+
+/* ── state ─────────────────────────────────────────── */
+const S = {
+  files:{},            // path -> bool
+  features:[],         // feature-list rows
+  trace:[],            // parsed lines {ts, tag, art, why, raw}
+  comments:[],         // comment pipe
+  selectedStage:null,  // 'S1'..'S5' | null
+  tab:"now",
+  serverComments:true, // POST /comments works
+};
+
+/* ── helpers ───────────────────────────────────────── */
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function exists(path){
+  try{ const r=await fetch(path+"?t="+Date.now(),{cache:"no-store"}); return r.ok; }catch(e){ return false; }
+}
+async function fetchText(path){
+  try{ const r=await fetch(path+"?t="+Date.now(),{cache:"no-store"}); return r.ok? await r.text() : null; }catch(e){ return null; }
+}
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2600);
+}
+function stageOf(tag){ return (tag||"").split(".")[0]; }  // S2.CODER -> S2
+
+/* ── build the rail ────────────────────────────────── */
+const rail=document.getElementById("rail");
+STAGES.forEach((s,i)=>{
+  const bay=document.createElement("div");
+  bay.className="bay"; bay.id="bay-"+s.tag; bay.dataset.stage=s.tag;
+  bay.innerHTML=
+    `<div class="bayHead"><span class="stageTag">${s.tag}</span>`+
+    `<span class="stageName">${s.name}</span>`+
+    `<span class="bayCount" id="count-${s.tag}"></span></div>`+
+    `<div class="tiles">`+ s.tiles.map(t=>
+      `<button class="tile" data-file="${t.f}" data-kind="${t.kind}" disabled>`+
+      `<span class="lamp"></span><span>${esc(t.label||t.f.replace("app/",""))}</span>`+
+      `<span class="kind">${t.kind}</span></button>`).join("") + `</div>`;
+  rail.appendChild(bay);
+  if(i<STAGES.length-1){
+    const a=document.createElement("div");a.className="arrow";a.textContent="→";rail.appendChild(a);
+  }
+});
+
+/* bay click = drill-in toggle (tiles handle their own clicks) */
+rail.addEventListener("click",e=>{
+  const tile=e.target.closest(".tile");
+  if(tile){ if(tile.classList.contains("on")) openArtifact(tile.dataset.file,tile.dataset.kind); return; }
+  const bay=e.target.closest(".bay"); if(!bay) return;
+  S.selectedStage = (S.selectedStage===bay.dataset.stage)? null : bay.dataset.stage;
+  renderScope(); renderTabs();
+});
+function renderScope(){
+  document.querySelectorAll(".bay").forEach(b=>b.classList.toggle("selected",b.dataset.stage===S.selectedStage));
+  const chip=document.getElementById("scopeChip");
+  if(S.selectedStage){
+    chip.style.display="inline-flex";
+    document.getElementById("scopeName").textContent=S.selectedStage+" "+(STAGES.find(x=>x.tag===S.selectedStage)?.name||"");
+  } else chip.style.display="none";
+}
+document.getElementById("scopeClear").onclick=()=>{S.selectedStage=null;renderScope();renderTabs();};
+
+/* ── polling sweep ─────────────────────────────────── */
+async function sweep(){
+  if(document.hidden) return;
+  // artifacts
+  for(const s of STAGES){
+    let lit=0;
+    for(const t of s.tiles){
+      const ok=await exists(t.f);
+      const el=document.querySelector(`.tile[data-file="${t.f}"]`);
+      if(ok && !S.files[t.f]){ el.classList.add("on"); el.disabled=false; }
+      if(!ok && S.files[t.f]){ el.classList.remove("on"); el.disabled=true; }
+      S.files[t.f]=ok; if(ok) lit++;
+    }
+    document.getElementById("bay-"+s.tag).classList.toggle("live",lit>0);
+    document.getElementById("count-"+s.tag).innerHTML =
+      lit? `<span class="lit">${lit}</span>/${s.tiles.length}` : `0/${s.tiles.length}`;
+  }
+  // features
+  const fl=await fetchText(FEATURES);
+  if(fl){ try{ const j=JSON.parse(fl); S.features=Array.isArray(j)? j : (j.features||[]); }catch(e){} }
+  else S.features=[];
+  // trace
+  const tr=await fetchText(TRACE);
+  S.trace = tr? tr.trim().split(/\r?\n/).filter(Boolean).map(l=>{
+    const m=l.match(/^(\S+)\s+(\S+)\s+(.*?)\s*RATIONALE:\s*(.*)$/);
+    return m? {ts:m[1],tag:m[2],art:m[3],why:m[4],raw:l} : {ts:"",tag:"",art:"",why:l,raw:l};
+  }) : [];
+  // comments
+  try{
+    const r=await fetch("/comments?t="+Date.now(),{cache:"no-store"});
+    if(r.ok){ S.comments=await r.json(); S.serverComments=true; }
+    else S.serverComments=false;
+  }catch(e){ S.serverComments=false; }
+
+  renderTicker(); renderTabs();
+}
+
+/* ── verdict helpers ───────────────────────────────── */
+function featName(f){ return f.name || f.feature || f.title || "(unnamed)"; }
+function featStatus(f){ return String(f.status||"todo").toLowerCase(); }
+function currentStage(){
+  if(S.features.some(f=>featStatus(f)==="doing")) return {tag:"S2",note:"build in flight"};
+  let latest=null;
+  for(const s of STAGES) if(s.tiles.some(t=>S.files[t.f])) latest=s;
+  return latest? {tag:latest.tag,note:latest.verb} : {tag:"—",note:"nothing landed yet — S1 starts the loop"};
+}
+function commentsFor(target){
+  return S.comments.filter(c=> (c.target||"")===target );
+}
+function scoped(list, getTag){
+  return S.selectedStage? list.filter(x=>stageOf(getTag(x))===S.selectedStage) : list;
+}
+
+/* ── renderers ─────────────────────────────────────── */
+function cmtChipsHtml(target){
+  const cs=commentsFor(target);
+  if(!cs.length) return "";
+  return `<div class="cmtChips">`+cs.map(c=>{
+    const st=esc(c.status||"new");
+    const quo=c.quote? `<div class="cmtQuote">re: “${esc(c.quote.length>90?c.quote.slice(0,89)+"…":c.quote)}”</div>`:"";
+    return `<div class="cmtChip">${quo}<span class="status ${st}">${st}</span><span>${esc(c.text)}</span></div>`;
+  }).join("")+`</div>`;
+}
+function cmtFormHtml(target, placeholder){
+  const ph = placeholder || "Change something? Say it here — the builder reads it before the next feature.";
+  return `<button class="cmtBtn" data-cmt="${esc(target)}">✎ comment</button>`+
+    `<div class="cmtForm" data-form="${esc(target)}">`+
+    `<textarea placeholder="${esc(ph)}"></textarea>`+
+    `<button data-send="${esc(target)}">Send</button></div>`;
+}
+
+function renderNow(){
+  const cur=currentStage();
+  const doing=S.features.find(f=>featStatus(f)==="doing");
+  const nextTodo=S.features.find(f=>featStatus(f)==="todo");
+  const lines=scoped(S.trace,t=>t.tag).slice(-5).reverse();
+  let nextUp="";
+  if(nextTodo) nextUp=`<div class="nextUp">NEXT UP → <b>${esc(featName(nextTodo))}</b></div>`;
+  else{
+    for(const s of STAGES){ const un=s.tiles.find(t=>!S.files[t.f]); if(un){ nextUp=`<div class="nextUp">NEXT UP → <b>${esc(un.label||un.f.replace("app/",""))}</b> <span style="color:var(--ink-dim)">(${s.tag} ${s.name})</span></div>`; break; } }
+  }
+  document.getElementById("panel-now").innerHTML=`
+    <div class="nowGrid">
+      <div class="panelBox">
+        <h3>Where we are</h3>
+        <div class="bigStage">${esc(S.selectedStage||cur.tag)}<small>${esc(S.selectedStage? (STAGES.find(x=>x.tag===S.selectedStage)?.verb||"") : cur.note)}</small></div>
+        ${doing? `<div class="featCard"><div class="fname">IN FLIGHT · ${esc(featName(doing))}</div>
+          <div class="fio">${esc(doing.in||doing["what goes in"]||"")} → ${esc(doing.out||doing["what comes out"]||"")}</div>
+          <div class="fdone">done when: ${esc(doing.done_check||doing["how you know it's done"]||doing.acceptance||"—")}</div>
+          ${cmtChipsHtml("feature:"+featName(doing))}${cmtFormHtml("feature:"+featName(doing))}</div>`:""}
+        ${nextUp}
+      </div>
+      <div class="panelBox">
+        <h3>Last moves — the why</h3>
+        <div class="traceList">${
+          lines.length? lines.map(t=>
+            `<div class="traceLine"><b>${esc(t.tag)}</b> ${esc(t.art)} — <span class="why">${esc(t.why)}</span></div>`).join("")
+          : `<div class="empty">no trace yet — it starts when S1 lands its first artifact</div>`}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderTasks(){
+  const el=document.getElementById("panel-tasks");
+  const stagesToShow=S.selectedStage? STAGES.filter(s=>s.tag===S.selectedStage) : STAGES;
+  // artifact checklist
+  let html=`<div class="groupHead">Artifacts — ${esc(S.selectedStage||"all stages")}</div><div class="artList">`;
+  for(const s of stagesToShow) for(const t of s.tiles){
+    const on=S.files[t.f];
+    html+=`<button class="tile ${on?"on":""}" data-file="${t.f}" data-kind="${t.kind}" ${on?"":"disabled"}>
+      <span class="lamp"></span><span>${esc(s.tag)} · ${esc(t.label||t.f.replace("app/",""))}</span><span class="kind">${t.kind}</span></button>`;
+  }
+  html+=`</div>`;
+  // features (S2-owned; show unless another stage is selected)
+  if(!S.selectedStage || S.selectedStage==="S2"){
+    const groups=[["Doing","doing"],["Up next","todo"],["Done","done"]];
+    for(const [label,st] of groups){
+      const rows=S.features.filter(f=>featStatus(f)===st);
+      html+=`<div class="groupHead">${label} — build features (${rows.length})</div>`;
+      if(!rows.length){ html+=`<div class="empty">${st==="doing"?"nothing in flight":st==="todo"?"no queued features — S2's decompose step writes them from the spec":"nothing finished yet"}</div>`; continue; }
+      for(const f of rows){
+        const n=featName(f), target="feature:"+n;
+        const why=S.trace.slice().reverse().find(t=>stageOf(t.tag)==="S2" && (t.art+" "+t.why).toLowerCase().includes(n.toLowerCase().slice(0,24)));
+        html+=`<div class="featRow ${st}">
+          <span class="lamp"></span>
+          <span class="fname">${esc(n)}</span>
+          <span class="fio">${esc(f.in||f["what goes in"]||"")} → ${esc(f.out||f["what comes out"]||"")}</span>
+          ${cmtFormHtml(target)}
+          ${st==="done"&&why? `<span class="why"><b>why:</b> ${esc(why.why)}</span>`:""}
+          ${cmtChipsHtml(target)}
+        </div>`;
+      }
+    }
+  }
+  // debug inputs (S4-owned; show unless another stage is selected) — the build assistant feeds Debug too
+  if(!S.selectedStage || S.selectedStage==="S4"){
+    const dbgTarget="artifact:app/debug-log.html";
+    html+=`<div class="groupHead">Debug inputs — report a bug or change to fix (${commentsFor(dbgTarget).length})</div>`;
+    html+=`<div class="featRow"><span class="lamp"></span><span class="fname">Report to Debug</span>`+
+      `<span class="fio">Found a bug or a change to make? Say it here — Debug reads it before the next fix.</span>`+
+      `${cmtFormHtml(dbgTarget,"Describe the bug or change — Debug reads it before the next fix.")}${cmtChipsHtml(dbgTarget)}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+function renderLog(){
+  const el=document.getElementById("panel-log");
+  const lines=scoped(S.trace,t=>t.tag).slice().reverse();
+  if(!lines.length){ el.innerHTML=`<div class="empty">no trace entries${S.selectedStage? " for "+S.selectedStage:""} yet</div>`; return; }
+  el.innerHTML=lines.map(t=>{
+    const artFile=(t.art.match(/[\w.-]+\.(html|md|json|txt)/)||[])[0];
+    const known=artFile && STAGES.flatMap(s=>s.tiles).find(x=>x.f.endsWith("/"+artFile));
+    const artHtml = known && S.files[known.f]
+      ? `<a href="#" data-file="${known.f}" data-kind="${known.kind}">${esc(t.art)}</a>`
+      : esc(t.art);
+    return `<div class="logRow"><span class="ts">${esc(t.ts)}</span><span class="chip">${esc(t.tag||"—")}</span><span class="art">${artHtml}</span><span class="why">${esc(t.why)}</span></div>`;
+  }).join("");
+}
+
+/* re-renders every 5s wipe open comment forms — capture and restore them */
+function captureForms(){
+  const open={};
+  document.querySelectorAll(".cmtForm.open").forEach(f=>{
+    open[f.dataset.form]={text:f.querySelector("textarea").value,focus:f.contains(document.activeElement)};
+  });
+  return open;
+}
+function restoreForms(saved){
+  for(const [target,st] of Object.entries(saved)){
+    const f=document.querySelector(`.cmtForm[data-form="${CSS.escape(target)}"]`);
+    if(!f) continue;
+    f.classList.add("open");
+    const ta=f.querySelector("textarea");
+    ta.value=st.text;
+    if(st.focus){ ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); }
+  }
+}
+function renderDrawerChips(){
+  const el=document.getElementById("drawerChips");
+  el.innerHTML = drawerTarget? cmtChipsHtml("artifact:"+drawerTarget) : "";
+}
+function renderTabs(){
+  const saved=captureForms();
+  renderNow(); renderTasks(); renderLog(); renderDrawerChips();
+  restoreForms(saved);
+}
+
+let lastWhyKey="";
+function renderTicker(){
+  const body=document.getElementById("whyBody");
+  const lines=S.trace.filter(t=>t.why).slice().reverse();  // newest first
+  if(!lines.length){ lastWhyKey=""; return; }
+  const topKey=(lines[0].tag||"")+"|"+lines[0].why;
+  const fresh = lastWhyKey && topKey!==lastWhyKey;          // don't flash on first paint
+  lastWhyKey=topKey;
+  body.innerHTML=lines.map((t,i)=>
+    `<tr class="${i===0?"latest":""}${i===0&&fresh?" flash":""}">`+
+    `<td class="c-stage">${esc(t.tag||"—")}</td>`+
+    `<td class="c-art">${esc(t.art||"")}</td>`+
+    `<td class="c-why">${esc(t.why)}</td></tr>`).join("");
+}
+
+/* ── tabs ──────────────────────────────────────────── */
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{
+  S.tab=b.dataset.tab;
+  document.querySelectorAll(".tabbtn").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll(".tabpanel").forEach(p=>p.classList.toggle("active",p.id==="panel-"+S.tab));
+});
+
+/* ── comments: open form / send / fallback ─────────── */
+document.body.addEventListener("click",async e=>{
+  const openBtn=e.target.closest("[data-cmt]");
+  if(openBtn){
+    const f=document.querySelector(`.cmtForm[data-form="${CSS.escape(openBtn.dataset.cmt)}"]`);
+    if(f){ f.classList.toggle("open"); const ta=f.querySelector("textarea"); if(f.classList.contains("open")) ta.focus(); }
+    return;
+  }
+  const sendBtn=e.target.closest("[data-send]");
+  if(sendBtn){
+    const form=sendBtn.closest(".cmtForm");
+    const text=form.querySelector("textarea").value.trim();
+    if(text) await sendComment(sendBtn.dataset.send,text,form.querySelector("textarea"));
+    return;
+  }
+  const logLink=e.target.closest('.logRow a[data-file]');
+  if(logLink){ e.preventDefault(); openArtifact(logLink.dataset.file,logLink.dataset.kind); return; }
+  const tileBtn=e.target.closest('#panel-tasks .tile.on');
+  if(tileBtn){ openArtifact(tileBtn.dataset.file,tileBtn.dataset.kind); return; }
+});
+
+async function sendComment(target,text,ta){
+  const payload={target,text};
+  try{
+    const r=await fetch("/comments",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error("post failed");
+    toast("Comment sent — the builder reads it before the next feature.");
+    if(ta) ta.value="";
+    sweep();
+  }catch(e){
+    const block=JSON.stringify({...payload,ts:new Date().toISOString(),status:"new"},null,2);
+    try{ await navigator.clipboard.writeText(block); toast("No server — comment copied. Paste it into Claude."); }
+    catch(_){ prompt("Copy this and paste it into Claude:",block); }
+  }
+}
+
+/* ── artifact viewer ───────────────────────────────── */
+const drawer=document.getElementById("drawer"),shade=document.getElementById("shade");
+let drawerTarget=null;
+function prettyJson(txt){
+  try{ txt=JSON.stringify(JSON.parse(txt),null,2); }catch(e){}
+  return esc(txt)
+    .replace(/^(\s*)(&quot;.*?&quot;)(\s*:)/gm,'$1<span class="jKey">$2</span>$3')
+    .replace(/: (&quot;.*?&quot;)/g,': <span class="jStr">$1</span>')
+    .replace(/: (-?\d[\d.]*)/g,': <span class="jNum">$1</span>');
+}
+function prettyMd(txt){
+  return esc(txt)
+    .replace(/^(#{1,4} .*)$/gm,'<span class="mdH">$1</span>')
+    .replace(/`([^`\n]+)`/g,'<span class="mdCode">$1</span>');
+}
+async function openArtifact(f,kind){
+  drawerTarget=f;
+  document.getElementById("drawerTitle").textContent=f;
+  const body=document.getElementById("drawerBody");
+  if(kind==="html"){
+    body.innerHTML=`<iframe src="${f}?t=${Date.now()}"></iframe>`;
+  }else{
+    const txt=await fetchText(f);
+    body.innerHTML="<pre>"+(txt==null? "could not load" : (kind==="json"? prettyJson(txt) : prettyMd(txt)))+"</pre>";
+  }
+  renderDrawerChips();
+  drawer.classList.add("open"); shade.classList.add("open");
+}
+document.getElementById("drawerOpenTab").onclick=()=>{ if(drawerTarget) window.open(drawerTarget,"_blank"); };
+document.getElementById("drawerClose").onclick=closeDrawer;
+shade.onclick=closeDrawer;
+function closeDrawer(){drawer.classList.remove("open");shade.classList.remove("open");}
+addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+document.getElementById("drawerCmtSend").onclick=()=>{
+  const ta=document.getElementById("drawerCmtText");
+  const text=ta.value.trim();
+  if(text && drawerTarget) sendComment("artifact:"+drawerTarget,text,ta);
+};
+
+/* ── clock + boot ──────────────────────────────────── */
+setInterval(()=>{document.getElementById("clock").textContent=new Date().toLocaleTimeString([],{hour12:false})},1000);
+if(location.protocol==="file:") document.getElementById("serveHint").style.display="block";
+sweep(); setInterval(sweep,5000);
+</script>
+</body>
+</html>

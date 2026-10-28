@@ -1,0 +1,45 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Local backup of modules/ — rollback escape hatch, never commit
+modules.bak/
+
+# Teaching slides — instructor-side, never part of the student kit
+deck/
+
+# No PDF belongs in the repo — personal documents stay local
+*.pdf
+
+# Secrets
+.env
+.env.local
+.env*.local
+
+# Dashboard session data - regenerated every run, never commit
+app/comments.json
+app/eval-runs.json
+app/qa.json
+app/qa-settings.json
+
+# Eval dashboard error-analysis notes - regenerated each run, never commit
+app/eval-annotations.json

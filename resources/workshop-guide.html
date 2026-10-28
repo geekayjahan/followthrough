@@ -1,0 +1,1634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workshop #2 · Student Kit · Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,800&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================ */
+  /* TOKENS                                                         */
+  /* ============================================================ */
+  :root {
+    --bg: #fbfaf8;
+    --bg-elev: #ffffff;
+    --bg-sunk: #f4f0e8;
+    --ink: #1a1818;
+    --ink-2: #2a2420;
+    --ink-3: #5a4f44;
+    --ink-4: #8a7e72;
+    --ink-5: #b8a896;
+    --line: #ece5dc;
+    --line-2: #ddd2c2;
+    --accent: #b85c38;
+    --accent-2: #d97757;
+    --accent-soft: #f3e4d7;
+    --accent-ink: #7a3d22;
+    --warn: #a86a1f;
+    --good: #4a7d4a;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', 'Menlo', monospace;
+    --shadow-sm: 0 1px 2px rgba(26,24,24,.04), 0 1px 1px rgba(26,24,24,.03);
+    --shadow-md: 0 4px 14px -6px rgba(26,24,24,.08), 0 2px 4px -2px rgba(26,24,24,.04);
+    --radius: 8px;
+    --radius-sm: 5px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-ink); }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-sunk); padding: 1px 6px; border-radius: 3px; color: var(--ink-2); }
+  em { font-style: italic; }
+  strong, b { font-weight: 600; color: var(--ink); }
+
+  /* ============================================================ */
+  /* TOP HEADER + TABS                                              */
+  /* ============================================================ */
+  .top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(251, 250, 248, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .top-inner {
+    max-width: 1320px; margin: 0 auto;
+    display: flex; align-items: center; gap: 24px;
+    padding: 14px 32px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 17px; letter-spacing: -0.01em; color: var(--ink);
+    white-space: nowrap;
+  }
+  .brand .mark {
+    font-family: var(--font-mono); font-size: 11px;
+    background: var(--ink); color: var(--bg);
+    padding: 4px 8px; border-radius: 4px; letter-spacing: 0.06em; font-weight: 500;
+  }
+  .brand .accent-word {
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 6s ease-in-out infinite;
+    font-style: italic; font-weight: 500;
+  }
+  @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+  .tabs { display: flex; gap: 2px; margin-left: auto; }
+  .tab {
+    font-family: var(--font-body); font-weight: 500;
+    font-size: 13px; letter-spacing: -0.005em;
+    padding: 8px 14px; border-radius: 6px;
+    color: var(--ink-3); cursor: pointer;
+    background: transparent; border: none;
+    transition: color 120ms, background 120ms;
+    display: inline-flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .tab .num { font-family: var(--font-mono); font-size: 10px; color: var(--ink-5); }
+  .tab:hover { color: var(--ink); background: var(--bg-sunk); }
+  .tab[aria-selected="true"] {
+    color: var(--accent-ink); background: var(--accent-soft);
+  }
+  .tab[aria-selected="true"] .num { color: var(--accent); }
+
+  /* ============================================================ */
+  /* LAYOUT                                                         */
+  /* ============================================================ */
+  .stage { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+  .panel { display: none; opacity: 0; }
+  .panel[data-active="true"] {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 56px;
+    padding: 40px 0 120px;
+    opacity: 1;
+    animation: rise 240ms cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* sidebar */
+  .side {
+    position: sticky; top: 80px;
+    align-self: start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding-right: 12px;
+    border-right: 1px solid var(--line);
+  }
+  .side::-webkit-scrollbar { width: 6px; }
+  .side::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+  .side .crumb {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 0.08em; color: var(--ink-5);
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .side .crumb span { color: var(--accent); }
+  .side .side-title {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--ink-4); margin-bottom: 14px;
+  }
+  .side ul { list-style: none; }
+  .side li { position: relative; }
+  .side a {
+    display: block;
+    padding: 6px 12px 6px 14px;
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1.4;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: color 120ms, border-color 120ms, background 120ms;
+  }
+  .side a:hover { color: var(--ink); background: var(--bg-sunk); border-left-color: var(--ink-5); }
+  .side a.active {
+    color: var(--accent-ink);
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+    font-weight: 500;
+  }
+  .side .sub a { padding-left: 26px; font-size: 12px; color: var(--ink-4); }
+  .side .reading {
+    margin-top: 22px; padding-top: 16px; border-top: 1px dashed var(--line-2);
+    font-family: var(--font-mono); font-size: 10px; color: var(--ink-5);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .side .reading .meta { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .side .reading b { color: var(--ink-3); font-weight: 500; }
+  .side .related { margin-top: 18px; }
+  .side .related a {
+    border-left: 2px solid var(--ink-5);
+    color: var(--ink-3);
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+  .side .related a::before { content: "→ "; color: var(--accent); }
+
+  /* content */
+  .content { min-width: 0; max-width: 760px; }
+
+  /* ============================================================ */
+  /* HERO                                                           */
+  /* ============================================================ */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .ribbon {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero .ribbon::before {
+    content: ""; width: 28px; height: 1px; background: var(--accent);
+  }
+  .hero h1 {
+    font-family: var(--font-display); font-weight: 300;
+    font-size: 52px; line-height: 1.08; letter-spacing: -0.025em;
+    color: var(--ink); margin-bottom: 18px;
+    padding-bottom: 6px;
+  }
+  .hero h1 .em {
+    font-style: italic; font-weight: 400;
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 6s ease-in-out infinite;
+    display: inline-block;
+    padding-bottom: 0.12em;
+    line-height: 1.12;
+  }
+  .hero .strap {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 22px; line-height: 1.35; color: var(--ink-3);
+    max-width: 88%; margin-bottom: 28px;
+  }
+  .hero .meta-bar {
+    display: flex; gap: 24px; align-items: center;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--ink-3); letter-spacing: 0.02em;
+  }
+  .hero .meta-bar span { display: flex; align-items: center; gap: 8px; }
+  .hero .meta-bar span::before {
+    content: ""; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent); display: inline-block;
+  }
+
+  .ctx-hero h1 { font-size: 48px; }
+
+  /* ============================================================ */
+  /* TYPOGRAPHY                                                     */
+  /* ============================================================ */
+  h2 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 32px; line-height: 1.12; letter-spacing: -0.02em;
+    color: var(--ink); margin: 56px 0 16px;
+    scroll-margin-top: 96px;
+  }
+  h2 .num-prefix {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 400;
+    color: var(--accent); letter-spacing: 0.06em;
+    display: block; margin-bottom: 6px;
+  }
+  h3 {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 22px; line-height: 1.2; letter-spacing: -0.015em;
+    color: var(--ink); margin: 36px 0 12px;
+    scroll-margin-top: 96px;
+  }
+  h4 {
+    font-family: var(--font-body); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-4); margin: 28px 0 10px;
+  }
+  p { margin: 0 0 14px; color: var(--ink-2); }
+  p + p { margin-top: 0; }
+  ul, ol { margin: 0 0 16px 22px; color: var(--ink-2); }
+  li { margin-bottom: 6px; line-height: 1.55; }
+  li::marker { color: var(--accent); }
+  ul.clean { list-style: none; margin-left: 0; }
+  ul.clean li {
+    position: relative; padding-left: 22px; margin-bottom: 8px;
+  }
+  ul.clean li::before {
+    content: ""; position: absolute; left: 0; top: 9px;
+    width: 12px; height: 1px; background: var(--accent);
+  }
+
+  /* ============================================================ */
+  /* CARDS / CALLOUTS                                               */
+  /* ============================================================ */
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 18px 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-step {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 8px 0;
+  }
+  .card-step + .card-step { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 14px; }
+  .card-step .n {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+    color: var(--accent); padding-top: 3px; flex-shrink: 0; min-width: 22px;
+  }
+  .card-step .body { flex: 1; }
+  .card-step .body p { margin: 0; }
+
+  .rule {
+    background: var(--accent-soft);
+    border: 1px solid #e8cdb5;
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 22px 0;
+    position: relative;
+  }
+  .rule .label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rule .label::after { content: ""; flex: 1; height: 1px; background: var(--accent); opacity: 0.3; }
+  .rule p {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 17px; line-height: 1.4; color: var(--accent-ink); margin: 0;
+  }
+  .rule p b { font-style: normal; font-weight: 600; color: var(--accent-ink); }
+
+  .pullquote {
+    margin: 28px 0; padding: 18px 0 18px 28px;
+    border-left: 3px solid var(--ink);
+    position: relative;
+  }
+  .pullquote::before {
+    content: "“"; position: absolute;
+    font-family: var(--font-display); font-size: 56px; line-height: 1;
+    color: var(--accent); top: 4px; left: 6px;
+  }
+  .pullquote p {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 20px; line-height: 1.32; color: var(--ink); margin: 0 0 10px;
+    padding-left: 22px;
+  }
+  .pullquote cite {
+    font-family: var(--font-mono); font-size: 11px; font-style: normal;
+    letter-spacing: 0.06em; color: var(--ink-4); padding-left: 22px;
+    display: block;
+  }
+  .pullquote cite::before { content: "· "; color: var(--accent); }
+
+  .stat {
+    display: inline-flex; align-items: baseline; gap: 8px;
+    background: var(--bg-sunk); border: 1px solid var(--line);
+    padding: 4px 10px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--ink-3);
+  }
+  .stat b { color: var(--accent); font-weight: 600; }
+
+  .note {
+    background: #fdf7ef;
+    border: 1px solid #e8d4b8;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .note .label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--warn); margin-bottom: 6px;
+  }
+
+  /* ============================================================ */
+  /* TABLES                                                         */
+  /* ============================================================ */
+  .table-wrap {
+    margin: 18px 0 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-elev);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td {
+    text-align: left; vertical-align: top;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  th {
+    font-family: var(--font-body); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-4); background: var(--bg-sunk);
+    border-bottom: 1px solid var(--line-2);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(184, 92, 56, 0.025); }
+  td code { font-size: 12px; }
+  td strong { color: var(--ink); }
+
+  /* ============================================================ */
+  /* PRE / CODE BLOCKS                                              */
+  /* ============================================================ */
+  pre.diagram, pre.tree {
+    font-family: var(--font-mono); font-size: 12.5px; line-height: 1.7;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 18px 0;
+    color: var(--ink-2);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  pre.tree { font-size: 12px; line-height: 1.65; padding: 22px 28px; }
+  pre .s { color: var(--accent); font-weight: 600; }
+  pre .arrow { color: var(--ink-5); }
+  pre .out { color: var(--ink-3); }
+  pre .comment { color: var(--ink-4); font-style: italic; }
+  pre .dir { color: var(--ink); font-weight: 500; }
+
+  /* ============================================================ */
+  /* SESSIONS · CARDS                                               */
+  /* ============================================================ */
+  .session {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin: 18px 0 28px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .session::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  }
+  .session-head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 14px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .session-head .id {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    color: var(--bg); background: var(--accent);
+    padding: 4px 10px; border-radius: 4px;
+    letter-spacing: 0.06em;
+  }
+  .session-head h3 {
+    margin: 0; font-size: 24px; font-weight: 400;
+    flex: 1;
+  }
+  .session-head .pattern {
+    font-family: var(--font-display); font-style: italic; font-size: 14px;
+    color: var(--ink-4);
+  }
+  .session .blueprint-link {
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--accent); margin-bottom: 14px; display: inline-block;
+  }
+  .session .blueprint-link::after { content: " ↗"; color: var(--accent-2); }
+  .session h4.subhead {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--accent); margin-top: 18px; margin-bottom: 8px;
+    border: none;
+  }
+  .session p { color: var(--ink-2); }
+
+  /* ============================================================ */
+  /* RESEARCH RESOURCES · LINK CARDS                                */
+  /* ============================================================ */
+  .res-group { margin-bottom: 28px; }
+  .res-group h3 { margin-top: 32px; margin-bottom: 14px; }
+  .res-list {
+    display: grid; grid-template-columns: 1fr; gap: 8px;
+  }
+  .res-item {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    transition: border-color 160ms, transform 160ms;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .res-item:hover {
+    border-color: var(--accent);
+    transform: translateX(2px);
+  }
+  .res-item .t {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 15px; color: var(--ink);
+    line-height: 1.3;
+  }
+  .res-item .t a { color: var(--ink); }
+  .res-item .t a:hover { color: var(--accent); }
+  .res-item .d {
+    font-size: 13px; color: var(--ink-3); line-height: 1.45;
+  }
+  .res-item .u {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-5); margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .res-item .u a { color: var(--accent); }
+
+  .principle-list { list-style: none; margin-left: 0; }
+  .principle-list li {
+    padding: 12px 0 12px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    font-size: 14.5px; line-height: 1.55;
+  }
+  .principle-list li::before {
+    content: "•"; position: absolute; left: 4px; top: 11px;
+    color: var(--accent); font-size: 18px; font-weight: 600;
+  }
+  .principle-list li:last-child { border-bottom: none; }
+  .principle-list li b { color: var(--ink); font-weight: 600; }
+
+  /* ============================================================ */
+  /* CONTEXT DISCIPLINE · DOT RAIL                                  */
+  /* ============================================================ */
+  .panel.context { position: relative; }
+  .dot-rail {
+    position: fixed; right: 24px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 20;
+    padding: 12px 6px;
+    background: rgba(251, 250, 248, 0.85);
+    backdrop-filter: blur(6px);
+    border-radius: 99px;
+    border: 1px solid var(--line);
+  }
+  .dot-rail a {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--line-2);
+    transition: all 160ms;
+    display: block;
+    position: relative;
+  }
+  .dot-rail a:hover { background: var(--accent-2); width: 6px; }
+  .dot-rail a.active {
+    background: var(--accent);
+    height: 22px;
+    border-radius: 3px;
+  }
+  .dot-rail a::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms;
+    letter-spacing: 0.04em;
+  }
+  .dot-rail a:hover::after { opacity: 1; }
+  @media (max-width: 1180px) { .dot-rail { display: none; } }
+
+  /* ============================================================ */
+  /* DISCIPLINE BLOCKS (D1-D5)                                      */
+  /* ============================================================ */
+  .discipline {
+    margin: 28px 0;
+    padding: 24px 28px;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    position: relative;
+  }
+  .discipline::before {
+    content: attr(data-id);
+    position: absolute; top: -10px; left: 24px;
+    background: var(--ink); color: var(--bg);
+    font-family: var(--font-mono); font-weight: 600;
+    font-size: 11px; padding: 4px 10px;
+    border-radius: 3px; letter-spacing: 0.08em;
+  }
+  .discipline h3 { margin-top: 8px; }
+
+  /* ============================================================ */
+  /* FINE-PRINT FOOTER                                              */
+  /* ============================================================ */
+  .disclaimer {
+    margin-top: 64px; padding: 22px 26px;
+    background: var(--bg-sunk);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-family: var(--font-display); font-style: italic;
+    color: var(--ink-3); font-size: 14px; line-height: 1.5;
+  }
+
+  /* ============================================================ */
+  /* RESPONSIVE                                                     */
+  /* ============================================================ */
+  @media (max-width: 960px) {
+    .top-inner { padding: 12px 18px; }
+    .stage { padding: 0 18px; }
+    .panel[data-active="true"] {
+      grid-template-columns: 1fr; gap: 24px; padding: 20px 0 80px;
+    }
+    .side {
+      position: static; max-height: none; overflow: visible;
+      border-right: none; border-bottom: 1px solid var(--line);
+      padding-right: 0; padding-bottom: 18px;
+    }
+    .hero h1 { font-size: 38px; padding-bottom: 4px; }
+    .ctx-hero h1 { font-size: 34px; }
+    .hero .strap { font-size: 18px; max-width: 100%; }
+    h2 { font-size: 26px; }
+    .session { padding: 20px 22px; }
+    .session-head { flex-wrap: wrap; }
+    .tabs { gap: 0; flex-wrap: wrap; }
+    .tab { padding: 6px 10px; font-size: 12px; }
+    .tab .num { display: none; }
+  }
+
+  /* small loading paint trick */
+  .panel { transition: opacity 200ms; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================== -->
+<!-- TOP HEADER + TABS                                                -->
+<!-- ============================================================== -->
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <span class="mark">WS2</span>
+      <span>Student Kit <span class="accent-word">Guide</span></span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="overview"><span class="num">01</span>Overview</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="sessions"><span class="num">02</span>Sessions</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="reference"><span class="num">03</span>Reference</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="context"><span class="num">04</span>Context Discipline</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ============================================================== -->
+<!-- TAB 01 · OVERVIEW                                                -->
+<!-- ============================================================== -->
+<main class="stage">
+
+<section class="panel" id="overview" data-active="true">
+  <aside class="side">
+    <div class="crumb">WS2 <span>›</span> Overview</div>
+    <div class="side-title">On this page</div>
+    <ul class="side-nav">
+      <li><a href="#ov-start">Start here</a></li>
+      <li><a href="#ov-arc">The arc</a></li>
+      <li><a href="#ov-runs">How the workshop runs</a></li>
+      <li><a href="#ov-worked">Worked example</a></li>
+    </ul>
+    <div class="reading">
+      <div class="meta"><span>Reading</span><b>~14 min</b></div>
+      <div class="meta"><span>Updated</span><b>July 2026</b></div>
+    </div>
+    <div class="related">
+      <div class="side-title" style="margin-top:18px">Related</div>
+      <a href="#sessions" data-go="sessions">Sessions S1–S5</a>
+      <a href="#context" data-go="context">Context Discipline</a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="hero">
+      <div class="ribbon">Workshop #2 · The Product Builder Certification</div>
+      <h1>From vibe coding to <span class="em">spec engineering</span>.</h1>
+      <div class="strap">Five sessions, one trace, every artifact built live in front of you: spec, build, scorecard, debug log, strip.</div>
+      <div class="meta-bar">
+        <span>5 hours live</span>
+        <span>5 sessions</span>
+        <span>bring your laptop</span>
+      </div>
+    </div>
+
+    <h2 id="ov-start"><span class="num-prefix">§ 01</span>Start here</h2>
+    <div class="card">
+      <div class="card-step">
+        <span class="n">01</span>
+        <div class="body"><p><strong>Before the session</strong> (20 min): install Claude Code and sign in · install Node.js LTS and git · run <code>claude</code> from the kit's root and type <code>/</code> — seeing the workshop skills listed is the whole check.</p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">02</span>
+        <div class="body"><p><strong>Start the kit server</strong> — <code>node scripts/serve.mjs</code> from the kit's root, in its own terminal, left running the whole session. Open <code>http://localhost:4000/build-assistant.html</code>: every tile grey is the correct first look, because nothing is built yet. The server lights those tiles and carries your notes back to the build.</p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">03</span>
+        <div class="body"><p>Show up with your laptop. We build everything live.</p></div>
+      </div>
+    </div>
+
+    <h2 id="ov-arc"><span class="num-prefix">§ 02</span>The arc</h2>
+    <pre class="diagram"><span class="s">S1</span>  Spec                 <span class="arrow">→</span>  <span class="out">spec.html + spec-summary.json + CLAUDE.md + evals.md</span>
+<span class="s">S2</span>  Build                <span class="arrow">→</span>  <span class="out">feature-list.json + app-spec.json + the source under app/</span>
+<span class="s">S3</span>  Eval                 <span class="arrow">→</span>  <span class="out">eval-results.html (pass/fail per check, independent judge)</span>
+<span class="s">S4</span>  Debug                <span class="arrow">→</span>  <span class="out">debug-log.html (one Surgical Fix per failed check)</span>
+<span class="s">S5</span>  Strip                <span class="arrow">→</span>  <span class="out">recall-notice.html + strip-plan.html + strip-page.html</span></pre>
+
+    <div class="rule">
+      <div class="label">The trace</div>
+      <p>Across all five sessions, one trace, <b>claude-progress.txt</b>, accumulates the rationale for every decision. The next session reads it.</p>
+    </div>
+
+    <div class="rule">
+      <div class="label">One line for the day</div>
+      <p><b>The spec is the product; code is the disposable thing you regenerate from it.</b> AI doesn't fail so much as drift — ask it for "the best options" and it won't error, it returns stale results and invented sources without ever saying the ask was underspecified. The cure isn't a better model. It's a spec.</p>
+    </div>
+
+    <h2 id="ov-runs"><span class="num-prefix">§ 03</span>How the workshop runs</h2>
+    <p>For each session:</p>
+    <div class="card">
+      <div class="card-step">
+        <span class="n">01</span>
+        <div class="body"><p><strong>Type the command or paste the RUN block</strong> — <code>/spec</code>, <code>/build</code>, <code>/eval</code>, <code>/surgical-fix</code>, <code>/strip</code>. Either way it reads the same blueprint and lands the same artifact.</p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">02</span>
+        <div class="body"><p><strong>The skill reads its blueprint</strong> in <code>modules/</code> — the procedure is on disk, never from memory.</p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">03</span>
+        <div class="body"><p><strong>The artifact lands in <code>app/</code></strong> and its tile lights up on <code>build-assistant.html</code>. The next session reads it from there.</p></div>
+      </div>
+    </div>
+    <div class="note">
+      <div class="label">On the projector</div>
+      Run <code>node scripts/serve.mjs</code> from the kit root and keep two screens up: this guide (<code>resources/workshop-guide.html</code>) and <code>build-assistant.html</code> (the live build — tiles light up as artifacts land, tasks tick doing→done, the why-feed crawls, and comment boxes feed the builder mid-build).
+    </div>
+    <div class="rule">
+      <div class="label">Discipline</div>
+      <p>Every artifact appears in front of you. Nothing is shown that hasn't been built live.</p>
+    </div>
+
+    <div class="pullquote">
+      <p>Monday morning you open <code>/spec</code> on your own problem.</p>
+    </div>
+
+    <h2 id="ov-worked"><span class="num-prefix">§ 04</span>Worked example: what each session reads, does, writes</h2>
+    <p>Same shape across all five sessions: INPUT → STAGE → OUTPUT.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Session</th><th>INPUT (what it reads)</th><th>STAGE (what it does)</th><th>OUTPUT (what lands)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>S1</strong></td>
+          <td>Your rough idea, one sentence — the interview does the rest</td>
+          <td>The AI interviews <em>you</em>, one topic at a time; it won't write until the problem is sharp, solution-free, and confirmed. Then it writes the 7-part spec.</td>
+          <td><code>app/spec.html</code> · <code>app/CLAUDE.md</code> · <code>app/spec-summary.json</code> · <code>app/evals.md</code></td>
+        </tr>
+        <tr>
+          <td><strong>S2</strong></td>
+          <td><code>app/spec.html</code> + <code>app/claude-progress.txt</code></td>
+          <td>decompose → initialize (<strong>halts at the credential checkpoint</strong> until the key lands in <code>.env</code>, gitignored — never pasted into the chat, never written into any other file) → write the code, one feature at a time</td>
+          <td><code>app/feature-list.json</code> · <code>app/app-spec.json</code> · <code>app/</code> source · per-feature trace entries · per-feature git commits</td>
+        </tr>
+        <tr>
+          <td><strong>S3</strong></td>
+          <td><code>app/evals.md</code> + app outputs (entry point located via trace)</td>
+          <td>Encode each check as <em>code</em> or <em>judge</em> (one reviewer dimension each) → a fresh, independent judge grades binary → human-led error analysis names the patterns in the traces</td>
+          <td><code>app/eval-results.html</code> — pass / fail / <strong>can't-tell</strong> per check, evidence naming every failing item</td>
+        </tr>
+        <tr>
+          <td><strong>S4</strong></td>
+          <td><code>app/eval-results.html</code> failed rows (eval-driven) <strong>or</strong> ad-hoc bug from user (manual)</td>
+          <td>Locate first (trace → feature → commit → file:line), then NAME → MAKE → RE-RUN → VERIFY → LOG · one change per entry</td>
+          <td><code>app/debug-log.html</code> — one receipt per fix — + trace entries + <code>app/CLAUDE.md</code> §2 if a durable tenet surfaced</td>
+        </tr>
+        <tr>
+          <td><strong>S5</strong></td>
+          <td>NEW MODEL name + <code>app/</code> harness + the trace, scorecard, and debug log</td>
+          <td>Model Recall → evidence per scaffold → <strong>user review checkpoint</strong> → confirmed strips</td>
+          <td><code>app/recall-notice.html</code> · <code>app/strip-plan.html</code> · <code>app/strip-page.html</code> + trace + <code>CLAUDE.md</code> §2</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Across all five, one trace, <code>app/claude-progress.txt</code>, accumulates the rationale for every decision. The next session reads it.</p>
+    <div class="rule">
+      <div class="label">What the structure teaches</div>
+      <p>Each session reads the upstream artifact and produces the artifact the next session will read. The build reads the spec directly; the judge is never the builder; the strip cuts only what the traces prove. <b>Each artifact is the only handoff that crosses session boundaries: the discipline lives in that handoff.</b></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- TAB 02 · SESSIONS                                                -->
+<!-- ============================================================== -->
+<section class="panel" id="sessions">
+  <aside class="side">
+    <div class="crumb">WS2 <span>›</span> Sessions</div>
+    <div class="side-title">Five sessions</div>
+    <ul class="side-nav">
+      <li><a href="#s1">S1 · Spec</a></li>
+      <li><a href="#s2">S2 · Build</a></li>
+      <li><a href="#s3">S3 · Eval</a></li>
+      <li><a href="#s4">S4 · Debug</a></li>
+      <li><a href="#s5">S5 · Strip</a></li>
+      <li><a href="#tools">The four tools</a></li>
+    </ul>
+    <div class="reading">
+      <div class="meta"><span>Reading</span><b>~9 min</b></div>
+      <div class="meta"><span>Pattern</span><b>per-session</b></div>
+    </div>
+    <div class="related">
+      <div class="side-title" style="margin-top:18px">Related</div>
+      <a href="#overview" data-go="overview">Overview &amp; arc</a>
+      <a href="#reference" data-go="reference">Reference</a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="hero">
+      <div class="ribbon">02 · The five sessions</div>
+      <h1>What each session <span class="em">teaches</span>, and why.</h1>
+      <div class="strap">Each card carries what the session teaches alongside why the pattern works.</div>
+    </div>
+
+    <!-- S1 -->
+    <article class="session" id="s1">
+      <div class="session-head">
+        <span class="id">S1</span>
+        <h3>Spec — Working Backwards</h3>
+        <span class="pattern">interview → write</span>
+      </div>
+      <a class="blueprint-link" href="../modules/s1-working-backwards/working-backwards-blueprint.md">Session blueprint</a>
+      <p>Two steps. First the AI interviews <em>you</em> — one topic at a time, probing the soft spots (who has the problem, the pain today, what "good" looks like, then the edges and constraints you haven't thought through) — and it won't write until the problem is sharp, solution-free, every fuzzy word pinned, and you've confirmed it. Then it writes the six-part spec: the problem, what good looks like, inputs &amp; interfaces, out of scope, the acceptance checks, and the tech stack. It says <em>what</em> must be true; the build works out <em>how</em>. You walk out with a spec the build reads verbatim, the CLAUDE.md that primes every future session, and the checks in <code>evals.md</code> the app will be measured against.</p>
+      <h4 class="subhead">Why this pattern ·Work backwards from the customer, not the solution</h4>
+      <p>Working Backwards is the front half — the promise and the hard questions. The engineering back half — the acceptance checks and the tech stack — is what makes the spec buildable; breaking it into tasks is the build's job. Skip either half and it stops being spec engineering. The one-shot <code>/ambiguity-audit</code> then reads the finished spec as an independent critic: names used before they're defined, instructions with no how, numbers with no bound, adjectives with no measure — each with a price tag for what it would cost if it reached the build.</p>
+    </article>
+
+    <!-- S2 -->
+    <article class="session" id="s2">
+      <div class="session-head">
+        <span class="id">S2</span>
+        <h3>Build</h3>
+        <span class="pattern">three single-responsibility subagents on one harness</span>
+      </div>
+      <a class="blueprint-link" href="../modules/s2-build/build-blueprint.md">Session blueprint</a>
+      <p>Three subagents, reading the spec directly: decompose → initialize → write the code. The first breaks the spec's what-good-looks-like and checks into buildable features, in order — every feature cites the spec line it serves, so it can't invent one. The second pins the shared foundation from the spec's Tech stack and Inputs &amp; interfaces (one database, one auth path, one design system) and <strong>halts at the credential checkpoint</strong> if a needed key is missing — the key goes into <code>.env</code> (gitignored), never pasted into the chat, never written into any other file, and the build never starts half-wired. The third writes one feature at a time, draws every screen with the <code>frontend-design</code> skill from the spec's "what good looks like", reads your dashboard comments before each feature, and writes a RATIONALE entry per feature. You walk out with a running app and a trace that names which feature owns which decision.</p>
+      <p><strong>Checkpoints: Credential, Comment, Question — blocking conditions that halt the build.</strong> And three changes are one-way doors that need a written reason first: inventing a feature that serves no spec line or check, using a tech choice not in the config, marking a feature done with no trace line. Everything else rolls back free.</p>
+      <h4 class="subhead">Why this pattern ·Three single-responsibility prompts on one harness</h4>
+      <p>Anthropic's Planner / Generator / Evaluator framing. The workshop maps the decompose and initialize steps to the Planner role (split for traceability), the coding step to the Generator, and S3's independent judge to the Evaluator. The full three-prompt harness runs ~20× the tokens of a single-chat build (Anthropic: ~$200 vs ~$9 for representative tasks). The justification is durability across context resets and per-feature traceability into S3's failed checks, not raw capability.</p>
+      <div class="rule">
+        <div class="label">Principle</div>
+        <p>Find the simplest solution possible, and only increase complexity when needed. The decompose step is the workshop's complexity addition, kept while debugging in S4 needs per-feature granularity, stripped in S5 if a future model handles whole-app builds reliably.</p>
+      </div>
+    </article>
+
+    <!-- S3 -->
+    <article class="session" id="s3">
+      <div class="session-head">
+        <span class="id">S3</span>
+        <h3>Eval</h3>
+        <span class="pattern">independent judge (cross-session split)</span>
+      </div>
+      <a class="blueprint-link" href="../modules/s3-eval/eval-blueprint.md">Session blueprint</a>
+      <p><strong>Top-down — the checks you wrote.</strong> The build faces the bar-raiser panel's five reviewer dimensions — QA · Architect · Security · Customer sense · Data/accuracy — each raising its one hard question. The checks come from <code>evals.md</code> (you wrote them in S1), each encoded as <em>code</em> (a count, regex, or status code decides it — always preferred) or <em>judge</em> (meaning has to be interpreted; the judge gets two worked examples), and each owned by a reviewer. A reviewer with zero checks halts the eval — answer with the missing check, or with "not relevant here" and a reason, logged as an accepted blind spot. A fresh, independent pass then grades every check binary: pass / fail / <strong>can't-tell</strong>. A row that fails a hard check can't pass anything else, and a check this run never exercised is a can't-tell, never a pass.</p>
+      <p><strong>Bottom-up — what you never thought to check.</strong> Your checks were written before the app existed, so they can only catch what the spec already imagined. You read every failure <em>and five rows that passed</em>, noting the first thing that went wrong (the root cause, not the cascade; observations, not explanations). The notes cluster into patterns, and every pattern exits one of three doors: <em>fix the obvious, spec the repeating, log the rest</em>. An all-green scorecard is the warning case, not the finish line — it means the checks were too soft, and the passing rows are where the next harder one comes from.</p>
+      <p>The dashboard carries both passes — scorecard · traces · patterns · actions — with a run-over-run strip where each fix visibly flips a light.</p>
+      <h4 class="subhead">Why this pattern ·the judge is a separate inference call</h4>
+      <p>Self-evaluation fails structurally: the same model biases toward favourable scoring of work it just produced. The fix is a separate inference call, not a better prompt. But independence makes the judge more trustworthy, not right — so you spot-check three of its verdicts, at least one a pass. A wrong fail gets caught anyway when someone goes to fix it; a wrong pass never does, because nobody investigates a green light. A <strong>can't-tell</strong> means the spec never pinned it down, or this run never tested the case. Either way that's a spec fix and a re-run, not a debug item; the spec is allowed to change as you learn.</p>
+      <div class="rule">
+        <div class="label">Principle</div>
+        <p>Green means the machine-runnable checks came back clean — simulated reviewers aren't real audits. For money, data, or safety, a human still signs off.</p>
+      </div>
+      <div class="note">
+        <div class="label">Research note</div>
+        Judge prompts with 3 critique examples land ~15–20% higher human/model agreement than a plain LLM-judge. The kit asks for two, deliberately — the third example costs live-session time for a margin you won't feel on a workshop-sized app. Working alone on something that matters, use three.
+      </div>
+    </article>
+
+    <!-- S4 -->
+    <article class="session" id="s4">
+      <div class="session-head">
+        <span class="id">S4</span>
+        <h3>Debug</h3>
+        <span class="pattern">Surgical Fix · one change at the named layer</span>
+      </div>
+      <a class="blueprint-link" href="../modules/s4-debug/surgical-fix-blueprint.md">Session blueprint</a>
+      <p>For each failed check: <strong>locate it first</strong> — M1 trace → M2 feature → M3 commit → M4 file:line (M5 read-back, human-reported bugs only) — then name the layer (spec · screen · tech stack · prompt · data · code), make one targeted change, re-run <em>every</em> check, log the before/after. One change per entry. If the layer is ambiguous, <code>/deep-dive</code> surfaces it. You walk out with debug-log.html, one receipt per fix — tokens, model, and cost for AI fixes; files and lines for code edits — and a prototype that passes the bar.</p>
+      <h4 class="subhead">Why this pattern ·Surgical Fix as the spec-engineer's discipline</h4>
+      <p>Debug is the standout that separates spec engineering from vibe coding. Vibe-coders sweep plausible changes and hope. Spec engineers run NAME → MAKE → RE-RUN → VERIFY → LOG and show the receipts.</p>
+      <div class="pullquote">
+        <p>Every component in a harness encodes an assumption about what the model can't do on its own. The layer you fix is the assumption you're correcting.</p>
+        <cite>Anthropic harness research</cite>
+      </div>
+    </article>
+
+    <!-- S5 -->
+    <article class="session" id="s5">
+      <div class="session-head">
+        <span class="id">S5</span>
+        <h3>Strip</h3>
+        <span class="pattern">Model Recall + Strip discipline</span>
+      </div>
+      <a class="blueprint-link" href="../modules/s5-strip/strip-blueprint.md">Session blueprint</a>
+      <p>A new model launch fires a Model Recall on your harness. For each piece of scaffolding (pre-baked lookups, extra validation passes, UI scaffolding, prompt workarounds), the trace tells you whether the new model still needs it: does the trace show it firing, did it ever catch a failed check, did any fix touch it, does the build go red without it. Evidence per scaffold, a proposed call per card, then <strong>your sign-off at the review checkpoint</strong> — the agent never strips on its own. Cap around four strips a session; depth per scaffold beats a long list. You walk out with a leaner harness and the discipline to do this every time a new model ships.</p>
+      <h4 class="subhead">Why this pattern ·Strip with traces, not hope</h4>
+      <div class="pullquote">
+        <p>Harnesses encode assumptions that go stale as models improve.</p>
+        <cite>Anthropic Managed Agents</cite>
+      </div>
+      <p>Canonical example, from 2025: Sonnet 4.5 had <em>"context anxiety"</em>, wrapping tasks up prematurely as it sensed the context limit. Resets were added. Same harness on Opus 4.5 → behavior gone → resets became dead weight. Counter-discipline from Willison's March 2026 Claude Code postmortem: harness <em>"improvements"</em> caused real regressions. On the 5.x family the documented remainder is context anxiety when the harness shows a token countdown; the fix is to stop showing it, not to add resets.</p>
+      <div class="rule">
+        <div class="label">Discipline</div>
+        <p><b>Strip because you ran traces, not because a model shipped.</b></p>
+      </div>
+    </article>
+
+    <!-- TOOLS -->
+    <h2 id="tools"><span class="num-prefix">§ +</span>The four tools — for when the path gets fuzzy</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>/ambiguity-audit</code></td><td>Finds the words in your spec the AI could read two ways — before the build.</td></tr>
+        <tr><td><code>/bar-raiser</code></td><td>Four checks (customer · data · bet · owner) on any doc before you send it. One fix-and-re-evaluate pass — still failing means it's not ready.</td></tr>
+        <tr><td><code>/deep-dive</code></td><td>5 Whys to a fixable root cause when you can't see the layer. Refuses causes you can't fix: "we forgot", "human error", "communication gap".</td></tr>
+        <tr><td><code>/explain</code></td><td>Interrogates the build against the spec — where does each requirement live, what breaks if you change it. Not a summary. A requirement with no home in the code is a gap — a bug for S4.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- TAB 03 · REFERENCE                                               -->
+<!-- ============================================================== -->
+<section class="panel" id="reference">
+  <aside class="side">
+    <div class="crumb">WS2 <span>›</span> Reference</div>
+    <div class="side-title">On this page</div>
+    <ul class="side-nav">
+      <li><a href="#ref-tokens">Receipts</a></li>
+      <li><a href="#ref-anti">Anti-pattern</a></li>
+      <li><a href="#ref-research">Research resources</a>
+        <ul class="sub">
+          <li><a href="#ref-anthropic">Anthropic · harness</a></li>
+          <li><a href="#ref-amazon">Amazon · Working Backwards</a></li>
+          <li><a href="#ref-eval">Evaluation discipline</a></li>
+          <li><a href="#ref-html">HTML as artifact</a></li>
+          <li><a href="#ref-spec">Spec engineering</a></li>
+          <li><a href="#ref-token">Token economics</a></li>
+          <li><a href="#ref-tooling">Adjacent tooling</a></li>
+        </ul>
+      </li>
+      <li><a href="#ref-disciplines">Borrowed disciplines</a></li>
+      <li><a href="#ref-original">Workshop-original techniques</a></li>
+      <li><a href="#ref-worked-repo">Your app</a></li>
+    </ul>
+    <div class="reading">
+      <div class="meta"><span>Reading</span><b>~12 min</b></div>
+      <div class="meta"><span>Links</span><b>22</b></div>
+    </div>
+    <div class="related">
+      <div class="side-title" style="margin-top:18px">Related</div>
+      <a href="#sessions" data-go="sessions">Sessions</a>
+      <a href="#context" data-go="context">Context Discipline</a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="hero">
+      <div class="ribbon">03 · Reference &amp; receipts</div>
+      <h1>Reading list, <span class="em">receipts</span>, and disciplines.</h1>
+      <div class="strap">Why-it-matters notes, the anti-pattern that breaks decomposition, and every source the workshop is built on.</div>
+    </div>
+
+    <h2 id="ref-tokens"><span class="num-prefix">§ 01</span>Receipts: accountability for every fix</h2>
+    <p>Every entry in <code>debug-log.html</code> carries a receipt. For AI fixes: <strong>input tokens · output tokens · model name · approximate cost in dollars</strong>. For plain code edits: <strong>the files and lines touched</strong>. No receipts means no accountability, and that is the vibe-coding failure mode.</p>
+    <div class="rule">
+      <div class="label">Rule</div>
+      <p>Show the receipt.</p>
+    </div>
+
+    <div class="note">
+      <div class="label">Rendering artifacts</div>
+      Every HTML artifact carries the five-stage strip (S1 spec → S2 build → S3 eval → S4 debug → S5 strip) in its header. Only <code>app/spec.html</code> carries the selection annotator — select any text, a popover posts your note anchored to that passage, and the build folds it in; every other artifact is a read-only review surface. Artifacts are rendered via the <code>frontend-design</code> skill, never hand-rolled.
+    </div>
+
+    <h2 id="ref-anti"><span class="num-prefix">§ 02</span>Anti-pattern: don't skip decomposition</h2>
+    <p>A coding step that reads only <code>app-spec.json</code> (the config) without <code>feature-list.json</code> builds the whole app in one pass. The trace can't then tell you which feature regressed when a check fails in S3, and S4's Surgical Fix has nowhere to land.</p>
+    <p>When a check fails in S3, open <code>claude-progress.txt</code> and look for the entry whose RATIONALE explains the failure path. If the trace doesn't surface the cause, it was too thin. Invoke <code>/deep-dive</code> on the fuzzy incident; the output appends to the trace.</p>
+
+    <h2 id="ref-research"><span class="num-prefix">§ 03</span>Research resources</h2>
+    <p>The disciplines below are the chassis the workshop is built on. Read in any order; each one stands alone.</p>
+
+    <section class="res-group" id="ref-anthropic">
+      <h3>Anthropic · harness research <em>(the core reference)</em></h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t"><a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a></div>
+          <div class="d">(Dec 2024). The canonical taxonomy: prompt chaining · routing · parallelization · orchestrator-workers · evaluator-optimizer · agents.</div>
+          <div class="u">anthropic.com/engineering/building-effective-agents</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Effective harnesses for long-running agents</a></div>
+          <div class="d">Footnote 1 defines "two agents" as two prompts on the same harness.</div>
+          <div class="u">anthropic.com/engineering/effective-harnesses-for-long-running-agents</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Harness design for long-running application development</a></div>
+          <div class="d">(March 24, 2026). Background.</div>
+          <div class="u">anthropic.com/engineering/harness-design-long-running-apps</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://www.anthropic.com/engineering/managed-agents">Scaling Managed Agents: Decoupling the brain from the hands</a></div>
+          <div class="d">(April 8, 2026). Harnesses encode assumptions that go stale as models improve.</div>
+          <div class="u">anthropic.com/engineering/managed-agents</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="res-group" id="ref-amazon">
+      <h3>Amazon · Working Backwards + PR-FAQ</h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t"><a href="https://www.linkedin.com/posts/bill-carr_in-the-mid-2000s-amazon-developed-the-working-activity-7394107700 90000016-no5e">Bill Carr on the FAQ-as-<em>why</em> in the AI prototyping era</a></div>
+          <div class="d"><em>"The PR may become the prototype. The FAQ cannot."</em></div>
+          <div class="u">linkedin.com/posts/bill-carr_…</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://coda.io/@colin-bryar/working-backwards-how-write-an-amazon-pr-faq">Bill Carr &amp; Colin Bryar, <em>Working Backwards</em></a></div>
+          <div class="d">The canonical PR-FAQ reference.</div>
+          <div class="u">coda.io/@colin-bryar/working-backwards-how-write-an-amazon-pr-faq</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="res-group" id="ref-eval">
+      <h3>Evaluation discipline</h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t"><a href="https://hamel.dev/blog/posts/field-guide/">A Field Guide to Rapidly Improving AI Products</a></div>
+          <div class="d">The obsession is measurement, not tools.</div>
+          <div class="u">hamel.dev/blog/posts/field-guide/</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://hamel.dev/blog/posts/evals/">Your AI Product Needs Evals</a></div>
+          <div class="d">Why evals are the load-bearing artifact.</div>
+          <div class="u">hamel.dev/blog/posts/evals/</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://hamel.dev/blog/posts/evals-faq/">LLM Evals: Everything You Need to Know</a></div>
+          <div class="d">The source for S3's whole second pass — error analysis, open coding, why binary beats a 1–5 scale, and why an all-green run means your checks are too soft.</div>
+          <div class="u">hamel.dev/blog/posts/evals-faq/</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://hamel.dev/notes/llm/data-processing/shreya-data-processing.html">How to Process Documents at Scale with LLMs</a></div>
+          <div class="d">The <strong>Three Gulfs</strong> framework: Comprehension · Specification · Generalization.</div>
+          <div class="u">hamel.dev/notes/llm/data-processing/shreya-data-processing.html</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://github.com/hamelsmu/evals-skills/blob/main/skills/error-analysis/SKILL.md">Error-analysis skill</a></div>
+          <div class="d">The discipline S3's second pass borrows: open-code first, categories emerge from the traces, fix the obvious before building evaluators.</div>
+          <div class="u">github.com/hamelsmu/evals-skills</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://github.com/shreyashankar/error-discovery-skill">Error-discovery skill</a></div>
+          <div class="d">Human-annotation-driven error discovery with diverse sampling — the pattern behind the TRACES tab.</div>
+          <div class="u">github.com/shreyashankar/error-discovery-skill</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="res-group" id="ref-html">
+      <h3>HTML as the artifact convention</h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t">Using Claude Code: The Unreasonable Effectiveness of HTML</div>
+          <div class="d">(May 2026). HTML beats Markdown for plans, reviews, and design systems past ~100 lines.</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://www.lennysnewsletter.com/p/how-i-ai-html-is-the-new-markdown">How I AI: HTML is the new Markdown. How Anthropic engineers are building with Claude Code</a></div>
+          <div class="d">(May 2026)</div>
+          <div class="u">lennysnewsletter.com/p/how-i-ai-html-is-the-new-markdown</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://thariqs.github.io/html-effectiveness">HTML effectiveness gallery</a></div>
+          <div class="d">20 published HTML artifacts (implementation plans, PR reviews with inline diffs, design systems, slide decks).</div>
+          <div class="u">thariqs.github.io/html-effectiveness</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="res-group" id="ref-spec">
+      <h3>Spec engineering as the role</h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t"><a href="https://every.to/source-code/claude-code-for-product-managers">Claude Code for Product Managers</a></div>
+          <div class="d">(Every, May 2026). <em>"As code becomes much cheaper to write, the thing that becomes more valuable is deciding what to write."</em></div>
+          <div class="u">every.to/source-code/claude-code-for-product-managers</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://simonwillison.net/2026/Apr/2/lennys-podcast/">Highlights from my conversation about agentic engineering on Lenny's Podcast</a></div>
+          <div class="d">(April 2026). The bottleneck has moved to testing.</div>
+          <div class="u">simonwillison.net/2026/Apr/2/lennys-podcast/</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://open.spotify.com/episode/7wTqD5zwl8ZitUeplapvBG">How Anthropic's product team moves faster than anyone else</a></div>
+          <div class="d">Lenny's Podcast (April 23, 2026).</div>
+          <div class="u">open.spotify.com/episode/7wTqD5zwl8ZitUeplapvBG</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://lethain.com/">Agents as scaffolding for recurring tasks · Judgment and creativity are all you need</a></div>
+          <div class="d">(April 12, 2026 / March 11, 2026) · lethain.com</div>
+          <div class="u">lethain.com</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="res-group" id="ref-token">
+      <h3>Token economics + harness postmortems</h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t"><a href="https://simonwillison.net/tags/coding-agents/">Agentic-engineering tag</a></div>
+          <div class="d">Subagent token-economics observations, including the 4–15× cost shape.</div>
+          <div class="u">simonwillison.net/tags/coding-agents/</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://simonwillison.net/tags/coding-agents/">An update on recent Claude Code quality reports</a></div>
+          <div class="d">(March 2026). Three harness "improvements" that caused weeks of regression. Strip with traces, not hope.</div>
+          <div class="u">simonwillison.net/tags/coding-agents/</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="res-group" id="ref-tooling">
+      <h3>Adjacent tooling reference</h3>
+      <div class="res-list">
+        <div class="res-item">
+          <div class="t"><a href="https://www.chatprd.ai/how-i-ai/workflows/generate-a-living-html-design-system-with-ai-for-ui-consistency">Generate a Living HTML Design System with AI for UI Consistency</a></div>
+          <div class="d">(ChatPRD). The chatprd workflow: extract design DNA → render <code>design_system.html</code> → feed back as context.</div>
+          <div class="u">chatprd.ai/how-i-ai/workflows/generate-a-living-html-design-system-with-ai-for-ui-consistency</div>
+        </div>
+        <div class="res-item">
+          <div class="t"><a href="https://simonwillison.net/2026/May/6/code-w-claude-2026/">Code w/ Claude 2026</a></div>
+          <div class="d">(May 6) keynote. Multi-Agent Orchestration, Outcomes, Dreaming announcements.</div>
+          <div class="u">simonwillison.net/2026/May/6/code-w-claude-2026/</div>
+        </div>
+      </div>
+    </section>
+
+    <h2 id="ref-disciplines"><span class="num-prefix">§ 04</span>Disciplines the workshop borrows from</h2>
+    <h3>Amazon disciplines</h3>
+    <ul class="principle-list">
+      <li><b>Working Backwards + PR-FAQ</b>: the FAQ-as-<em>why</em>. Used in S1.</li>
+      <li><b>Bar Raiser</b>: 4-evaluator parallel discipline from Amazon hiring. Adapted as the ad-hoc <code>/bar-raiser</code> tool, invoked when a doc needs a harder critique before it ships.</li>
+      <li><b>Two-way doors</b>: Amazon decision discipline. Used to label every change in the S2 build as reversible or not.</li>
+    </ul>
+    <h3>Other disciplines the workshop draws on</h3>
+    <ul class="principle-list">
+      <li><b>Antecedent basis discipline</b>: every entity defined before it's referenced; every "the agent shall X" specifies the corresponding HOW. Drives the ambiguity audit in S1 and the screens named in the spec's "what good looks like".</li>
+      <li><b>5-Whys / orchestrator-workers pattern</b>: Workshop #1 carryover, reused as <code>/deep-dive</code>. Invoked in S3, S4, S5 when a layer is ambiguous.</li>
+      <li><b>HTML-over-Markdown for plans / reviews / artifacts</b>: Claude Code default for long structured outputs across S1–S5.</li>
+    </ul>
+
+    <h2 id="ref-original"><span class="num-prefix">§ 05</span>Workshop-original techniques</h2>
+    <p>These are named or operationalized inside the workshop and don't have an external primary source:</p>
+    <ul class="principle-list">
+      <li><b>Ambiguity Audit</b>: operationalization of antecedent basis as a spec drill. Workshop-coined branding for §112-style rigor.</li>
+      <li><b>Black Box (Trace Log)</b>: naming convention applied to <code>claude-progress.txt</code> + git log. The discipline of <em>reading the trace after incidents</em> (not just recording) is the workshop's framing.</li>
+      <li><b>Surgical Fix</b>: the <em>one change, one re-eval, one verification</em> discipline is workshop-coined.</li>
+      <li><b>Model Recall</b>: auto-recall analogy for AI model launches is workshop-coined.</li>
+    </ul>
+
+    <h2 id="ref-worked-repo"><span class="num-prefix">§ 06</span>Your app</h2>
+    <div class="res-item" style="border-left:3px solid var(--accent)">
+      <div class="t">Bring your own problem</div>
+      <div class="d">The kit ships with no app. Bring a problem you can describe in one sentence and <code>/spec</code> interviews you until it's sharp. If the app needs live data, the build halts at the credential checkpoint and the API key goes into <code>.env</code> (gitignored), never pasted into the chat and never written into any other file. Connecting an API is itself a taught moment; use a free-tier key and revoke it after the session.</div>
+      <div class="u">app/ · built during S2, graded during S3</div>
+    </div>
+
+    <div class="disclaimer">
+      <em>Educational. The kit teaches spec engineering; verify anything your app returns at its source before acting on it. See the README's "Security" and "The fine print" sections.</em>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- TAB 04 · CONTEXT DISCIPLINE                                      -->
+<!-- ============================================================== -->
+<section class="panel context" id="context">
+  <aside class="side">
+    <div class="crumb">WS2 <span>›</span> Context Discipline</div>
+    <div class="side-title">On this page</div>
+    <ul class="side-nav">
+      <li><a href="#cd-intro">The pattern</a></li>
+      <li><a href="#cd-slowness">Why context bloat = slowness</a></li>
+      <li><a href="#cd-fills">How the window fills</a></li>
+      <li><a href="#cd-diagnose">Diagnosis</a></li>
+      <li><a href="#cd-five">The five disciplines</a>
+        <ul class="sub">
+          <li><a href="#cd-d1">D1 · Clear &amp; compact</a></li>
+          <li><a href="#cd-d2">D2 · Delegate to subagents</a></li>
+          <li><a href="#cd-d3">D3 · Skills not bloat</a></li>
+          <li><a href="#cd-d4">D4 · Plan first</a></li>
+          <li><a href="#cd-d5">D5 · Read narrow</a></li>
+        </ul>
+      </li>
+      <li><a href="#cd-vscode">VS Code tax</a></li>
+      <li><a href="#cd-default">Four-line rule</a></li>
+      <li><a href="#cd-close">Close-out</a></li>
+      <li><a href="#cd-sources">Sources</a></li>
+    </ul>
+    <div class="reading">
+      <div class="meta"><span>Reading</span><b>~16 min</b></div>
+      <div class="meta"><span>Disciplines</span><b>5</b></div>
+    </div>
+    <div class="related">
+      <div class="side-title" style="margin-top:18px">Related</div>
+      <a href="#overview" data-go="overview">Overview</a>
+      <a href="#sessions" data-go="sessions">Sessions</a>
+    </div>
+  </aside>
+
+  <!-- Floating dot-rail -->
+  <nav class="dot-rail" aria-label="Section progress">
+    <a href="#cd-intro" data-label="The pattern"></a>
+    <a href="#cd-slowness" data-label="Slowness"></a>
+    <a href="#cd-fills" data-label="How it fills"></a>
+    <a href="#cd-diagnose" data-label="Diagnosis"></a>
+    <a href="#cd-d1" data-label="D1 · Clear"></a>
+    <a href="#cd-d2" data-label="D2 · Subagents"></a>
+    <a href="#cd-d3" data-label="D3 · Skills"></a>
+    <a href="#cd-d4" data-label="D4 · Plan"></a>
+    <a href="#cd-d5" data-label="D5 · Narrow"></a>
+    <a href="#cd-vscode" data-label="VS Code tax"></a>
+    <a href="#cd-default" data-label="Four-line rule"></a>
+    <a href="#cd-close" data-label="Close-out"></a>
+    <a href="#cd-sources" data-label="Sources"></a>
+  </nav>
+
+  <div class="content">
+    <div class="hero ctx-hero" id="cd-intro">
+      <div class="ribbon">04 · The other half of the workshop</div>
+      <h1>Context <span class="em">Discipline</span>.</h1>
+      <div class="strap">The smaller the working context, the sharper Claude gets. Treat the context window as a budget you spend, not a vault you fill.</div>
+    </div>
+
+    <p>Pattern: <strong>the smaller the working context, the sharper Claude gets.</strong> Treat the context window as a budget you spend, not a vault you fill. Every file read, every retry, every dangling MCP server is a withdrawal, and the bill comes due as forgotten instructions, slower turns, and confidently wrong code.</p>
+    <p>Apply this during every session. The build that ran slowest in the room was usually the one with the heaviest context, not the hardest problem.</p>
+
+    <h2 id="cd-slowness"><span class="num-prefix">§ 01</span>Why context bloat shows up as slowness</h2>
+    <p>Two things happen as the context window fills.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:40%">Effect</th><th>What you observe</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Latency rises.</strong> Each turn re-ingests the full conversation. Once Claude is parsing tens of thousands of tokens before generating the next reply, every interaction feels slower.</td>
+          <td>Spinner sits longer. Replies arrive in pieces.</td>
+        </tr>
+        <tr>
+          <td><strong>Quality degrades.</strong> Long context dilutes attention. Claude starts ignoring earlier instructions, repeating itself, or "forgetting" a tenet you wrote in CLAUDE.md three turns ago.</td>
+          <td>"Why did it skip the eval step?" "Why is it re-reading the file we already discussed?"</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="pullquote">
+      <p>LLMs have an "attention budget" that they draw on when parsing large volumes of context.</p>
+      <cite>Anthropic Engineering</cite>
+    </div>
+
+    <p>The model has n² pairwise attention relationships across n tokens, and at large n those relationships get stretched thin. A spring 2026 measurement on Claude Opus 4.6 with the 1M-token window showed self-reported degradation starting around <strong>40% utilisation</strong>, with restart recommended by <strong>48%</strong>. Long before the bar fills, you are paying a tax. The numbers move with each model, so check your own: <code>/context</code> shows what's loaded, and <code>/autocompact</code> sets the window per model.</p>
+
+    <div class="rule">
+      <div class="label">The fix</div>
+      <p>The fix is not a bigger window. It is <b>keeping the window short</b>.</p>
+    </div>
+
+    <h2 id="cd-fills"><span class="num-prefix">§ 02</span>How the window fills, even before you type</h2>
+    <p>A fresh Claude Code session in VS Code starts at roughly <strong>7,000–8,000 tokens</strong> before your first prompt. The auto-loaded payload, per Anthropic's <code>/context</code> simulator:</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Block</th><th>Approx. tokens</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>System prompt</td><td><strong>4,200</strong></td><td>Hidden. Always loaded.</td></tr>
+        <tr><td>MEMORY.md (auto-memory)</td><td><strong>680</strong></td><td>First 200 lines / 25KB loaded</td></tr>
+        <tr><td>Environment info + git status</td><td><strong>280</strong></td><td>Includes recent commits</td></tr>
+        <tr><td>MCP tool names (deferred)</td><td><strong>120+</strong></td><td>Schemas load on demand if <code>ENABLE_TOOL_SEARCH=auto</code></td></tr>
+        <tr><td>Skill descriptions</td><td><strong>450</strong></td><td>One-liners only; full skill loads on invoke</td></tr>
+        <tr><td>Global <code>~/.claude/CLAUDE.md</code></td><td><strong>varies</strong></td><td>All projects</td></tr>
+        <tr><td>Project <code>./CLAUDE.md</code></td><td><strong>1,800+</strong></td><td>Loaded every conversation</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Then each action adds:</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Typical cost</th></tr></thead>
+      <tbody>
+        <tr><td>File read (one source file)</td><td><span class="stat"><b>1,000–2,500</b> tokens</span></td></tr>
+        <tr><td><code>grep</code> / <code>Bash</code> output</td><td><span class="stat"><b>200–1,500</b> tokens</span></td></tr>
+        <tr><td>Tool result (uncompacted)</td><td>as much as the tool returns</td></tr>
+        <tr><td>Path-scoped rule auto-triggering</td><td><span class="stat"><b>300–500</b> tokens</span></td></tr>
+        <tr><td>Hook output with <code>additionalContext</code></td><td>every PostToolUse run</td></tr>
+        <tr><td>IDE selection (VS Code extension)</td><td>re-injected on every prompt</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="rule">
+      <div class="label">The math</div>
+      <p>The build that read 20 files to chase a bug spent <b>30,000+ tokens</b> before writing a line of code. The build that asked one targeted question and read one file spent <b>2,000</b>.</p>
+    </div>
+
+    <h2 id="cd-diagnose"><span class="num-prefix">§ 03</span>Diagnosis: know you're in trouble</h2>
+    <p>Run <code>/context</code> in any Claude Code session. It visualises the window and surfaces optimisation tips. Treat the <strong>40% line as a warning</strong>, <strong>60% as the redirect signal</strong>, and <strong>75% as compact-or-clear immediately</strong>.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:45%">Symptom</th><th>Likely cause</th></tr></thead>
+      <tbody>
+        <tr><td>Claude re-asks something you answered earlier in the session</td><td>Context past 50%; relevant tokens drowned by noise</td></tr>
+        <tr><td>Claude ignores a CLAUDE.md tenet it followed at session start</td><td>CLAUDE.md too long, or context full enough that the rule lost attention weight</td></tr>
+        <tr><td>Two corrections in a row on the same point</td><td>Context polluted with the failed approaches. <strong>Stop correcting.</strong> <code>/clear</code> and restart with a sharper prompt.</td></tr>
+        <tr><td>Turns getting visibly slower</td><td>Token count crossed the latency threshold for your model</td></tr>
+        <tr><td>Claude proposes something already rejected in this session</td><td>Compaction has happened and dropped the rejection</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="pullquote">
+      <p>The kitchen sink session. You start with one task, then ask Claude something unrelated, then go back to the first task. Context is full of irrelevant information.</p>
+      <cite>Anthropic failure-pattern list</cite>
+    </div>
+
+    <h2 id="cd-five"><span class="num-prefix">§ 04</span>The five disciplines</h2>
+
+    <article class="discipline" id="cd-d1" data-id="D1">
+      <h3>Clear and compact on purpose, not by accident</h3>
+      <p><code>/compact</code> runs automatically when you near the limit. By then it is too late: the summary is built from polluted context.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Command</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td><code>/clear</code></td><td>Between unrelated tasks. Fresh window. <strong>Default to this</strong> when starting a new session module.</td></tr>
+          <tr><td><code>/compact &lt;instructions&gt;</code></td><td>Mid-task, when you want to keep going but the window is full. Pass instructions: <em>"Focus on the spec and the failing eval rows. Drop file-read summaries."</em></td></tr>
+          <tr><td><code>Esc + Esc</code> / <code>/rewind</code></td><td>Surgical. Roll back conversation or code to a specific checkpoint. Use after a failed approach.</td></tr>
+          <tr><td><code>/btw</code></td><td>Sidebar questions. The answer appears in an overlay and never enters history.</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="rule">
+        <div class="label">Rule</div>
+        <p>If you have corrected Claude twice on the same point, <code>/clear</code> is faster than the third correction.</p>
+      </div>
+    </article>
+
+    <article class="discipline" id="cd-d2" data-id="D2">
+      <h3>Delegate reading to subagents</h3>
+      <p>A subagent runs in its own context window. It reads 20 files, returns a 400-token summary, and your main window only pays the summary.</p>
+      <div class="rule">
+        <div class="label">Receipt</div>
+        <p>Anthropic's own example: <span class="stat">subagent read <b>6,100 tokens</b> of files, returned <b>420 tokens</b> to the parent.</span></p>
+      </div>
+      <p>Use the <code>Explore</code> subagent (or any custom subagent in <code>.claude/agents/</code>) for:</p>
+      <ul class="clean">
+        <li>Mapping unfamiliar code</li>
+        <li>Finding "where is X defined / which files reference Y"</li>
+        <li>Any investigation that would read 3+ files</li>
+      </ul>
+      <p>Don't use it for:</p>
+      <ul class="clean">
+        <li>Small targeted lookups where you know the file</li>
+        <li>Anything requiring write access (subagents return text; they don't keep state)</li>
+      </ul>
+      <div class="pullquote">
+        <p>If a task touches more than about five files, it's probably worth isolating in a subagent.</p>
+        <cite>Anthropic docs · rule of thumb</cite>
+      </div>
+    </article>
+
+    <article class="discipline" id="cd-d3" data-id="D3">
+      <h3>Skills, not bloated CLAUDE.md</h3>
+      <p>Skills load <strong>only descriptions</strong> (~450 tokens for all of them) at startup. The full skill content loads only when invoked. CLAUDE.md, by contrast, loads in full every session.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Put in CLAUDE.md</th><th>Put in a skill</th></tr></thead>
+        <tbody>
+          <tr><td>Rules that apply to every task</td><td>Workflows used sometimes</td></tr>
+          <tr><td>Build / test commands Claude can't guess</td><td>Long multi-step procedures (eval-blueprint, surgical-fix)</td></tr>
+          <tr><td>Architectural decisions</td><td>Domain knowledge needed only for specific feature work</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="pullquote">
+        <p>For each line, ask: Would removing this cause Claude to make mistakes? If not, cut it. Bloated CLAUDE.md files cause Claude to ignore your actual instructions.</p>
+        <cite>Anthropic on CLAUDE.md hygiene</cite>
+      </div>
+      <p>Skills with <code>disable-model-invocation: true</code> in frontmatter cost <strong>zero context</strong> until you call them with <code>/&lt;name&gt;</code>. Use this for commit, deploy, send-message, or any skill with side effects.</p>
+    </article>
+
+    <article class="discipline" id="cd-d4" data-id="D4">
+      <h3>Plan first, then execute in a fresh session</h3>
+      <p>The workflow in WS2's modules (S1 spec → S2 build → S3 eval → S4 debug → S5 strip) is itself context discipline in action: each session has a clean window and a single artifact.</p>
+      <p>When you escalate mid-build:</p>
+      <div class="card">
+        <div class="card-step"><span class="n">01</span><div class="body"><p>Finish the current thought</p></div></div>
+        <div class="card-step"><span class="n">02</span><div class="body"><p>Write the current state to the trace (<code>claude-progress.txt</code>) and CLAUDE.md</p></div></div>
+        <div class="card-step"><span class="n">03</span><div class="body"><p><code>/clear</code></p></div></div>
+        <div class="card-step"><span class="n">04</span><div class="body"><p>Start the next module with <code>Read @app/&lt;artifact&gt;</code>, so Claude picks up from disk, not from chat history</p></div></div>
+      </div>
+      <p>Spec-then-execute (Anthropic's recommended pattern) compresses what would be 50 turns of conversation into a 200-line file. The next session starts with a clean window and the spec, not the debate that produced it.</p>
+    </article>
+
+    <article class="discipline" id="cd-d5" data-id="D5">
+      <h3>Read narrow, never wide</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Habit</th><th>Cost</th></tr></thead>
+        <tbody>
+          <tr><td><code>Read auth.ts</code> (whole file)</td><td><span class="stat"><b>2,400</b> tokens</span></td></tr>
+          <tr><td><code>Read auth.ts</code> with offset + limit</td><td><span class="stat"><b>300</b> tokens</span></td></tr>
+          <tr><td><code>Glob **/*.ts</code> then <code>Read</code> each</td><td><span class="stat"><b>15,000+</b> tokens</span></td></tr>
+          <tr><td><code>Grep "refreshToken"</code></td><td><span class="stat"><b>600</b> tokens, usually enough</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>When prompting:</p>
+      <ul class="clean">
+        <li>Be specific: <em>"the bug in <code>auth.ts</code> line ~80"</em> not <em>"the auth bug"</em></li>
+        <li>Reference files with <code>@path</code> so Claude reads exactly what you mean</li>
+        <li>Allowlist <code>gh</code>, <code>git</code>, <code>bq</code>, etc. so Claude uses CLI tools (one structured line) instead of MCP tools (full schema)</li>
+      </ul>
+    </article>
+
+    <h2 id="cd-vscode"><span class="num-prefix">§ 05</span>The VS Code tax, and how to spend less</h2>
+    <p>Running Claude Code as the VS Code extension carries one specific cost the terminal CLI does not: <strong>every prompt re-injects your current IDE selection and active file path</strong> as <code>&lt;ide_selection&gt;</code> context. Convenient when you mean it. Expensive when you don't.</p>
+    <p>What this means in practice:</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Habit</th><th>Outcome</th></tr></thead>
+      <tbody>
+        <tr><td>Leave a 200-line file open and selected while asking Claude something unrelated</td><td>Those 200 lines re-inject on every prompt of the session</td></tr>
+        <tr><td>Click into a file just to look at it, then prompt</td><td>That file enters context as "the user selected lines X to Y", and Claude treats it as relevant</td></tr>
+        <tr><td>Use VS Code's outline/explorer instead of the editor while prompting</td><td>No selection re-injection</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="rule">
+      <div class="label">Practical step</div>
+      <p>Close or deselect files before prompting on a different topic. Treat the editor cursor as part of your prompt. If you want a clean slate, also <code>/clear</code>. The selection re-injects, but the rest of the window resets.</p>
+    </div>
+    <p>To block a specific file (e.g. <code>.env</code>) from ever reaching context via the IDE selection, add a Read deny rule for its path in <code>.claude/settings.json</code>.</p>
+    <div class="note">
+      <div class="label">Note</div>
+      A setting to disable IDE-selection auto-injection has been requested but is not shipped as of this writing. Track the request at <a href="https://github.com/anthropics/claude-code/issues/20944">anthropics/claude-code#20944</a>.
+    </div>
+
+    <h2 id="cd-default"><span class="num-prefix">§ 06</span>Workshop default: the four-line rule</h2>
+    <p>For every WS2 session (S1 through S5), the default discipline is:</p>
+    <div class="card">
+      <div class="card-step">
+        <span class="n">01</span>
+        <div class="body"><p><strong><code>/clear</code> at the start of each new module.</strong> Do not carry S2 chat into S3.</p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">02</span>
+        <div class="body"><p><strong>Read the artifact, not the history.</strong> <code>Read @app/spec.html</code> beats <em>"remember what we agreed in S1?"</em>.</p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">03</span>
+        <div class="body"><p><strong>Delegate any 3+ file investigation to an <code>Explore</code> subagent.</strong></p></div>
+      </div>
+      <div class="card-step">
+        <span class="n">04</span>
+        <div class="body"><p><strong>Run <code>/context</code> once per session.</strong> If you cross 50% before you have output, stop and ask why.</p></div>
+      </div>
+    </div>
+    <div class="pullquote">
+      <p>The student whose build was slowest is rarely the one whose problem was hardest. It is usually the one whose context was heaviest: same model, same machine, same network, half the attention budget left.</p>
+    </div>
+
+    <h2 id="cd-close"><span class="num-prefix">§ 07</span>Close-out</h2>
+    <p>After any session where context discipline came up:</p>
+    <ul class="clean">
+      <li>Append a one-line RATIONALE entry to <code>claude-progress.txt</code>: <code>&lt;ISO timestamp&gt;  context  &lt;symptom&gt;  &lt;fix&gt;</code> (e.g., <em>"/clear after 2 corrections on token bug; restart with spec ref"</em>)</li>
+      <li>If a CLAUDE.md tenet got ignored because the file is too long, prune the tenet that no longer earns its line.</li>
+    </ul>
+
+    <h2 id="cd-sources"><span class="num-prefix">§ 08</span>Sources</h2>
+    <div class="res-list">
+      <div class="res-item">
+        <div class="t"><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a></div>
+        <div class="d">Anthropic Engineering</div>
+        <div class="u">anthropic.com/engineering/effective-context-engineering-for-ai-agents</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://code.claude.com/docs/en/best-practices">Best practices for Claude Code</a></div>
+        <div class="d">Anthropic docs</div>
+        <div class="u">code.claude.com/docs/en/best-practices</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://code.claude.com/docs/en/context-window">Explore the context window (interactive)</a></div>
+        <div class="d">Anthropic docs</div>
+        <div class="u">code.claude.com/docs/en/context-window</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://code.claude.com/docs/en/sub-agents">Subagents</a></div>
+        <div class="d">Anthropic docs</div>
+        <div class="u">code.claude.com/docs/en/sub-agents</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://code.claude.com/docs/en/skills">Skills</a></div>
+        <div class="d">Anthropic docs</div>
+        <div class="u">code.claude.com/docs/en/skills</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://www.morphllm.com/context-rot">Context Rot research</a></div>
+        <div class="d">Chroma / Morph LLM</div>
+        <div class="u">morphllm.com/context-rot</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://github.com/anthropics/claude-code/issues/34685">Opus 4.6 1M self-reported degradation at 40–48%</a></div>
+        <div class="d">GitHub issue</div>
+        <div class="u">github.com/anthropics/claude-code/issues/34685</div>
+      </div>
+      <div class="res-item">
+        <div class="t"><a href="https://github.com/anthropics/claude-code/issues/20944">VS Code IDE-selection auto-injection</a></div>
+        <div class="d">GitHub feature request</div>
+        <div class="u">github.com/anthropics/claude-code/issues/20944</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================================================== -->
+<!-- JS · TABS + SCROLL-SPY                                           -->
+<!-- ============================================================== -->
+<script>
+(function(){
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+
+  function activate(tabId, opts){
+    opts = opts || {};
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === tabId)));
+    panels.forEach(p => p.setAttribute('data-active', String(p.id === tabId)));
+    if (!opts.silent) {
+      // scroll to top of stage when switching tabs
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    // Update URL hash without scrolling
+    history.replaceState(null, '', '#' + tabId);
+    // Force scroll-spy refresh for newly active panel
+    setTimeout(refreshSpy, 50);
+  }
+
+  tabs.forEach(t => {
+    t.addEventListener('click', () => activate(t.dataset.tab));
+  });
+
+  // Cross-tab links (e.g., "Related" sidebar entries)
+  document.querySelectorAll('[data-go]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      activate(a.dataset.go);
+    });
+  });
+
+  // Honor initial hash
+  const hash = (location.hash || '').replace('#','');
+  const validTabs = ['overview','sessions','reference','context'];
+  if (validTabs.includes(hash)) activate(hash, { silent: true });
+
+  // ---- Scroll-spy ----
+  function refreshSpy(){
+    const active = document.querySelector('.panel[data-active="true"]');
+    if (!active) return;
+    const links = active.querySelectorAll('.side-nav a[href^="#"]');
+    const rail = document.querySelectorAll('.dot-rail a');
+    const sections = [];
+    links.forEach(a => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) sections.push({ id, el, link: a });
+    });
+    rail.forEach(a => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) sections.push({ id, el, link: a, isRail: true });
+    });
+
+    function onScroll(){
+      const y = window.scrollY + 120;
+      let current = null;
+      sections.forEach(s => {
+        if (s.el.offsetTop <= y) current = s.id;
+      });
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+      rail.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+    }
+    onScroll();
+    window.removeEventListener('scroll', window.__spy);
+    window.__spy = onScroll;
+    window.addEventListener('scroll', window.__spy, { passive: true });
+  }
+  refreshSpy();
+
+  // Smooth-scroll within page when clicking sidebar / rail anchors
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href').slice(1);
+    if (validTabs.includes(id)) return; // handled above
+    const target = document.getElementById(id);
+    if (target) {
+      e.preventDefault();
+      window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+      history.replaceState(null, '', '#' + id);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

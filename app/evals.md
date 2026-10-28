@@ -1,0 +1,28 @@
+# Evals — Followthrough (S1 Verification, run at S3)
+
+Each row is a pass/fail two strangers grade the same from the output alone. Evidence comes from one of four outputs the spec names: the action log `app/logs/actions.jsonl` (one line per brief, approval, send, Books write, with ISO timestamp), the fresh Zoho Books records, the WhatsApp test-list inbox, or the web page "Where I stand". All data is from `app/data/synthetic.json`; if the build adopts the demo-clock idea (spec §7), the grader may use it to age loops.
+
+| id | scenario | check | source |
+|---|---|---|---|
+| F1 | A lead loop has no touch for 3 calendar days | The next 08:00 or 18:00 brief lists that lead with a drafted message; `actions.jsonl` has a `brief` line naming the loop id and a `draft` line with the text. | spec §2 Chase · Pinned: Cold, Brief |
+| F2 | Owner taps approve on a draft whose counterpart has an email | `actions.jsonl` has `approve` then `send` lines for the loop within 60 s; the message arrives in the owner's test mailbox (pre-live) with the drafted text; the loop's last touch resets. | spec §2.2 · Pinned: Approve, Touch, Live |
+| F3 | Owner replies with a voice note saying "yes send it" | `actions.jsonl` has a `transcript` line containing "yes" and a `send` line for the same loop; a voice note saying "no, hold it" produces no `send`. | spec §2.2 · Pinned: Approve |
+| F4 | A Books invoice is 1 day past due and unpaid | The next brief carries an invoice-chase draft naming the invoice number and amount; `actions.jsonl` shows `brief` for loop type `invoice`. | spec §2 Get paid · Pinned: Cold |
+| F5 | Owner sends a receipt photo on WhatsApp and approves | A Zoho Books expense exists with the amount and supplier read from the photo; `actions.jsonl` has a `books_write` line of kind `expense` with the Books id. | spec §2 Keep the books |
+| F6 | Owner sends a voice note "sold six 250g bags of lot 2, 120 pounds cash" and approves | Books holds a sale of £120; lot 2's `left_kg` drops by exactly 1.5; a voice note with no bag size produces an `ask` line and no `books_write` until the size is given; `actions.jsonl` has `books_write` kind `sale` and a `stock_move` line. | spec §2 Stall · Pinned: Bag |
+| F7 | A lot's `left_kg` falls below 20% of `start_kg` | A loop of type `lot_low` exists for that lot and appears in the next brief. | spec §2 Stock · Pinned: Cold |
+| F8 | A new lead's website shows coffee at £11 per 250g | The lead's record carries tier `mid-shelf`, price 11, and `sells_indian` true/false with a source URL; the background panel on the web page shows the same. | spec §2.1 · Pinned: Specialty bar |
+| F9 | Two cold leads: one 2 edges from a customer, one with no path | The warm lead is listed above the stranger in the brief, and its draft names the connecting organisation; the stranger's draft does not invent one. | spec §2.1 · Pinned: Warm path |
+| F10 | A warm lead's path runs through a current customer | The brief proposes that customer as introducer and includes a draft message to them; no message to the introducer is sent without its own approval. | spec §2.1 |
+| F11 | Owner opens the web page | The map shows every org and edge in `synthetic.json`; a lead's background panel expands to show tier, price, Indian-on-shelf, path to the network, and a source for each fact. | spec §2.1, §2.2 |
+| F12 | Owner opens the web page at any moment | Cash, total owed, kg left per lot and loops due today equal the same figures read directly from Zoho Books and the loop store at that time. | spec §2.2 · Pinned: Right |
+| E1 | A counterpart replies "not now, maybe next quarter" | The loop closes as a human reply with no decline recorded; the org is not on the suppression list; no `draft` line for that loop id exists after the reply's timestamp. | Pinned: Declined, Loop |
+| E2 | A customer payment is recorded in Books against an open invoice loop | The invoice loop closes within the next brief cycle; no chase draft is produced after the payment timestamp. | spec §2 Get paid |
+| E3 | 24 hours pass with cold loops present | `actions.jsonl` shows exactly two `brief` lines, stamped 08:00 and 18:00 Europe/London (±2 min), and no unprompted outbound owner message between them. | Pinned: Brief · spec §2.2 |
+| E4 | A new lead's website shows coffee at £6 per 250g | The lead is closed with reason "below bar" recorded; it never appears in a brief; no draft exists for it. | spec §2.1 · Pinned: Specialty bar |
+| A1 | A draft exists and the owner never responds | No `send` line and no message in any test inbox for that loop; the draft reappears in the next brief. | spec §2 · Pinned: Approve |
+| A2 | `APP_LIVE` is unset and a loop's counterpart has a non-test address or number | The `send` line records the rewritten test recipient; no message reaches the original address; a non-test WhatsApp number is refused with a logged `blocked` line. | Pinned: Live · spec §2.3 |
+| A3 | An org is marked declined and a new lead shares its domain | No draft is ever produced for either; `actions.jsonl` has a `suppressed` line naming the domain. | Pinned: Declined · spec §2.3 |
+| A4 | The code base is searched for payment, transfer or bank-write calls | None exist; Books writes are limited to expenses, customer payments, sales and items (grep of the Books client). | spec §4 · key constraint "never move money" |
+| A5 | The public repo is scanned for secrets | Zero findings; `app/.env` is gitignored and `app/.env.example` holds only placeholder values. | spec §6 T10 |
+| A6 | `synthetic.json` is validated at start | Every email ends in `@example.test`; every WhatsApp number is on the test list or null; a file breaking either rule stops the app with a logged `data_rejected` line. | spec §2.3, §3 |

@@ -1,0 +1,51 @@
+{
+  "name": "Followthrough",
+  "room": "Guided",
+  "context": "Meta Global AI Developer Hackathon, submission 4 Nov 2026 21:00 ET; owners GK and a US partner; all files under app/",
+  "problem": "Small-business work is a chain of open loops (lead, sample, quote, order, invoice, receipt, stock lot, stall day) scattered across mail, the accounting tool, spreadsheets, Instagram and the owner's head. Nothing flags which loop is going cold, so leads, invoices, receipts, stock, orders and stall days leak, and the owner cannot see cash, owed, stock or what is due. New leads get a blanket approach with no check on whether they sell specialty coffee, at what tier, or whether they already know an existing customer, supplier or stockist. Under UK GDPR the owner is the data controller and the current tools cannot say where a person's data sits, how long it is kept, or how it would be erased.",
+  "who_its_for": "Owner-operators of small B2B businesses where a sale takes more than one conversation and relationships run through chat and email, 1 to 20 people, no sales or finance staff. User one is GK, solo owner of a small business importing Indian green coffee for UK roasters and a market stall.",
+  "outcome": [
+    "0. No real person's data is ever handled, and going live would be lawful.",
+    "1. Nothing leaks: every loop gets its next move on time without the owner remembering; the owner only decides and approves.",
+    "2. Every new lead arrives qualified, tiered and placed in the owner's network before the first message is drafted.",
+    "3. At any moment, on any device, the owner can see cash, owed, stock, due today and the background on any lead, and it is right.",
+    "4. All of it under an hour a day, from the phone."
+  ],
+  "tiers": {
+    "core": ["chase (lead, sample, quote, order unconfirmed)", "get paid (invoice unpaid)", "keep the books (receipt to Books expense)", "fulfil (order to ship)", "stall (voice-note cash-up to Books sale and stock movement)", "stock (lot low)", "grow (qualify, tier, place in network; warm-path ranking, intro draft, introducer proposal, map, lead background panel)", "WhatsApp briefs 08:00 and 18:00 Europe/London", "one web page: Where I stand", "suppression list"],
+    "next": ["ask on WhatsApp", "landed cost, customs, duty", "courier booking and delivery tracking", "Glimmer local mode", "real WhatsApp Business number", "retention and erasure flows"],
+    "later": ["Instagram DMs and Instagram warm intros", "helpers, co-runner, second business, roles", "VAT, HMRC, year-end", "Meta AI Connector surface", "payment links"]
+  },
+  "out_of_scope": [
+    "replacing Zoho Books: bank reconciliation, VAT, HMRC filing, year-end",
+    "moving money, paying bills, any bank write",
+    "landed cost, customs, duty, courier booking, delivery tracking",
+    "Instagram DMs; Instagram follower-graph intros",
+    "helpers, co-runner, second business, roles beyond one shared owner login",
+    "real customer data, the current Zoho accounts, any send outside the test lists before live",
+    "Ask on WhatsApp, Glimmer local mode, a real WhatsApp Business number"
+  ],
+  "key_constraints": [
+    "Every customer-facing send needs owner approval: a tap, a reply 'yes', or a voice note whose transcript says yes",
+    "Cold = untouched 3 calendar days; invoice cold the day after due; lot low under 20% of starting kg; stall day uncashed if no cash-up by 21:00 Europe/London",
+    "Briefs at 08:00 and 18:00 Europe/London only; nothing unprompted between",
+    "Specialty bar: retail price >= GBP 8 per 250g; mid-shelf 8 to 12; premium above 12; below 8 closed with reason",
+    "Warm path: 1 or 2 edges from a lead to an existing customer, supplier or stockist; warm leads rank first and the first draft names the connection",
+    "Declined counterpart never drafted to again; block covers the organisation's domain, never a shared free-mail domain",
+    "No real person's data: synthetic.json only, emails under example.test, WhatsApp recipients on the Cloud API test list, fresh Zoho Mail and Books accounts",
+    "Until APP_LIVE=true is set by hand in app/.env, every email goes to the owner's test addresses and every WhatsApp message to the test list",
+    "Never move money; Books writes limited to expenses, customer payments, sales and items",
+    "Keys only in app/.env; public repo passes a secret scan",
+    "One shared owner login for GK and the partner",
+    "AI: a Meta open-weights model served in a Daytona GPU sandbox with auto-stop disabled; voice notes via Meta Voice Transcribe",
+    "Evidence output: app/logs/actions.jsonl records every brief, approval, send and Books write with timestamps",
+    "Customer channels at Core: email (Zoho Mail) and WhatsApp"
+  ],
+  "open_questions": [
+    "Stack rows T2 enrichment access, T3 persistence, T4 frontend, T5 hosting, T7 login mechanism, T8 jobs: owners hand over before S2",
+    "Fresh Zoho Mail and Books accounts to be created (TBC)",
+    "Which open-weights model; Voice Transcribe hosted or self-served",
+    "How many unanswered chases before a loop is parked; whether a parked loop reopens",
+    "The five WhatsApp test numbers and the two owner test email addresses"
+  ]
+}
