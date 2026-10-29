@@ -480,6 +480,32 @@ if ($("login-form")) {
       );
     }),
   );
+  const showBrief = (brief) => {
+    const cards = list(brief.cards);
+    installContent(
+      "brief-content",
+      `<pre class="brief-text">${esc(brief.text)}</pre>${cards.length ? `<div class="brief-cards">${cards.map((c) => `<pre class="brief-text card">${esc(c.text)}</pre>`).join("")}</div>` : ""}<p class="small">${brief.sent ? "Sent to your WhatsApp." : "Composed only; nothing was sent."}${brief.demoAgeDays ? ` Demo clock is ${brief.demoAgeDays} days ahead.` : ""}</p>`,
+    );
+    $("brief-send").hidden = !(state.setup && state.setup.whatsapp);
+  };
+  $("brief-compose").addEventListener("click", (event) =>
+    busy(event.currentTarget, async () => {
+      notify("Composing your brief…");
+      const brief = await api("/api/brief", { send: false });
+      await load();
+      showBrief({ ...brief, demoAgeDays: state.setup.demoAgeDays });
+      notify("Brief composed. Drafts are waiting for your approval.");
+    }),
+  );
+  $("brief-send").addEventListener("click", (event) =>
+    busy(event.currentTarget, async () => {
+      notify("Sending your brief to WhatsApp…");
+      const brief = await api("/api/brief", { send: true });
+      await load();
+      showBrief(brief);
+      notify("Brief sent.");
+    }),
+  );
   $("logout").addEventListener("click", (event) =>
     busy(event.currentTarget, async () => {
       await api("/api/logout", {});

@@ -865,3 +865,18 @@ footer {
     padding-inline: 18px;
   }
 }
+
+.brief-text {
+  white-space: pre-wrap;
+  font: inherit;
+  background: var(--canvas, #eef2f4);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+}
+.brief-text.card {
+  border-left: 3px solid var(--amber);
+}
+#brief-content:empty {
+  display: none;
+}

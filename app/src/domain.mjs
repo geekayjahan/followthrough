@@ -15,6 +15,14 @@ export function london(date = new Date()) {
     time: `${p.hour}:${p.minute}`,
   };
 }
+// Demo clock: DEMO_AGE_DAYS shifts the clock used for cold/due checks only.
+// Timestamps written to loops, actions and the audit log stay real.
+export function demoNow(c = {}, now = new Date()) {
+  const days = Number(c.DEMO_AGE_DAYS);
+  return Number.isFinite(days) && days > 0
+    ? new Date(now.getTime() + days * 86400000)
+    : now;
+}
 export function dayNumber(t) {
   return Date.parse(london(new Date(t)).date) / 86400000;
 }

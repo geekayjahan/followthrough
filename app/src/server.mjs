@@ -13,7 +13,7 @@ import {
 } from "./config.mjs";
 import { Store, hash } from "./store.mjs";
 import { Auth, verifySignature } from "./auth.mjs";
-import { Domain, london, due } from "./domain.mjs";
+import { Domain, london, due, demoNow } from "./domain.mjs";
 import { Providers } from "./providers.mjs";
 import { Engine } from "./engine.mjs";
 import { installBooks } from "./books.mjs";
@@ -89,8 +89,13 @@ export function createApplication({
     res.end(JSON.stringify(value));
   };
   const server = createServer(async (req, res) => {
+    let url;
     try {
-      const url = new URL(req.url, "http://localhost");
+      url = new URL(req.url, "http://localhost");
+    } catch {
+      return send(res, 400, { error: "Invalid request target" });
+    }
+    try {
       if (req.method === "GET" && url.pathname === "/health")
         return send(res, 200, { ok: true });
       if (req.method === "GET" && url.pathname === "/favicon.ico") {
@@ -182,6 +187,8 @@ export function createApplication({
             approved: c.SYNTHETIC_DATA_APPROVED === "true",
             jobs: c.ENABLE_JOBS === "true",
             polling: c.ENABLE_POLLING === "true",
+            demoAgeDays: Number(c.DEMO_AGE_DAYS) || 0,
+            whatsapp: Boolean(c.WHATSAPP_TOKEN && list(c.WHATSAPP_OWNER_NUMBERS).length),
             testEmails: list(c.OWNER_TEST_EMAILS),
           },
           provenance: testLabel || data.provenance,
@@ -191,7 +198,7 @@ export function createApplication({
             owed: null,
             updated_at: null,
           },
-          loops: s.all("loops").map((l) => ({ ...l, due_today: due(l) })),
+          loops: s.all("loops").map((l) => ({ ...l, due_today: due(l, demoNow(c)) })),
           actions: s.all("actions").map((action) => {
             if (action.kind !== "message") return action;
             let effective_recipient = null;
@@ -215,7 +222,7 @@ export function createApplication({
             .filter((event) => event.status !== "completed"),
           briefFailures: s
             .all("brief_slots")
-            .filter((slot) => slot.status !== "completed"),
+            .filter((slot) => !["completed", "composed"].includes(slot.status)),
           auditError: s.get("meta", "audit_log_error"),
         });
       }
@@ -229,6 +236,14 @@ export function createApplication({
             "session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
           );
           return send(res, 200, { ok: true });
+        }
+        if (url.pathname === "/api/brief") {
+          // Owner-initiated brief: composes now; sends to WhatsApp only when asked.
+          const brief = await e.brief(new Date(), {
+            manual: true,
+            send: input.send === true,
+          });
+          return send(res, 200, brief);
         }
         if (url.pathname === "/api/sync") {
           await e.syncBooks();
@@ -249,10 +264,7 @@ export function createApplication({
       }
       return send(res, 404, { error: "Not found" });
     } catch (error) {
-      s.audit("blocked", {
-        reason: "request_failed",
-        path: new URL(req.url, "http://localhost").pathname,
-      });
+      s.audit("blocked", { reason: "request_failed", path: url.pathname });
       return send(res, 400, { error: safeError(error) });
     }
   });

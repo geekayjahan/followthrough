@@ -17,6 +17,10 @@ export function config(envFile = resolve(ROOT, ".env")) {
       if (match)
         result[match[1]] = match[2].trim().replace(/^(['"])(.*)\1$/, "$2");
     }
+  // Hosted runtimes inject secrets as process environment; those win over the file.
+  for (const [key, value] of Object.entries(process.env))
+    if (/^[A-Z_]+$/.test(key) && value !== undefined && value !== "")
+      result[key] = value;
   return result;
 }
 export function requireKeys(c, keys) {

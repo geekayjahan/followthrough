@@ -1,6 +1,6 @@
 import { hash } from "./store.mjs";
-import { connected, recipient, list } from "./config.mjs";
-import { london, warmPath, affirmative } from "./domain.mjs";
+import { connected, recipient, list, safeError } from "./config.mjs";
+import { london, warmPath, affirmative, demoNow } from "./domain.mjs";
 export class Engine {
   constructor(store, domain, providers, c) {
     this.s = store;
@@ -305,134 +305,261 @@ export class Engine {
     await this.approve(binding.action_id, binding, "owner WhatsApp reply");
     return true;
   }
-  async brief(now = new Date()) {
-    if (this.c.ENABLE_JOBS !== "true") return;
-    const local = london(now),
+  // One line a human would say about why this loop is in the brief.
+  why(loop) {
+    const org = this.s.get("orgs", loop.org_id);
+    const name =
+      org?.name ||
+      (loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null) ||
+      "Stall";
+    const since = loop.last_touch
+      ? london(new Date(loop.last_touch)).date
+      : "unknown";
+    if (loop.type === "invoice")
+      return `${name}: invoice ${loop.invoice_number} (GBP ${Number(loop.amount).toFixed(2)}) overdue since ${loop.invoice_due}`;
+    if (loop.type === "lot_low") return loop.next_move;
+    if (loop.type === "stall")
+      return `Stall day ${loop.stall_date}: not cashed up`;
+    if (loop.type === "lead") {
+      const path = warmPath(loop.org_id, this.d.orgs(), this.d.data.edges);
+      const via =
+        path.length > 1
+          ? ` via ${path
+              .slice(1)
+              .map((id) => this.s.get("orgs", id)?.name)
+              .join(" and ")}`
+          : "";
+      return `${name}: ${path.length ? "warm lead" + via : "lead"}, no touch since ${since}`;
+    }
+    return `${name}: ${loop.type.replace(/_/g, " ")}, no touch since ${since}`;
+  }
+  // The WhatsApp card for one action: who, why now, the exact text, then buttons.
+  card(a) {
+    const loop = a.loop_id && this.s.get("loops", a.loop_id);
+    const who = loop
+      ? this.why(loop)
+      : a.payload.intro_key
+        ? `Introduction request to ${this.s.get("orgs", a.payload.org_id)?.name}`
+        : a.kind;
+    const how =
+      a.kind === "message"
+        ? `To ${a.payload.to} by ${a.payload.channel}`
+        : a.kind === "shipment"
+          ? "Mark as shipped"
+          : `Record ${a.kind} in Books`;
+    const body = a.payload.text || a.payload.description || "Review pending action";
+    const frame = `${who}\n${how}\n\n`;
+    const tail = "\n\nApprove, or reply with changes.";
+    const room = 1024 - frame.length - tail.length;
+    const shown =
+      body.length > room
+        ? body.slice(0, room - 40) + "… (full text in Where I stand)"
+        : body;
+    return frame + shown + tail;
+  }
+  // Compose the brief without sending anything. Drafts are created here.
+  async compose(now = new Date(), slot = "manual") {
+    const warnings = [];
+    if (this.syncBooks)
+      try {
+        await this.syncBooks();
+      } catch {
+        warnings.push("Books could not be read; invoice loops may be stale.");
+      }
+    if (this.pollMail && this.c.ENABLE_POLLING === "true")
+      try {
+        await this.pollMail();
+      } catch {
+        warnings.push("Mail could not be read; replies may be missing.");
+      }
+    const cold = this.d.cold(demoNow(this.c, now)),
+      actions = [];
+    for (const loop of cold) {
+      if (loop.type === "order_to_ship") {
+        const existing = this.s
+          .all("actions")
+          .find((a) => a.loop_id === loop.id && a.status === "pending");
+        actions.push(
+          existing ||
+            this.s.action(
+              "shipment",
+              {
+                org_id: loop.org_id,
+                description: "Confirm this order has shipped",
+              },
+              loop.id,
+            ),
+        );
+        continue;
+      }
+      // One failed draft must not sink the whole brief; the loop is still listed.
+      let action = null;
+      try {
+        action = await this.draft(loop);
+      } catch (error) {
+        this.s.audit("blocked", {
+          loop_id: loop.id,
+          reason: "draft_failed",
+          detail: safeError(error),
+        });
+        warnings.push(`${this.why(loop)}: no draft (${safeError(error)})`);
+      }
+      if (action) actions.push(action);
+      if (action && loop.type === "lead" && this.introduction) {
+        const intro = await this.introduction(loop);
+        if (intro) actions.push(intro);
+      }
+    }
+    // Qualification during drafting may have closed a lead (below bar): re-read.
+    const loops = cold.filter(
+      (l) =>
+        this.s.get("loops", l.id)?.status === "open" && !this.d.blocked(l.org_id),
+    );
+    const live = new Set(loops.map((l) => l.id));
+    const kept = actions.filter((a) => !a.loop_id || live.has(a.loop_id));
+    const cards = kept.slice(0, 5);
+    const counts = new Map();
+    for (const l of loops) {
+      const label =
+        l.type === "lead"
+          ? warmPath(l.org_id, this.d.orgs(), this.d.data.edges).length
+            ? "warm lead"
+            : "lead"
+          : l.type === "invoice"
+            ? "overdue invoice"
+            : l.type === "lot_low"
+              ? "low lot"
+              : l.type === "stall"
+                ? "stall day to cash up"
+                : l.type.replace(/_/g, " ");
+      counts.set(label, (counts.get(label) || 0) + 1);
+    }
+    const line = loops.length
+      ? `${loops.length} need you: ${[...counts]
+          .map(([k, n]) => `${n} ${n === 1 ? k : k.replace(/lead$|invoice$|lot$|order$|quote$/, "$&s")}`)
+          .join(", ")}.`
+      : "Nothing needs you right now.";
+    const label = slot === "manual" ? london(now).time : slot;
+    const text = [
+      `Followthrough ${label}`,
+      line,
+      ...loops.map((l) => `• ${this.why(l)}`),
+      cards.length
+        ? `\n${cards.length} to approve below${kept.length > cards.length ? `, ${kept.length - cards.length} more in Where I stand` : ""}.`
+        : "",
+      ...warnings,
+      `Where I stand: ${this.c.APP_URL}`,
+    ]
+      .filter((x) => x !== "")
+      .join("\n");
+    return {
+      slot,
+      text,
+      loops,
+      actions: kept,
+      cards: cards.map((a) => ({ id: a.id, text: this.card(a) })),
+      warnings,
+    };
+  }
+  // Send a composed brief to every owner number. Cards go only inside the window.
+  async deliver(brief) {
+    const owners = list(this.c.WHATSAPP_OWNER_NUMBERS);
+    if (!owners.length) throw Error("Missing owner WhatsApp recipient");
+    const full =
+      brief.text +
+      (brief.cards.length
+        ? "\n\n" + brief.cards.map((c) => c.text).join("\n\n")
+        : "");
+    const deliveries = [];
+    for (const owner of owners) {
+      const lastInbound = this.s.get("windows", owner)?.at;
+      const within = Date.now() - Date.parse(lastInbound) < 86400000;
+      const registeredTemplate = within
+        ? null
+        : await this.p.template(this.c.WHATSAPP_BRIEF_TEMPLATE, full);
+      if (within && brief.text.length > 4096)
+        throw Error("Invalid brief length; review available actions in dashboard");
+      deliveries.push({ owner, lastInbound, registeredTemplate, within });
+    }
+    for (const { owner, lastInbound, registeredTemplate, within } of deliveries) {
+      await this.p.whatsapp(owner, registeredTemplate?.text || brief.text, {
+        lastInbound,
+        registeredTemplate,
+      });
+      if (!within) continue;
+      // Separate action messages bind a tap or quoted reply to exactly one immutable payload.
+      for (const card of brief.cards) {
+        const a = this.s.get("actions", card.id);
+        if (!a || a.status !== "pending") continue;
+        const r = await this.p.whatsapp(owner, card.text, {
+          lastInbound,
+          action: a,
+        });
+        this.s.put("message_bindings", r.id, {
+          action_id: a.id,
+          version: a.version,
+          hash: a.hash,
+        });
+      }
+    }
+  }
+  // Scheduled (08:00 / 18:00 London, once per slot) or manual (owner asked, any time).
+  async brief(now = new Date(), { manual = false, send = true } = {}) {
+    let slot, key;
+    if (manual) {
+      slot = "manual";
+      key = `manual:${now.toISOString()}`;
+    } else {
+      if (this.c.ENABLE_JOBS !== "true") return;
+      const local = london(now);
       slot =
         local.time.startsWith("08:0") && Number(local.time.slice(3)) <= 2
           ? "08:00"
           : local.time.startsWith("18:0") && Number(local.time.slice(3)) <= 2
             ? "18:00"
             : null;
-    if (!slot) return;
-    const key = `${local.date}:${slot}`;
-    if (this.s.get("brief_slots", key)) return;
+      if (!slot) return;
+      key = `${local.date}:${slot}`;
+      if (this.s.get("brief_slots", key)) return;
+    }
     connected(this.c);
     // Persist slot before sending: restart may not repeat an uncertain external delivery.
     this.s.put("brief_slots", key, {
       key,
+      slot,
       status: "preparing",
       at: now.toISOString(),
     });
     try {
-      if (this.syncBooks) await this.syncBooks();
-      if (this.pollMail) await this.pollMail();
-      const loops = this.d.cold(now),
-        actions = [];
-      for (const loop of loops) {
-        if (loop.type === "order_to_ship") {
-          const existing = this.s
-            .all("actions")
-            .find((a) => a.loop_id === loop.id && a.status === "pending");
-          actions.push(
-            existing ||
-              this.s.action(
-                "shipment",
-                {
-                  org_id: loop.org_id,
-                  description: "Confirm this order has shipped",
-                },
-                loop.id,
-              ),
-          );
-          continue;
-        }
-        const action = await this.draft(loop);
-        if (action) actions.push(action);
-        if (action && loop.type === "lead" && this.introduction) {
-          const intro = await this.introduction(loop);
-          if (intro) actions.push(intro);
-        }
-      }
-      const heading = `Followthrough ${slot}\n${loops.length} loops need attention.\n`;
-      const text =
-        heading +
-        loops
-          .map(
-            (l) =>
-              `${this.s.get("orgs", l.org_id)?.name || l.type}: ${l.next_move}`,
-          )
-          .join("\n") +
-        "\n\n" +
-        actions
-          .map(
-            (a) =>
-              a.payload.text ||
-              a.payload.description ||
-              "Review pending action",
-          )
-          .join("\n\n") +
-        `\n\nReview, edit or drop: ${this.c.APP_URL}`;
-      const owners = list(this.c.WHATSAPP_OWNER_NUMBERS);
-      if (!owners.length) throw Error("Missing owner WhatsApp recipient");
-      const deliveries = [];
-      for (const owner of owners) {
-        const lastInbound = this.s.get("windows", owner)?.at;
-        const within = Date.now() - Date.parse(lastInbound) < 86400000;
-        const registeredTemplate = within
-          ? null
-          : await this.p.template(this.c.WHATSAPP_BRIEF_TEMPLATE, text);
-        if (within && text.length > 4096)
-          throw Error(
-            "Invalid brief length; review available actions in dashboard",
-          );
-        deliveries.push({ owner, lastInbound, registeredTemplate, within });
-      }
-      this.s.put("brief_slots", key, {
-        key,
-        status: "sending",
-        at: now.toISOString(),
-      });
-      for (const {
-        owner,
-        lastInbound,
-        registeredTemplate,
-        within,
-      } of deliveries) {
-        await this.p.whatsapp(owner, registeredTemplate?.text || text, {
-          lastInbound,
-          registeredTemplate,
+      const brief = await this.compose(now, slot);
+      if (send) {
+        this.s.put("brief_slots", key, {
+          key,
+          slot,
+          status: "sending",
+          at: now.toISOString(),
         });
-        // Separate action messages bind quoted yes to exactly one immutable payload.
-        if (within)
-          for (const a of actions) {
-            const message = `${a.payload.text || a.payload.description || JSON.stringify(a.payload)}\nApprove this exact action or use the dashboard to edit.`;
-            if (message.length > 1024) continue;
-            const r = await this.p.whatsapp(owner, message, {
-              lastInbound,
-              action: a,
-            });
-            this.s.put("message_bindings", r.id, {
-              action_id: a.id,
-              version: a.version,
-              hash: a.hash,
-            });
-          }
+        await this.deliver(brief);
       }
       this.s.put("brief_slots", key, {
         key,
-        status: "completed",
+        slot,
+        status: send ? "completed" : "composed",
         at: now.toISOString(),
       });
       this.s.audit("brief", {
         slot,
         key,
-        loop_ids: loops.map((l) => l.id),
-        action_ids: actions.map((a) => a.id),
+        manual,
+        sent: send,
+        loop_ids: brief.loops.map((l) => l.id),
+        action_ids: brief.actions.map((a) => a.id),
       });
+      return { ...brief, key, sent: send };
     } catch (e) {
       this.s.put("brief_slots", key, {
         key,
+        slot,
         status: "failed_no_retry",
         at: now.toISOString(),
       });
