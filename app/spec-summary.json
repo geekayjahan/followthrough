@@ -52,7 +52,11 @@
   "key_constraints": [
     "Every customer-facing send needs owner approval: a tap, a reply 'yes', or a reply/voice transcript the model reads as clear agreement to the quoted card (confidence >= 0.8); a change request edits the draft and issues a new card",
     "Cold = untouched 3 calendar days; invoice cold the day after due; lot low under 20% of starting kg; stall day uncashed if no cash-up by 21:00 Europe/London",
-    "Briefs at 08:00 and 18:00 Europe/London only; nothing unprompted between",
+    "Briefs at 08:00 and 18:00 Europe/London on weekdays only; nothing unprompted between or at weekends; owner-requested briefs allowed any time",
+    "Approved customer messages are held 60 minutes with undo; DEMO_SEND_DELAY_MINUTES=0 removes the hold and is logged",
+    "Drafts are grounded in a signed-off owner voice file (app/data/voice.md); no draft without it",
+    "A loop is parked after 3 unanswered chases; any counterpart touch un-parks it",
+    "Auto-replies are not touches",
     "Specialty bar: retail price >= GBP 8 per 250g; mid-shelf 8 to 12; premium above 12; below 8 closed with reason",
     "Warm path: 1 or 2 edges from a lead to an existing customer, supplier or stockist; warm leads rank first and the first draft names the connection",
     "Declined counterpart never drafted to again; block covers the organisation's domain, never a shared free-mail domain",
