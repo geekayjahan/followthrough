@@ -1,0 +1,243 @@
+{
+  "name": "Followthrough",
+  "stage": "S2.INITIALIZER",
+  "version": 1,
+  "decision": {
+    "date": "2026-10-29",
+    "source": "User selected: Build connected v0; I will configure credentials in app/.env. Guided-mode mechanics resolved by S2 initializer under this instruction.",
+    "scope": "All ten Core features FT-01 through FT-10 remain required; this is a connected application, initially run locally.",
+    "credential_checkpoint": "Independent source implementation and local isolated checks proceed while the owner configures app/.env. Missing configuration blocks dependent provider operations and connected checks. No mock, fixture, local test, or queued request constitutes external proof.",
+    "external_authority": "Building and validation do not authorize external messages or Books writes. Require an explicit owner action in the running UI or unambiguous authenticated reply tied to the exact pending action; synthetic test-recipient and fresh-account boundaries still apply."
+  },
+  "sources": [
+    "app/spec.html",
+    "app/evals.md",
+    "app/feature-list.json",
+    "modules/s2-build/build-blueprint.md"
+  ],
+  "stack": {
+    "runtime": {
+      "choice": "Node.js 24 LTS",
+      "modules": "ES modules",
+      "server": "node:http",
+      "outbound": "built-in fetch",
+      "runtime_packages": [
+        {
+          "name": "ffmpeg-static",
+          "version": "5.3.0",
+          "purpose": "Local WAV conversion for WhatsApp OGG voice messages; Node core cannot decode OGG. FFMPEG_PATH optionally overrides bundled binary."
+        }
+      ],
+      "dependency_rule": "No added runtime package or remote frontend asset without a justified spec update.",
+      "verified_local": "Node v24.22.1 and built-in SQLite 3.53.4 verified by parent during this build"
+    },
+    "persistence": {
+      "choice": "node:sqlite",
+      "path": "app/data/followthrough.sqlite",
+      "scope": "One persistent store for loops, fixture provenance, network, sourced qualification, pending drafts/actions, exact approvals, provider IDs, sessions, event deduplication and scheduled brief slots.",
+      "transactions": "Use atomic state changes and unique idempotency keys. External writes keep intent, response identifiers, and uncertain outcome for reconciliation; never retry an unknown write blindly."
+    },
+    "frontend": {
+      "choice": "Vanilla semantic HTML, CSS and browser JavaScript",
+      "surface": "One responsive Where I stand page plus shared login",
+      "assets": "Local assets only; no CDN fonts or scripts"
+    },
+    "auth": {
+      "choice": "One shared owner password from OWNER_PASSWORD; scrypt verifier, never plaintext persistence outside app/.env",
+      "session": "Random opaque session ID; hashed server-side session record, expiry, HttpOnly SameSite cookie; Secure with HTTPS",
+      "guards": "Authenticate all private UI/API routes, require same-origin and per-session CSRF protection for mutations, rate-limit login, bind approvals to exact immutable action payload/version and reject replay or ambiguity",
+      "webhooks": "WhatsApp challenge token for GET; raw-body SHA-256 HMAC with WHATSAPP_APP_SECRET for POST before parsing; deduplicate event IDs"
+    },
+    "jobs": {
+      "choice": "In-process scheduler with persistent unique local-date/slot records",
+      "timezone": "Europe/London",
+      "brief_slots": [
+        "08:00",
+        "18:00"
+      ],
+      "rules": "At most one brief per scheduled slot, within two minutes; no automatic late catch-up or unprompted message between slots. App must remain running; missed slots are visible. Handle London daylight saving via timezone conversion, not fixed UTC offsets.",
+      "outbound_gate": "ENABLE_JOBS=false and ENABLE_POLLING=false by default. Viewing UI or starting the process does not enable scheduled sends or background ingestion. Only the owner enables each flag after configuring and approving recipients/provider accounts."
+    },
+    "hosting": {
+      "choice": "Local Node process initially; no hosted app deployment selected",
+      "pending": "Public HTTPS webhook URL, always-on host and Daytona model provisioning require owner configuration/authorization. Local runtime alone cannot receive Cloud API webhooks or prove 24-hour scheduling."
+    },
+    "ai": {
+      "text": "Owner-selected Meta open-weights model at MODEL_BASE_URL with MODEL_NAME and optional MODEL_API_KEY; OpenAI-compatible interface in owner-managed Daytona sandbox with auto-stop disabled",
+      "constraints": "No invented model ID; show missing/unavailable provider state. Provider errors never become fabricated drafts, facts, receipts or account balances. Owner must verify model-host retention and sandbox access.",
+      "voice": {
+        "url": "https://api.meta.ai/v1/asr/transcribe",
+        "model": "muse-voice-transcribe-1.0",
+        "authentication": "VOICE_TRANSCRIBE_KEY bearer token",
+        "request": "multipart request JSON and audio WAV file; request includes model, audioEncoding WAV, mode PUSH_TO_TALK; response transcript",
+        "conversion": "Pinned ffmpeg-static 5.3.0 local binary converts WhatsApp OGG to WAV; FFMPEG_PATH is an optional override. Validate media type/size, use argument arrays without shell interpolation, and bound duration/resources.",
+        "source": "https://dev.meta.ai/docs/api-reference/voice/transcribe"
+      }
+    },
+    "enrichment": {
+      "web": "Fetch only owner-approved public shop URLs; restrict HTTP(S), block credentials, private/reserved/loopback/link-local IPs including IPv6, revalidate DNS and every redirect, bound response type/size/time, never execute remote scripts",
+      "evidence": "Each AI-derived qualification fact requires a URL and exact supporting quotation from retrieved text. Uncertain or missing evidence stays unknown; do not interpret lack of a mention as a false Indian-coffee flag.",
+      "instagram": "Implement an optional official Instagram Business Discovery adapter using INSTAGRAM_USER_ID, INSTAGRAM_ACCESS_TOKEN and GRAPH_API_VERSION; query /{ig-user-id}?fields=business_discovery.username(name){username,biography,website,media.limit(10){caption,permalink}}. Null fixture profile makes no query. A supplied profile without approved professional-account access remains incomplete qualification, never scraped or invented. Owner verifies permissions/account eligibility. Source: https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/business_discovery/"
+    },
+    "providers": {
+      "zoho": "Fresh Mail and Books accounts only; OAuth refresh flow and region-aware endpoints from ZOHO_REGION. No bank/money movement API.",
+      "books": "Reads contacts/invoices/payments/expenses/cash balance; approved expenses, sales receipts and items only within spec allowance; map expense account, cash account, stall customer and each lot books_item_id. Customer-payment recording is allowed by spec but never moving money.",
+      "whatsapp": "Cloud API, pinned owner-configured GRAPH_API_VERSION, verified recipient list and HMAC webhooks. Respect messaging window; outside it use owner-configured approved template or block with a useful error.",
+      "cash": "Use fresh configured Zoho cash-account balance and invoice reads. On missing/error/stale provider reads display unavailable and timestamp; never substitute fixture totals or zero as connected truth."
+    }
+  },
+  "design_system": {
+    "source": "frontend-design skill; plan reviewed against coffee-importer owner operations brief before implementation",
+    "colors": {
+      "canvas": "#EEF2F4",
+      "surface": "#FFFFFF",
+      "navigation": "#123F46",
+      "ink": "#19333B",
+      "muted": "#52676D",
+      "coffee_accent": "#A86414"
+    },
+    "type": {
+      "ui": "Segoe UI, system-ui, sans-serif",
+      "editorial": "Georgia, serif only for an optional coffee provenance heading",
+      "scale": "14px supporting, 16px body, 20px section, 32px page heading; tabular figures for quantities"
+    },
+    "layout": "Left-aligned quiet navigation and a working ledger: due loops and approval controls are primary; cash/owed/stock in a compact summary band, network as the single distinctive visual, expandable sourced lead background below or alongside it. On mobile use one column and readable overflow for true tables.",
+    "wireframe": [
+      "Desktop: navigation | cash / owed / stock",
+      "Desktop: navigation | due loops and approvals | selected lead evidence",
+      "Desktop: navigation | relationship network",
+      "Phone: heading, summary, due loops, approvals, network, selected lead evidence"
+    ],
+    "principles": [
+      "Use amber for provenance or actionable attention with sufficient contrast, never decorative gradients.",
+      "Use varied hierarchy and spacing rather than identical cards or KPI hero tiles.",
+      "Keyboard focus, labelled forms, status messages, touch targets, reduced motion and 320px layout are baseline.",
+      "Show source and freshness near each claim; visibly distinguish illustrative data, pending provider access and verified connected records."
+    ],
+    "review": "Rejected the generic cream-serif coffee dashboard and decorative cards. The central working ledger and relationship map reflect owner decisions and sourced connections; no external font/CDN assets."
+  },
+  "interface_contract": {
+    "directories": {
+      "source": "app/src/",
+      "public": "app/public/",
+      "data": "app/data/",
+      "checks": "app/checks/",
+      "logs": "app/logs/"
+    },
+    "commands": {
+      "start": "npm.cmd --prefix app start",
+      "check": "npm.cmd --prefix app test"
+    },
+    "routes": {
+      "health": "GET /health (minimal non-secret health)",
+      "dashboard": "GET / (authenticated Where I stand)",
+      "state": "GET /api/state (authenticated current state with provenance and provider freshness)",
+      "login": "POST /api/login",
+      "logout": "POST /api/logout (CSRF protected)",
+      "actions": "POST /api/actions/:id/approve, /edit, /drop (authenticated, CSRF protected; exact pending action)",
+      "webhook": "GET and POST /webhooks/whatsapp"
+    },
+    "action_log": {
+      "path": "app/logs/actions.jsonl",
+      "events": [
+        "data_rejected",
+        "brief",
+        "draft",
+        "approve",
+        "transcript",
+        "send",
+        "books_write",
+        "stock_move",
+        "ask",
+        "blocked",
+        "suppressed"
+      ],
+      "fields": "ISO timestamp, event type, relevant loop/action/event IDs, source/provenance and provider receipt where applicable; redact tokens and secrets"
+    },
+    "synthetic_data": {
+      "path": "app/data/synthetic.json",
+      "required": [
+        "orgs",
+        "people",
+        "edges",
+        "invoices",
+        "lots",
+        "orders",
+        "stall_days"
+      ],
+      "provenance": "Owner dataset is not present at initialization. A clearly labelled illustrative synthetic starter is permitted for isolated implementation checks; owner must replace or approve and map it before provider operations. Never label it owner-provided or real data.",
+      "boundary": "Every dataset email ends @example.test; WhatsApp numbers are null or configured verified test recipients; validate on startup before any provider operation. Connected operations require SYNTHETIC_DATA_APPROVED=true after owner review and mapping."
+    }
+  },
+  "configuration": {
+    "file": "app/.env",
+    "template": "app/.env.example",
+    "secret_values_in_artifacts": false,
+    "live_default": false,
+    "required_local": [
+      "OWNER_PASSWORD",
+      "APP_URL"
+    ],
+    "required_connected": [
+      "OWNER_TEST_EMAILS",
+      "WHATSAPP_TEST_NUMBERS",
+      "WHATSAPP_OWNER_NUMBERS",
+      "WHATSAPP_PHONE_NUMBER_ID",
+      "WHATSAPP_TOKEN",
+      "WHATSAPP_VERIFY_TOKEN",
+      "WHATSAPP_APP_SECRET",
+      "GRAPH_API_VERSION",
+      "ZOHO_REGION",
+      "ZOHO_CLIENT_ID",
+      "ZOHO_CLIENT_SECRET",
+      "ZOHO_REFRESH_TOKEN",
+      "ZOHO_MAIL_ACCOUNT_ID",
+      "ZOHO_MAIL_FROM",
+      "ZOHO_BOOKS_ORG_ID",
+      "EXPENSE_ACCOUNT_ID",
+      "CASH_ACCOUNT_ID",
+      "STALL_CUSTOMER_ID",
+      "MODEL_BASE_URL",
+      "MODEL_NAME",
+      "VOICE_TRANSCRIBE_KEY"
+    ],
+    "conditional": [
+      "MODEL_API_KEY when model endpoint requires authentication",
+      "FFMPEG_PATH optional override for bundled ffmpeg-static binary",
+      "WHATSAPP_BRIEF_TEMPLATE and WHATSAPP_TEMPLATE_LANGUAGE for approved template delivery outside messaging window",
+      "DAYTONA_API_KEY only for separately authorized provisioning; not required to call an existing model endpoint",
+      "INSTAGRAM_USER_ID and INSTAGRAM_ACCESS_TOKEN for authorized official Business Discovery enrichment; owner verifies professional-account permissions",
+      "SYNTHETIC_DATA_APPROVED=true only after owner review and provider mapping; default false blocks connected operations on illustrative starter",
+      "ZOHO_MAIL_INBOX_ID required for mail polling",
+      "ENRICHMENT_ALLOWED_HOSTS comma-separated owner-approved public shop hosts; empty disables web enrichment"
+    ]
+  },
+  "remaining_open": [
+    {
+      "row": "T1",
+      "question": "Fresh Zoho accounts, region and record mappings; two owner test emails and up to five verified WhatsApp test numbers",
+      "owner": "GK + partner"
+    },
+    {
+      "row": "T2",
+      "question": "Instagram supported official API access/permissions; public shop URL allowlist and owner approval",
+      "owner": "GK + partner"
+    },
+    {
+      "row": "T5",
+      "question": "Always-on HTTPS app hosting/webhook URL and connected deployment authority",
+      "owner": "partner"
+    },
+    {
+      "row": "T6",
+      "question": "Actual Meta open-weights model name, owner Daytona endpoint and access; Meta Voice key/access and audio conversion binary",
+      "owner": "GK + partner"
+    },
+    {
+      "row": "behavior",
+      "question": "Chase parking limit/reopen policy remains unresolved; no invented automatic parking or reopening",
+      "owner": "GK + partner"
+    }
+  ],
+  "verification_boundary": "Local checks may prove code and safeguards only. Core completion still requires app/evals.md provider records, actual test-inbox delivery, real model/transcription responses, fresh connected numbers and the 24-hour brief observation. Initializer has performed no external send, Books write, deployment or provisioning."
+}

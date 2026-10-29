@@ -4,3 +4,10 @@
 2026-10-28T15:51:35  S1  app/spec-summary.json landed  RATIONALE: later stages need the tiers and constraints as data so the trim and the eval read the same list the owner confirmed
 2026-10-28T15:51:35  S1  app/evals.md landed  RATIONALE: every row names the output that records its evidence, so S3 grades from the action log, Books, the test inbox or the page instead of from memory
 2026-10-28T15:57:01  S1  self-grade passed 12/12 after two fix rounds  RATIONALE: the grader caught a mechanism in outcome 0, three unpinned words, an ungradable bag weight and an unbounded week, and each fix made a check computable rather than adding a rule
+2026-10-29T10:13:07  S2.DECOMPOSER  app/feature-list.json landed  RATIONALE: grouping the spec into ordered, checkable features makes every required workflow traceable while leaving open stack choices and external proof explicit
+2026-10-29T10:21:33  S2.INITIALIZER  app/app-spec.json landed  RATIONALE: One shared connected contract preserves all Core features and gates provider evidence on real access while independent implementation proceeds.
+2026-10-29T10:21:33  S2.INITIALIZER  app/.env.example landed  RATIONALE: Empty credential placeholders and disabled jobs and polling make owner configuration explicit without accidental external activity.
+2026-10-29T10:21:33  S2.INITIALIZER  app/.env landed  RATIONALE: A local ignored configuration file lets the owner provide credentials without sharing them in chat or tracked artifacts.
+2026-10-29T10:21:33  S2.INITIALIZER  app/README.md landed  RATIONALE: The setup sequence separates buildable local source from owner-configured provider access and connected proof.
+2026-10-29T10:21:33  S2.INITIALIZER  app/spec.html landed  RATIONALE: The user connected-v0 decision resolves reversible foundation mechanics while retaining consequential access and hosting questions.
+2026-10-29T10:21:33  S2.INITIALIZER  app/spec-summary.json landed  RATIONALE: Machine-readable scope now reflects the same connected-v0 decisions and evidence gates as the canonical spec.
