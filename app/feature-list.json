@@ -87,7 +87,11 @@
         "Logged approval, transcript, send, and reply events"
       ],
       "done-check": "Cold loops appear in scheduled briefs; only a tap or affirmative reply/transcript authorizes sending; a voice-note refusal sends nothing; tap approval sends the draft on the counterpart channel and resets touch; soft no closes only that loop; exactly two scheduled briefs occur in a 24-hour check and no unprompted owner message is sent between them.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/approval.test.mjs"
+      ]
     },
     {
       "id": "FT-04",
