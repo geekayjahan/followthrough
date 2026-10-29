@@ -253,7 +253,7 @@
         "checks/http.test.mjs",
         "checks/serve-ui-fixture.mjs"
       ],
-      "render_verification": "parent browser QA pending"
+      "render_verification": "Nine isolated Playwright browser checks passed: sign-in, edit then approve one test send, shipment closure across reload, network selection, 1440px desktop and 390px/320px phone widths, London timestamps, zero final console errors. No connected provider proof. Cases: checks/browser-smoke.mjs."
     },
     {
       "id": "FT-10",
