@@ -162,7 +162,11 @@
         "Stock movement and stall-day cash-up state"
       ],
       "done-check": "Six 250g bags of lot 2 for £120 create an approved £120 sale and reduce lot 2 by exactly 1.5kg; missing bag size prompts for it and causes no Books write until supplied; interpretation is read back before approval.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/stall.test.mjs"
+      ]
     },
     {
       "id": "FT-07",

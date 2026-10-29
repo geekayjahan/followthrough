@@ -16,3 +16,4 @@
 2026-10-29T10:30:12  S2.CODER  FT-03 Timed briefs drafts and owner approvals landed  RATIONALE: Immutable payload hashes and durable write intents prevent ambiguous approval, replay and blind retry while London slots constrain unsolicited messages.
 2026-10-29T10:31:17  S2.CODER  FT-04 Invoice follow-up and payment closure landed  RATIONALE: Fresh mapped Books reads close paid loops and invalidate changed invoices before stale chases can be approved.
 2026-10-29T10:32:40  S2.CODER  FT-05 Receipt capture and approved expense entry landed  RATIONALE: Source-checked receipt extraction yields a reviewable pending expense, while unmapped or incomplete facts cannot reach Books.
+2026-10-29T10:32:40  S2.CODER  FT-06 Stall cash-up and stock movement landed  RATIONALE: Explicit bag dimensions are read back before approval and uncertain sales reserve stock until their provider outcome is reconciled.
