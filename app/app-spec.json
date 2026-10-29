@@ -1,6 +1,6 @@
 {
   "name": "Followthrough",
-  "stage": "S2.INITIALIZER",
+  "stage": "S2.CODER",
   "version": 1,
   "decision": {
     "date": "2026-10-29",
@@ -70,7 +70,7 @@
         "model": "muse-voice-transcribe-1.0",
         "authentication": "VOICE_TRANSCRIBE_KEY bearer token",
         "request": "multipart request JSON and audio WAV file; request includes model, audioEncoding WAV, mode PUSH_TO_TALK; response transcript",
-        "conversion": "Pinned ffmpeg-static 5.3.0 local binary converts WhatsApp OGG to WAV; FFMPEG_PATH is an optional override. Validate media type/size, use argument arrays without shell interpolation, and bound duration/resources.",
+        "conversion": "Pinned ffmpeg-static 5.3.0 local binary converts WhatsApp OGG to WAV; FFMPEG_PATH is an optional override. Validate media type/size, use argument arrays without shell interpolation, and bound duration/resources. Complete notes are capped at two minutes; conversion uses a one-second sentinel and rejects overlimit audio instead of transcribing a truncated note.",
         "source": "https://dev.meta.ai/docs/api-reference/voice/transcribe"
       }
     },
@@ -82,7 +82,7 @@
     "providers": {
       "zoho": "Fresh Mail and Books accounts only; OAuth refresh flow and region-aware endpoints from ZOHO_REGION. No bank/money movement API.",
       "books": "Reads contacts/invoices/payments/expenses/cash balance; approved expenses, sales receipts and items only within spec allowance; map expense account, cash account, stall customer and each lot books_item_id. Customer-payment recording is allowed by spec but never moving money.",
-      "whatsapp": "Cloud API, pinned owner-configured GRAPH_API_VERSION, verified recipient list and HMAC webhooks. Respect messaging window; outside it use owner-configured approved template or block with a useful error.",
+      "whatsapp": "Cloud API with owner-configured version, strict test recipients and signed webhooks. Outside the 24-hour window, verified APPROVED single-body-variable templates render exact customer content and are signature-checked before send; owner brief template includes all drafts and dashboard URL. Within-window exact action messages support tap or quoted affirmative approval.",
       "cash": "Use fresh configured Zoho cash-account balance and invoice reads. On missing/error/stale provider reads display unavailable and timestamp; never substitute fixture totals or zero as connected truth."
     }
   },
@@ -126,7 +126,9 @@
     },
     "commands": {
       "start": "npm.cmd --prefix app start",
-      "check": "npm.cmd --prefix app test"
+      "check": "npm.cmd --prefix app test",
+      "doctor": "npm.cmd --prefix app run doctor",
+      "syntax": "npm.cmd --prefix app run check"
     },
     "routes": {
       "health": "GET /health (minimal non-secret health)",
@@ -209,7 +211,8 @@
       "INSTAGRAM_USER_ID and INSTAGRAM_ACCESS_TOKEN for authorized official Business Discovery enrichment; owner verifies professional-account permissions",
       "SYNTHETIC_DATA_APPROVED=true only after owner review and provider mapping; default false blocks connected operations on illustrative starter",
       "ZOHO_MAIL_INBOX_ID required for mail polling",
-      "ENRICHMENT_ALLOWED_HOSTS comma-separated owner-approved public shop hosts; empty disables web enrichment"
+      "ENRICHMENT_ALLOWED_HOSTS comma-separated owner-approved public shop hosts; empty disables web enrichment",
+      "WHATSAPP_WABA_ID and WHATSAPP_FOLLOWUP_TEMPLATE for verified approved customer follow-up templates outside the 24-hour window. Templates have exactly one BODY variable and optional static FOOTER; no other components."
     ]
   },
   "remaining_open": [
@@ -239,5 +242,16 @@
       "owner": "GK + partner"
     }
   ],
-  "verification_boundary": "Local checks may prove code and safeguards only. Core completion still requires app/evals.md provider records, actual test-inbox delivery, real model/transcription responses, fresh connected numbers and the 24-hour brief observation. Initializer has performed no external send, Books write, deployment or provisioning."
+  "verification_boundary": "Local checks may prove code and safeguards only. Core completion still requires app/evals.md provider records, actual test-inbox delivery, real model/transcription responses, fresh connected numbers and the 24-hour brief observation. Initializer has performed no external send, Books write, deployment or provisioning.",
+  "implementation": {
+    "status": "done",
+    "external_verification": "pending",
+    "local_checks": "33 isolated node:test cases; syntax check; parent independent browser QA",
+    "operational_limitations": [
+      "Uncertain provider writes require verified operator reconciliation, with no automatic write retry.",
+      "Failed inbound processing and missed/failed brief slots remain visible for operator review.",
+      "Outside-window owner briefs use a verified template and dashboard approval; multi-action brief replies never authorize a send.",
+      "A brief exceeding the supported complete template size is blocked before sending."
+    ]
+  }
 }

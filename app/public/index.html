@@ -1,2 +1,134 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Where I stand · Followthrough</title><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script></head><body><a class="skip" href="#main">Skip to your work</a><aside class="sidebar"><a class="brand" href="/"><b class="mark">f.</b>Followthrough</a><p class="caption">A clear view of the business.</p><nav aria-label="Main navigation"><a class="active" href="#overview">Where I stand</a><a href="#loops">Open loops <span id="nav-count"></span></a><a href="#approvals">Approvals</a><a href="#network">Relationships</a><a href="#stock">Stock & invoices</a></nav><div class="sidebar-bottom"><p>Owner workspace</p><button id="logout" class="quiet">Sign out</button></div></aside><main id="main"><header id="overview"><div><p id="today" class="small">Your business, in view</p><h1>Where I stand</h1><p class="intro">Keep the next conversation moving.</p></div><button id="refresh" class="secondary">Refresh sources</button></header><div id="notice" role="status" aria-live="polite"></div><div id="setup"></div><div id="provenance" class="provenance"></div><section class="summary" aria-label="Business summary"><div><span>Cash available</span><strong id="cash">—</strong><small id="cash-source">Reading source…</small></div><div><span>Owed to you</span><strong id="owed">—</strong><small id="owed-source">Reading source…</small></div><div><span>Green coffee in stock</span><strong id="stock-total">—</strong><small id="stock-source">Reading inventory…</small></div><div><span>Waiting for your approval</span><strong id="approval-total">—</strong><small>Review the exact action below</small></div></section><div class="work-grid"><section id="loops" class="section"><div class="section-heading"><div><h2>The next move</h2><p>Open loops, ordered by what is due.</p></div><span id="loop-count" class="count">—</span></div><div id="loop-content" class="loading" aria-busy="true">Loading your open loops…</div></section><section id="approvals" class="section"><div class="section-heading"><div><h2>Review and approve</h2><p>Review, edit, then approve.</p></div></div><div id="action-content" class="loading" aria-busy="true">Loading pending actions…</div></section></div><section id="network" class="section"><div class="section-heading"><div><h2>Your business network</h2><p>Select an organisation to see its background and source evidence.</p></div><span class="map-key">● Organisation &nbsp; ─ Connection</span></div><div id="network-content" class="loading" aria-busy="true">Loading relationships…</div><div id="lead-content"></div></section><div class="inventory-grid"><section id="stock" class="section"><div class="section-heading"><div><h2>What’s in the store</h2><p>Green coffee, by lot.</p></div></div><div id="stock-content" class="loading">Loading inventory…</div></section><section class="section"><div class="section-heading"><div><h2>Invoices</h2><p id="invoice-source">Freshness follows the Books read.</p></div></div><div id="invoice-content" class="loading">Loading invoices…</div></section></div><section class="section activity"><details><summary>Activity & scheduled briefs <span id="event-count"></span></summary><p class="small">Briefs are scheduled for 08:00 and 18:00, Europe/London, while the app is running and jobs are enabled.</p><div id="activity-content"></div></details></section><footer>Followthrough <span>Every open loop has a next move.</span></footer></main></body></html>
-
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Where I stand · Followthrough</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to your work</a>
+    <aside class="sidebar">
+      <a class="brand" href="/"><b class="mark">f.</b>Followthrough</a>
+      <p class="caption">A clear view of the business.</p>
+      <nav aria-label="Main navigation">
+        <a class="active" href="#overview">Where I stand</a
+        ><a href="#loops">Open loops <span id="nav-count"></span></a
+        ><a href="#approvals">Approvals</a><a href="#network">Relationships</a
+        ><a href="#stock">Stock & invoices</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <p>Owner workspace</p>
+        <button id="logout" class="quiet">Sign out</button>
+      </div>
+    </aside>
+    <main id="main">
+      <header id="overview">
+        <div>
+          <p id="today" class="small">Your business, in view</p>
+          <h1>Where I stand</h1>
+          <p class="intro">Keep the next conversation moving.</p>
+        </div>
+        <button id="refresh" class="secondary">Refresh sources</button>
+      </header>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <div id="setup"></div>
+      <div id="provenance" class="provenance"></div>
+      <section class="summary" aria-label="Business summary">
+        <div>
+          <span>Cash available</span><strong id="cash">—</strong
+          ><small id="cash-source">Reading source…</small>
+        </div>
+        <div>
+          <span>Owed to you</span><strong id="owed">—</strong
+          ><small id="owed-source">Reading source…</small>
+        </div>
+        <div>
+          <span>Green coffee in stock</span><strong id="stock-total">—</strong
+          ><small id="stock-source">Reading inventory…</small>
+        </div>
+        <div>
+          <span>Waiting for your approval</span
+          ><strong id="approval-total">—</strong
+          ><small>Review the exact action below</small>
+        </div>
+      </section>
+      <div class="work-grid">
+        <section id="loops" class="section">
+          <div class="section-heading">
+            <div>
+              <h2>The next move</h2>
+              <p id="due-count">Reading loops due today…</p>
+            </div>
+            <span id="loop-count" class="count">—</span>
+          </div>
+          <div id="loop-content" class="loading" aria-busy="true">
+            Loading your open loops…
+          </div>
+        </section>
+        <section id="approvals" class="section">
+          <div class="section-heading">
+            <div>
+              <h2>Review and approve</h2>
+              <p>Review, edit, then approve.</p>
+            </div>
+          </div>
+          <div id="action-content" class="loading" aria-busy="true">
+            Loading pending actions…
+          </div>
+        </section>
+      </div>
+      <section id="network" class="section">
+        <div class="section-heading">
+          <div>
+            <h2>Your business network</h2>
+            <p>
+              Select an organisation to see its background and source evidence.
+            </p>
+          </div>
+          <span class="map-key">● Organisation &nbsp; ─ Connection</span>
+        </div>
+        <div id="network-content" class="loading" aria-busy="true">
+          Loading relationships…
+        </div>
+        <div id="lead-content"></div>
+      </section>
+      <div class="inventory-grid">
+        <section id="stock" class="section">
+          <div class="section-heading">
+            <div>
+              <h2>What’s in the store</h2>
+              <p>Green coffee, by lot.</p>
+            </div>
+          </div>
+          <div id="stock-content" class="loading">Loading inventory…</div>
+        </section>
+        <section class="section">
+          <div class="section-heading">
+            <div>
+              <h2>Invoices</h2>
+              <p id="invoice-source">Freshness follows the Books read.</p>
+            </div>
+          </div>
+          <div id="invoice-content" class="loading">Loading invoices…</div>
+        </section>
+      </div>
+      <section class="section activity">
+        <details>
+          <summary>
+            Activity & scheduled briefs <span id="event-count"></span>
+          </summary>
+          <p class="small">
+            Briefs are scheduled for 08:00 and 18:00, Europe/London, while the
+            app is running and jobs are enabled.
+          </p>
+          <div id="activity-content"></div>
+        </details>
+      </section>
+      <footer>
+        Followthrough <span>Every open loop has a next move.</span>
+      </footer>
+    </main>
+  </body>
+</html>

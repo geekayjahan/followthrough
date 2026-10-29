@@ -271,15 +271,22 @@
         "Timestamped app/logs/actions.jsonl records sufficient to reconcile each run"
       ],
       "done-check": "Every brief, approval, transcript, send, Books write, stock movement, blocked/suppressed event, and rejected dataset has a timestamped, attributable action-log record with identifiers needed by the stated checks.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/operations.test.mjs",
+        "checks/provider-contracts.test.mjs",
+        "checks/http.test.mjs"
+      ],
+      "implementation_notes": "Explicit failure states, immutable approvals, persisted write intents, complete test-only harness, sanitized evidence and transaction-aware action log."
     }
   ],
   "required_external_proof": [
-    "Fresh Zoho Mail and Books accounts connected with owner-configured app/.env credentials; verify sent test email, Books expense, sale, and payment readback against the connected accounts.",
-    "WhatsApp Cloud API test number and verified test recipients connected; verify scheduled brief delivery, inbound reply, tap/reply approval, and voice-note transcription/send behavior in the test inbox.",
-    "Chosen Meta open-weights model in the owner sandbox and Meta Voice Transcribe access path confirmed; verify the actual model and transcription service in the running integration.",
-    "Lead website/public Instagram access path, loop/network persistence, frontend/design system, hosting/runtime, shared owner login, and scheduled-job mechanism remain open spec rows T2-T5, T7-T8; owners must decide these before the features that depend on them are built.",
-    "Owners must provide the synthetic dataset, up to five WhatsApp test recipients, and two owner test email addresses; none are present or inferred here.",
-    "Before any live send, verify the stated lawful basis against current ICO guidance and require the owner-controlled APP_LIVE=true setting; this decomposition does not claim live-use readiness."
+    "Fresh Zoho Mail/Books accounts: verify actual test mail, approved expense and sale create/readback, invoice payment closure and current cash/invoice totals.",
+    "WhatsApp: verify configured test recipients, signed webhook hosting, actual brief delivery, owner tap/quoted reply/voice approval and closed-window approved templates.",
+    "Actual configured Meta text/vision model and Meta Voice service: verify real responses, source-backed facts and complete audio transcription.",
+    "Owner synthetic dataset review and provider record mappings; public shop allowlist and optional Instagram professional-account permissions.",
+    "Always-on public HTTPS hosting remains unselected; observe the real 08:00/18:00 Europe/London cycle for 24 hours.",
+    "Live use remains outside acceptance: verify current lawful basis and explicit owner authority before APP_LIVE=true."
   ]
 }

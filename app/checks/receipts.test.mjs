@@ -1,4 +1,53 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {Store} from '../src/store.mjs';import {Domain} from '../src/domain.mjs';import {Engine} from '../src/engine.mjs';import {installReceipts} from '../src/receipts.mjs';
-function setup(result){const s=new Store(':memory:'),d=new Domain(s,{orgs:[{id:'o',name:'Test Supplier',status:'customer'}],people:[],lots:[],orders:[],stall_days:[],edges:[]}),e=new Engine(s,d,{model:async()=>result},{});installReceipts(e);return{s,e};}
-test('receipt extraction produces review only; unmapped supplier and missing amount ask without action',async()=>{const{s,e}=setup({supplier:'Test Supplier',amount:24,date:'2026-10-29',currency:'GBP',supplier_quote:'Test Supplier',amount_quote:'24.00'});const r=await e.receipt({text:'Test Supplier total GBP 24.00',event_id:'1'});assert.equal(r.action.status,'pending');assert.equal(s.all('intents').length,0);e.p.model=async()=>({supplier:'Unknown Real Person',amount:24});assert.ok((await e.receipt({text:'bad',event_id:'2'})).ask);assert.equal(s.all('actions').length,1);s.close();});
-test('receipt fact without exact text support is rejected',async()=>{const{s,e}=setup({supplier:'Test Supplier',amount:24,date:'2026-10-29',currency:'GBP',supplier_quote:'Test Supplier',amount_quote:'24.00'});await assert.rejects(e.receipt({text:'Something else',event_id:'1'}));assert.equal(s.all('actions').length,0);s.close();});
+import test from "node:test";
+import assert from "node:assert/strict";
+import { Store } from "../src/store.mjs";
+import { Domain } from "../src/domain.mjs";
+import { Engine } from "../src/engine.mjs";
+import { installReceipts } from "../src/receipts.mjs";
+function setup(result) {
+  const s = new Store(":memory:"),
+    d = new Domain(s, {
+      orgs: [{ id: "o", name: "Test Supplier", status: "customer" }],
+      people: [],
+      lots: [],
+      orders: [],
+      stall_days: [],
+      edges: [],
+    }),
+    e = new Engine(s, d, { model: async () => result }, {});
+  installReceipts(e);
+  return { s, e };
+}
+test("receipt extraction produces review only; unmapped supplier and missing amount ask without action", async () => {
+  const { s, e } = setup({
+    supplier: "Test Supplier",
+    amount: 24,
+    date: "2026-10-29",
+    currency: "GBP",
+    supplier_quote: "Test Supplier",
+    amount_quote: "24.00",
+  });
+  const r = await e.receipt({
+    text: "Test Supplier total GBP 24.00",
+    event_id: "1",
+  });
+  assert.equal(r.action.status, "pending");
+  assert.equal(s.all("intents").length, 0);
+  e.p.model = async () => ({ supplier: "Unknown Real Person", amount: 24 });
+  assert.ok((await e.receipt({ text: "bad", event_id: "2" })).ask);
+  assert.equal(s.all("actions").length, 1);
+  s.close();
+});
+test("receipt fact without exact text support is rejected", async () => {
+  const { s, e } = setup({
+    supplier: "Test Supplier",
+    amount: 24,
+    date: "2026-10-29",
+    currency: "GBP",
+    supplier_quote: "Test Supplier",
+    amount_quote: "24.00",
+  });
+  await assert.rejects(e.receipt({ text: "Something else", event_id: "1" }));
+  assert.equal(s.all("actions").length, 0);
+  s.close();
+});
