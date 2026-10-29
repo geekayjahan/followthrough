@@ -64,6 +64,7 @@ export function createApplication({
     p = providers || new Providers(c),
     e = new Engine(s, d, p, c),
     auth = new Auth(s, c);
+  if (!p.audit) p.audit = (type, fields) => s.audit(type, fields);
   installBooks(e);
   installReceipts(e);
   installStall(e);

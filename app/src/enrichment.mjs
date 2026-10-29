@@ -115,6 +115,29 @@ export async function fetchWebsite(
   }
   throw Error("Website redirect limit exceeded");
 }
+// The model sees a focused slice of each page: sentences that mention a price,
+// a 250g bag or India first, then the rest, capped so one lead costs a few
+// thousand tokens instead of a quarter of a million. Quotes are still checked
+// against the full page text.
+export function focus(text, limit = 20000) {
+  if (text.length <= limit) return text;
+  // A period inside a number (£11.50) is not a sentence end.
+  const sentences = text.match(/(?:[^.!?]|\.(?=\d))+[.!?]*\s*/g) || [text];
+  const key = /£|GBP|\b250\s*g\b|\bindia/i;
+  const picked = [];
+  let size = 0;
+  for (const pass of [true, false])
+    for (const sentence of sentences) {
+      if (key.test(sentence) !== pass) continue;
+      if (size + sentence.length > limit) {
+        if (pass) continue;
+        break;
+      }
+      picked.push(sentence);
+      size += sentence.length;
+    }
+  return picked.join("").trim();
+}
 export function qualificationFacts(r, pages) {
   function evidence(f) {
     return (
@@ -218,7 +241,11 @@ export function installEnrichment(e, website = fetchWebsite) {
     if (cached.instagramComplete) instagramComplete = true;
     const r = await e.p.model(
       "Extract only source-supported facts. JSON {price:number|null,sells_indian:boolean|null,sources:{price:{url:string,quote:string},sells_indian:{url:string,quote:string}}}. Price must be GBP for 250g from the shop page. Indian status false needs explicit negative wording, not absence. Quotes must be exact.",
-      { organization: org.name, pages },
+      {
+        organization: org.name,
+        pages: pages.map((p) => ({ url: p.url, text: focus(p.text) })),
+      },
+      { maxTokens: 500 },
     );
     const facts = qualificationFacts(r, pages);
     if (facts.sources.price.url !== pages[0].url)
