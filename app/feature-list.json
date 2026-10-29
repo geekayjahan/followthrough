@@ -111,7 +111,11 @@
         "Payment-driven loop closure"
       ],
       "done-check": "An unpaid invoice one day overdue appears in the next brief with invoice number and amount; recording its payment in Books closes the loop by the next brief cycle and prevents later chase drafts.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/books.test.mjs"
+      ]
     },
     {
       "id": "FT-05",

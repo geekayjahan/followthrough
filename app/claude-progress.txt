@@ -14,3 +14,4 @@
 2026-10-29T10:26:11  S2.CODER  FT-01 Synthetic data boundary and protected runtime landed  RATIONALE: Synthetic validation precedes provider access, while hashed sessions and exact test routing isolate owner authority.
 2026-10-29T10:27:30  S2.CODER  FT-02 Commercial loop intake and state landed  RATIONALE: A single persisted loop model makes calendar aging, reply closure, domain suppression and shipment transitions consistent across channels.
 2026-10-29T10:30:12  S2.CODER  FT-03 Timed briefs drafts and owner approvals landed  RATIONALE: Immutable payload hashes and durable write intents prevent ambiguous approval, replay and blind retry while London slots constrain unsolicited messages.
+2026-10-29T10:31:17  S2.CODER  FT-04 Invoice follow-up and payment closure landed  RATIONALE: Fresh mapped Books reads close paid loops and invalidate changed invoices before stale chases can be approved.
