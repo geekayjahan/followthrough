@@ -56,7 +56,11 @@
         "Order-to-ship loops; shipping closes the loop"
       ],
       "done-check": "Lead, sample-out, quote, unconfirmed-order, and order-to-ship loops are created and updated from the specified channels; qualifying touches reset cold timing; shipping closes its order loop; an unapproved draft remains unsent and recurs in a later brief.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/domain.test.mjs"
+      ]
     },
     {
       "id": "FT-03",
