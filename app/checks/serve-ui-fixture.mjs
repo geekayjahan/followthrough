@@ -1,4 +1,5 @@
 // Test-only UI harness. No .env is read, and no external request can be made.
+// Reproducible Playwright CLI cases live in checks/browser-smoke.mjs.
 import { readFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
