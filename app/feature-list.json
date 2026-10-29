@@ -221,7 +221,11 @@
         "Warm-path draft naming connection and separately approved introducer draft"
       ],
       "done-check": "Price below £8 closes the lead with reason and prevents drafting; £8–£12 is mid-shelf and above £12 premium; Indian coffee status and source URLs are recorded; one-edge leads rank before two-edge leads before strangers; warm drafts name the shared connection and propose an introducer without sending absent its own approval.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/enrichment.test.mjs"
+      ]
     },
     {
       "id": "FT-09",
