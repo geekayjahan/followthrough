@@ -4,11 +4,11 @@ All ten Core features have connected source implementation. Local checks use inj
 
 ## Run locally
 
-1. Use Node.js 24. Install with `npm.cmd --prefix app install`. The only runtime package is pinned `ffmpeg-static@5.3.0`; HTTP, fetch and SQLite use Node builtins.
-2. Configure `app/.env` from `.env.example`, keeping secrets there only. Set `OWNER_PASSWORD` and `APP_URL`; the default URL is `http://127.0.0.1:4310`. **Restart the server after any .env change.** A hosted runtime can supply the same keys as process environment variables; those override the file. `npm.cmd --prefix app run doctor` lists missing key names without printing values.
+1. Use Node.js 22.5 or newer (24 preferred). Install with `npm --prefix app install`. The only runtime package is pinned `ffmpeg-static@5.3.0`; HTTP, fetch and SQLite use Node builtins.
+2. Configure `app/.env` from `.env.example`, keeping secrets there only. Set `OWNER_PASSWORD` and `APP_URL`; the default URL is `http://127.0.0.1:4310`. **Restart the server after any .env change.** A hosted runtime can supply the same keys as process environment variables; those override the file. `npm --prefix app run doctor` lists missing key names without printing values.
 3. Review or replace `data/synthetic.json`. The included organisations are illustrative, not owner-provided or real. Every person email must be `@example.test`; WhatsApp identities must be configured test numbers. Map `orgs[].books_contact_id` and `lots[].books_item_id` to the fresh synthetic Books organisation. `preferred_channel:"whatsapp"` selects WhatsApp where both identities exist; otherwise intake channel determines follow-ups, with email the default.
 4. Set `SYNTHETIC_DATA_APPROVED=true` only after that review and mapping. Keep `APP_LIVE=false`. Before live use, the owner must separately verify the lawful basis and authorise live sends; this build establishes neither.
-5. Run `npm.cmd --prefix app start` and open `APP_URL`. The page protects every private route with owner login. It shows fresh Books numbers or an explicit unavailable state, exact pending action contents and effective test delivery recipients, stock, due-today loops and every synthetic network node/edge.
+5. Run `npm --prefix app start` and open `APP_URL`. The page protects every private route with owner login. It shows fresh Books numbers or an explicit unavailable state, exact pending action contents and effective test delivery recipients, stock, due-today loops and every synthetic network node/edge.
 6. Keep `ENABLE_JOBS=false` and `ENABLE_POLLING=false` until intentionally enabling them. The scheduler runs only at 08:00 and 18:00 Europe/London, within two minutes, while the process is running. It never catches up later. Initial local operation does not provide a public webhook or always-on hosting.
 
 ## Provider setup
@@ -36,11 +36,11 @@ The runtime pins the synthetic dataset fingerprint. After changing mappings, sto
 
 ## Local verification
 
-- `npm.cmd --prefix app test`: committed deterministic domain, request-contract, HTTP, auth/HMAC, source, concurrency and restart checks. Provider responses in these tests are injected test-only evidence.
-- `npm.cmd --prefix app run check`: syntax-checks source, browser JavaScript and checks.
+- `npm --prefix app test`: committed deterministic domain, request-contract, HTTP, auth/HMAC, source, concurrency and restart checks. Provider responses in these tests are injected test-only evidence.
+- `npm --prefix app run check`: syntax-checks source, browser JavaScript and checks.
 - `node app/checks/secret-scan.mjs`: scans publishable source for high-confidence token and private-key patterns without reading ignored credentials or printing matched values; this is not a comprehensive security audit.
 - `node app/checks/serve-ui-fixture.mjs`: isolated browser QA at `http://127.0.0.1:4311`, password `test-owner-only`. It does not read `.env`, uses a temporary SQLite store and injected providers, and displays a TEST FIXTURE ONLY banner. Production has no mock/demo environment switch.
-- With a fresh fixture running, from the `app` directory run `npx.cmd --yes --package @playwright/cli playwright-cli -s=followthrough-v0 open http://127.0.0.1:4311`, then the same CLI with `-s=followthrough-v0 run-code --filename=checks/browser-smoke.mjs`. These nine browser checks use only the isolated fixture and save ignored desktop/phone screenshots.
+- With a fresh fixture running, from the `app` directory run `npx --yes --package @playwright/cli playwright-cli -s=followthrough-v0 open http://127.0.0.1:4311`, then the same CLI with `-s=followthrough-v0 run-code --filename=checks/browser-smoke.mjs`. These nine browser checks use only the isolated fixture and save ignored desktop/phone screenshots.
 
 Verified on 29 October 2026 against runtime source `53e8741`: 33 automated checks passed, syntax checks passed, and the source secret-pattern scan found zero matches. Independent S2 artifact review passed 7/7. All nine browser cases in `checks/browser-smoke.mjs` passed at desktop and phone sizes, including edited-draft approval, one test receipt, shipment closure across reload, network selection, London dates, and zero final console errors. All browser provider responses were isolated fixtures.
 

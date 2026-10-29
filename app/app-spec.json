@@ -17,7 +17,7 @@
   ],
   "stack": {
     "runtime": {
-      "choice": "Node.js 24 LTS",
+      "choice": "Node.js 22.5 or newer (24 preferred)",
       "modules": "ES modules",
       "server": "node:http",
       "outbound": "built-in fetch",
@@ -60,10 +60,10 @@
     },
     "hosting": {
       "choice": "Local Node process initially; no hosted app deployment selected",
-      "pending": "Public HTTPS webhook URL, always-on host and Daytona model provisioning require owner configuration/authorization. Local runtime alone cannot receive Cloud API webhooks or prove 24-hour scheduling."
+      "pending": "Public HTTPS webhook URL and an always-on host with a persistent disk require owner configuration/authorization. Local runtime alone cannot receive Cloud API webhooks or prove 24-hour scheduling."
     },
     "ai": {
-      "text": "Owner-selected Meta open-weights model at MODEL_BASE_URL with MODEL_NAME and optional MODEL_API_KEY; OpenAI-compatible interface in owner-managed Daytona sandbox with auto-stop disabled",
+      "text": "Muse Spark Open on Baseten at MODEL_BASE_URL (OpenAI-compatible) with MODEL_NAME and MODEL_API_KEY; optional VISION_MODEL_* for receipt photos if image input fails",
       "constraints": "No invented model ID; show missing/unavailable provider state. Provider errors never become fabricated drafts, facts, receipts or account balances. Owner must verify model-host retention and sandbox access.",
       "voice": {
         "url": "https://api.meta.ai/v1/asr/transcribe",
@@ -125,10 +125,10 @@
       "logs": "app/logs/"
     },
     "commands": {
-      "start": "npm.cmd --prefix app start",
-      "check": "npm.cmd --prefix app test",
-      "doctor": "npm.cmd --prefix app run doctor",
-      "syntax": "npm.cmd --prefix app run check"
+      "start": "npm --prefix app start",
+      "check": "npm --prefix app test",
+      "doctor": "npm --prefix app run doctor",
+      "syntax": "npm --prefix app run check"
     },
     "routes": {
       "health": "GET /health (minimal non-secret health)",
@@ -207,7 +207,8 @@
       "MODEL_API_KEY when model endpoint requires authentication",
       "FFMPEG_PATH optional override for bundled ffmpeg-static binary",
       "WHATSAPP_BRIEF_TEMPLATE and WHATSAPP_TEMPLATE_LANGUAGE for approved template delivery outside messaging window",
-      "DAYTONA_API_KEY only for separately authorized provisioning; not required to call an existing model endpoint",
+      "VISION_MODEL_BASE_URL, VISION_MODEL_NAME, VISION_MODEL_API_KEY only if Spark Open rejects image input",
+      "MAIL_FROM_COFFEE for every email to a coffee counterpart",
       "INSTAGRAM_USER_ID and INSTAGRAM_ACCESS_TOKEN for authorized official Business Discovery enrichment; owner verifies professional-account permissions",
       "SYNTHETIC_DATA_APPROVED=true only after owner review and provider mapping; default false blocks connected operations on illustrative starter",
       "ZOHO_MAIL_INBOX_ID required for mail polling",
@@ -233,7 +234,7 @@
     },
     {
       "row": "T6",
-      "question": "Actual Meta open-weights model name, owner Daytona endpoint and access; Meta Voice key/access and audio conversion binary",
+      "question": "Baseten slug, JSON mode and image input to confirm; Meta Voice key coverage and price",
       "owner": "GK + partner"
     },
     {

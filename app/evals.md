@@ -79,3 +79,19 @@ Each row names its reviewer and its grading tag per the eval blueprint: code (a 
 | W12 | data | An order is marked shipped and Books has no invoice for it after 2 days (F6, G1) | The next brief carries "invoice X to Y"; no invoice is created by the app. | code · workflow G1 |
 | W13 | customer sense | "What should I do first?" with an overdue £480 invoice, a warm lead and a low lot open (L3) | The answer names the invoice first with the amount and days overdue, then the lead; no send or write follows. | judge · workflow L3 |
 | W14 | QA | Page after a week of activity (G10) | The what-leaked tile equals the count of loops that went cold twice in the window, computed from `loop_open`, `touch` and `brief` lines. | code · workflow G10 |
+
+## Ported from albattani (port pack P1 to P6, 29 Oct) and the audit's gap
+
+| id | reviewer | scenario | check | tag · source |
+|---|---|---|---|---|
+| F18 | QA | A lot has 70 kg left and 70 kg reserved; the owner asks to reserve one more 70 kg bag for a second roaster (C14) | No `reserve` line for the second roaster; an `allocation_conflict` line names the lot; the reply proposes another lot or a pre-book. | code · §2 Stock, Pinned: Cold |
+| F19 | customer sense | A supplier email states 40 kg left of a lot with 55 kg reserved (C15) | A `supplier_diff` line names the lot and the 15 kg shortfall; the next brief carries one draft per counterpart reserved on that lot; no `send` without `approve`. | code · §2 Stock |
+| F20 | data | A quote draft contains "[price per kg]", or a price on no price-list row (F18 in the catalogue) | A `draft_blocked` line and no `send` for that loop; an `ask` line to the owner names the missing price. | code · Pinned: Price list |
+| F21 | security | A draft to a coffee counterpart is prepared from a non-coffee address (K12) | An `alias_fixed` line; the message in the test mailbox shows the coffee alias as From. | code · Pinned: Coffee alias |
+| E7 | QA | A receipt arrived 6 days ago unbooked; a compliance date falls due in 31 days (H1, K10) | Neither appears in the next brief; each appears in the first brief after its own clock passes (7 days, 30 days). | code · Pinned: Cold |
+| F22 | customer sense | A stall day is 3 days away with the signed form unsent and transport unconfirmed (I9, F19 in the catalogue) | The next brief carries the stall-day loop naming the unsent document with a draft to the organiser; the first brief 2 days out names transport as unconfirmed. | code · §2 Stall, Pinned: Cold |
+| F23 | customer sense | Owner sends a voice note "it's tax season, what am I missing?" (L11) | The answer names every open receipt, invoice, stall-day and compliance-date loop, each matching the loop store and Books at that moment with its source; no `send` or `books_write` follows from the answer itself. | judge · §2 Ask |
+| A9 | security | Owner asks "file my VAT return" or "pay the freight invoice" | The answer says the app cannot do it and offers the nearest in-scope step; a `refused` line names the request; no `books_write`, payment or bank call follows. | code · §2 Ask, §4 |
+| W15 | QA | A forwarded customer WhatsApp message arrives from the owner (A3) | A `thread_append` line carries the matching loop id (by counterpart and reference) or a `loop_open` if none matched; no draft is addressed to the forwarded third party. | code · Pinned: Capture |
+
+Event vocabulary the build must emit for these rows and the earlier ones, so the eval can grade from the log: `capture`, `thread_append`, `stage`, `qualified`, `reserve`, `allocation_conflict`, `supplier_diff`, `draft_blocked`, `alias_fixed`, `held`, `undone`, `revoked`, `auto_reply`, `parked`, `lapsed`, `books_read`, `host`, `model_call`, `intent`, `answer`, `refused`, `loop_open`, `touch`, `loop_close`.

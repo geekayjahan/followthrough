@@ -12,37 +12,10 @@
     "4. All of it under an hour a day, from the phone."
   ],
   "tiers": {
-    "core": [
-      "capture: one message to many loops, facts and receipts (A1 to A10)",
-      "chase (lead, sample, quote, order unconfirmed) with sequences, cadence per tier, offer ladder (D1 to D4, E2, E5, E6, F1 to F4)",
-      "grow: qualify, tier, warm path, introducer, lapsed re-engagement, referral asks, weekly plan (E1, E3, E8, E9, E18)",
-      "get paid (G1 to G3, G6, G10 what leaked)",
-      "keep the books: receipt and voice expense (H1, H3, H5)",
-      "fulfil: quote to order, reservation, delivery-note photo, shipped expects invoice (F3, F6, A5)",
-      "stall: calendar day, voice cash-up, uncashed reminder, stall leads (A8, I1 to I5)",
-      "stock: lot low, reserved vs free (C1, C2, C6)",
-      "plan and ask: first move, 08:00 and 18:00 weekday briefs, parked, undo, Where I stand (L1 to L3, L5, L6, L9, L10)",
-      "suppression list, auto-replies, held sends, voice file"
-    ],
-    "next": [
-      "sourcing: crop list diff, purchase requests, inbound, landed cost, gap forecast (B1 to B10)",
-      "roasted stock, roast loops, yields (C3 to C5, J1 to J3)",
-      "new-lot notes, Instagram touches, visits (E14, E15, E17)",
-      "guest slot end, order changes, delivery issues, repeat patterns (F7, F8, F10, F11)",
-      "part payments, disputes, month end (G4, G5, H6)",
-      "ten-minute brief, weekly review (L4, L7)",
-      "Glimmer local mode",
-      "real WhatsApp Business number",
-      "retention and erasure flows (K5, K6)"
-    ],
-    "later": [
-      "claims, pre-order campaigns, FX (B7, B9, B11)",
-      "events, payment links, online retail orders (E16, G8, I6)",
-      "admin renewals and certificates (K1 to K4)",
-      "helpers, co-runner, second business, roles",
-      "VAT, HMRC, year-end",
-      "Muse Connector Platform surface"
-    ]
+    "core_4_nov": "the 19 rows named in app/workflows.md 'One Core list': Capture A1 to A3, brief L1 with warm leads, invoice chase and payment close, lot low, cash-up, qualify and warm path, soft no and declined, receipt to expense, Ask, Where I stand; engine rules approval, voice file, weekday briefs, Held at delay 0, test recipients, logging",
+    "core_after_4_nov": "the remaining Core rows in app/workflows.md including the ported rules: reservations and supplier shortfall, price-list guard, coffee alias, own clocks, stall documents and transport, tax-season Ask, Parked, Auto-reply, Cadence, Offer ladder, Stage, Lapsed, undo",
+    "next": "see app/workflows.md Tier column",
+    "later": "see app/workflows.md Tier column"
   },
   "out_of_scope": [
     "replacing Zoho Books: bank reconciliation, VAT, HMRC filing, year-end",
@@ -69,23 +42,23 @@
     "Never move money; Books writes limited to expenses, customer payments, sales and items",
     "Keys only in app/.env; public repo passes a secret scan",
     "One shared owner login for GK and the partner",
-    "AI: a Meta open-weights model served in a Daytona GPU sandbox with auto-stop disabled; voice notes via Meta Voice Transcribe",
     "Evidence output: app/logs/actions.jsonl records every brief, approval, send and Books write with timestamps",
     "Customer channels at Core: email (Zoho Mail) and WhatsApp",
-    "Local Node 24 runtime and node:sqlite; ffmpeg-static 5.3.0 is the only runtime package, for WhatsApp OGG-to-WAV conversion; no remote UI assets.",
     "ENABLE_JOBS=false and ENABLE_POLLING=false by default. Starting the app or opening the UI does not authorize outbound messages, background ingestion or Books writes.",
     "Missing credentials block dependent provider operations and connected proof while independent implementation continues. Fixtures and local checks never prove external completion.",
     "Drafts offer only what app/data/terms.md allows (offer ladder); cadence and channel per tier from the same file",
-    "Capture reads back every item it understood and asks once for missing Core fields"
+    "Capture reads back every item it understood and asks once for missing Core fields",
+    "AI: Muse Spark Open on Baseten (OpenAI-compatible endpoint) for text; hosted Muse Spark 1.3 only if image input fails; Meta Voice Transcribe for voice notes; model id and token usage logged on every call",
+    "Runtime: Node 22.5 or newer (24 preferred), node:sqlite, ffmpeg-static the only runtime package; ENABLE_JOBS and ENABLE_POLLING default false",
+    "A reservation never exceeds free kg; a supplier shortfall reaches every affected counterpart as a draft",
+    "A draft with a placeholder or an off-list price is blocked; coffee email always leaves from the coffee alias",
+    "Receipts are cold 7 days unbooked; compliance dates 30 days before due; stall days 3 days before with a document unsent, 2 days before with transport unconfirmed"
   ],
   "open_questions": [
-    "T2 official Instagram API access and owner-approved public shop URL list; T5 always-on HTTPS app host and webhook URL remain open. SQLite, vanilla responsive UI, shared password login and durable local scheduler selected for connected v0.",
-    "Fresh Zoho Mail and Books accounts to be created (TBC)",
-    "Actual Meta open-weights model name and owner-managed Daytona endpoint/access; Meta Voice API key/access.",
-    "How many unanswered chases before a loop is parked; whether a parked loop reopens",
-    "The five WhatsApp test numbers and the two owner test email addresses",
-    "T11 calendar source for stall days and guest-slot dates",
-    "Twelve assumptions listed at the end of app/workflows.md await GK's confirmation"
+    "T5 hosting vendor",
+    "T6: Baseten slug, JSON mode (json_object vs json_schema), image input, Voice Transcribe key coverage and price",
+    "T1: dummy Zoho Mail account and fresh Books organisation; WhatsApp test numbers and owner test addresses",
+    "Owner decisions: lapsed days, deposit 30 or 50%, FX clause, cold-send cap 20 or 30, retention 12/24/36 months"
   ],
   "implementation_decision": {
     "date": "2026-10-29",
@@ -93,5 +66,6 @@
     "scope": "All ten Core features FT-01 through FT-10 remain required; this is a connected application, initially run locally.",
     "credential_checkpoint": "Independent source implementation and local isolated checks proceed while the owner configures app/.env. Missing configuration blocks dependent provider operations and connected checks. No mock, fixture, local test, or queued request constitutes external proof.",
     "external_authority": "Building and validation do not authorize external messages or Books writes. Require an explicit owner action in the running UI or unambiguous authenticated reply tied to the exact pending action; synthetic test-recipient and fresh-account boundaries still apply."
-  }
+  },
+  "spec_revision": 8
 }

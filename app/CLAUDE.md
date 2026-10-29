@@ -33,6 +33,9 @@ S1 spec → S2 build → S3 eval → S4 debug → S5 strip. Each stage reads ups
 | debug log | `app/debug-log.html` | surgical fixes and their defences | S4 |
 | trace | `app/claude-progress.txt` | one RATIONALE line per artifact per session | every stage |
 | action log | `app/logs/actions.jsonl` | the running app's evidence output | the app at runtime |
+| workflows | `app/workflows.md` | the catalogue the spec points at: rows, tiers, sources, the one Core list | S1 (merged by the Business session) |
+| demo scenes | `app/demo-scenes.md` | hero scenes and off-script asks for the 3-minute demo | S1 |
+| owner data | `app/data/voice.md`, `app/data/terms.md`, `app/data/calendar.json` | the owner's voice, terms and stall dates; signed off by the owner, read by the build | owner, via S1 |
 
 ## §5 Cross-stage rules
 
