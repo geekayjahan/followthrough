@@ -428,7 +428,7 @@ export class Providers {
     if (!id) throw new ProviderError("whatsapp_id_missing", true);
     return { id, to };
   }
-  async model(task, input, { image } = {}) {
+  async model(task, input, { image, maxTokens = 600 } = {}) {
     connected(this.c);
     requireKeys(this.c, ["MODEL_BASE_URL", "MODEL_NAME"]);
     const url = new URL(this.c.MODEL_BASE_URL);
@@ -463,6 +463,7 @@ export class Providers {
         body: JSON.stringify({
           model: this.c.MODEL_NAME,
           temperature: 0,
+          max_tokens: maxTokens,
           response_format: { type: "json_object" },
           messages: [
             {
@@ -475,6 +476,15 @@ export class Providers {
         }),
       },
     );
+    // Evidence for which model did the work and what it cost.
+    if (this.audit)
+      this.audit("model_call", {
+        task: task.slice(0, 60),
+        model: r.model || this.c.MODEL_NAME,
+        prompt_tokens: r.usage?.prompt_tokens ?? null,
+        completion_tokens: r.usage?.completion_tokens ?? null,
+        image: Boolean(image),
+      });
     try {
       return JSON.parse(r.choices[0].message.content);
     } catch {

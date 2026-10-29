@@ -4,10 +4,10 @@
       "id": "FT-01",
       "name": "Synthetic data boundary and protected runtime",
       "serves": [
-        "spec §1 outcome 0",
-        "spec §2.3",
-        "spec §3 synthetic dataset",
-        "spec §4 exclusions",
+        "spec \u00a71 outcome 0",
+        "spec \u00a72.3",
+        "spec \u00a73 synthetic dataset",
+        "spec \u00a74 exclusions",
         "eval A2",
         "eval A3",
         "eval A4",
@@ -37,10 +37,10 @@
       "id": "FT-02",
       "name": "Commercial loop intake and state",
       "serves": [
-        "spec §2 Chase",
-        "spec §2 Fulfil",
+        "spec \u00a72 Chase",
+        "spec \u00a72 Fulfil",
         "spec pinned words Loop, Cold, Touch",
-        "spec §3 Zoho Mail, WhatsApp and synthetic inputs",
+        "spec \u00a73 Zoho Mail, WhatsApp and synthetic inputs",
         "eval F1",
         "eval A1"
       ],
@@ -66,8 +66,8 @@
       "id": "FT-03",
       "name": "Timed briefs, drafts, and owner approvals",
       "serves": [
-        "spec §2 Chase",
-        "spec §2.2",
+        "spec \u00a72 Chase",
+        "spec \u00a72.2",
         "spec pinned words Cold, Brief, Approve, Touch",
         "eval F1",
         "eval F2",
@@ -97,9 +97,9 @@
       "id": "FT-04",
       "name": "Invoice follow-up and payment closure",
       "serves": [
-        "spec §2 Get paid",
+        "spec \u00a72 Get paid",
         "spec pinned words Cold, Loop",
-        "spec §3 Zoho Books",
+        "spec \u00a73 Zoho Books",
         "eval F4",
         "eval E2"
       ],
@@ -121,9 +121,9 @@
       "id": "FT-05",
       "name": "Receipt capture and approved expense entry",
       "serves": [
-        "spec §2 Keep the books",
-        "spec §2.2 approval boundary",
-        "spec §3 WhatsApp and Zoho Books",
+        "spec \u00a72 Keep the books",
+        "spec \u00a72.2 approval boundary",
+        "spec \u00a73 WhatsApp and Zoho Books",
         "eval F5"
       ],
       "in": [
@@ -145,10 +145,10 @@
       "id": "FT-06",
       "name": "Stall cash-up and stock movement",
       "serves": [
-        "spec §2 Stall",
+        "spec \u00a72 Stall",
         "spec pinned words Bag",
-        "spec §2.2 approval boundary",
-        "spec §3 owner voice notes and Zoho Books",
+        "spec \u00a72.2 approval boundary",
+        "spec \u00a73 owner voice notes and Zoho Books",
         "eval F6"
       ],
       "in": [
@@ -161,7 +161,7 @@
         "Approved Books sale",
         "Stock movement and stall-day cash-up state"
       ],
-      "done-check": "Six 250g bags of lot 2 for £120 create an approved £120 sale and reduce lot 2 by exactly 1.5kg; missing bag size prompts for it and causes no Books write until supplied; interpretation is read back before approval.",
+      "done-check": "Six 250g bags of lot 2 for \u00a3120 create an approved \u00a3120 sale and reduce lot 2 by exactly 1.5kg; missing bag size prompts for it and causes no Books write until supplied; interpretation is read back before approval.",
       "status": "done",
       "external_verification": "pending",
       "local_evidence": [
@@ -172,10 +172,10 @@
       "id": "FT-07",
       "name": "Lot balances and reorder loops",
       "serves": [
-        "spec §2 Stock",
+        "spec \u00a72 Stock",
         "spec pinned words Cold",
-        "spec §2.2 Where I stand",
-        "spec §3 lots",
+        "spec \u00a72.2 Where I stand",
+        "spec \u00a73 lots",
         "eval F7",
         "eval F12"
       ],
@@ -200,10 +200,10 @@
       "id": "FT-08",
       "name": "Lead qualification, network, and warm introductions",
       "serves": [
-        "spec §2 Grow",
-        "spec §2.1",
+        "spec \u00a72 Grow",
+        "spec \u00a72.1",
         "spec pinned words Specialty bar, Warm path",
-        "spec §3 lead websites and public Instagram",
+        "spec \u00a73 lead websites and public Instagram",
         "eval F8",
         "eval F9",
         "eval F10",
@@ -220,19 +220,20 @@
         "One- and two-edge network paths and ordered lead priority",
         "Warm-path draft naming connection and separately approved introducer draft"
       ],
-      "done-check": "Price below £8 closes the lead with reason and prevents drafting; £8–£12 is mid-shelf and above £12 premium; Indian coffee status and source URLs are recorded; one-edge leads rank before two-edge leads before strangers; warm drafts name the shared connection and propose an introducer without sending absent its own approval.",
+      "done-check": "Price below \u00a38 closes the lead with reason and prevents drafting; \u00a38\u2013\u00a312 is mid-shelf and above \u00a312 premium; Indian coffee status and source URLs are recorded; one-edge leads rank before two-edge leads before strangers; warm drafts name the shared connection and propose an introducer without sending absent its own approval.",
       "status": "done",
       "external_verification": "pending",
       "local_evidence": [
-        "checks/enrichment.test.mjs"
+        "checks/enrichment.test.mjs",
+        "checks/enrichment.test.mjs (focus cap)"
       ]
     },
     {
       "id": "FT-09",
       "name": "Where I stand dashboard and lead background",
       "serves": [
-        "spec §2.1",
-        "spec §2.2",
+        "spec \u00a72.1",
+        "spec \u00a72.2",
         "spec pinned word Right",
         "eval F11",
         "eval F12"
@@ -259,10 +260,10 @@
       "id": "FT-10",
       "name": "Action evidence and operational safeguards",
       "serves": [
-        "spec §1 outcome 1",
-        "spec §2 one engine",
-        "spec §5 verification evidence",
-        "spec §6 T9"
+        "spec \u00a71 outcome 1",
+        "spec \u00a72 one engine",
+        "spec \u00a75 verification evidence",
+        "spec \u00a76 T9"
       ],
       "in": [
         "Brief, approval, message, Books, validation, suppression, and loop events"
@@ -279,6 +280,57 @@
         "checks/http.test.mjs"
       ],
       "implementation_notes": "Explicit failure states, immutable approvals, persisted write intents, complete test-only harness, sanitized evidence and transaction-aware action log."
+    },
+    {
+      "id": "FT-11",
+      "name": "Owner-requested brief and demo clock",
+      "serves": [
+        "spec \u00a77 idea 1",
+        "spec Pinned: Brief",
+        "eval E3"
+      ],
+      "in": [
+        "Owner click on Where I stand",
+        "DEMO_AGE_DAYS"
+      ],
+      "out": [
+        "Composed brief (summary + up to 5 cards) returned to the page",
+        "Optional WhatsApp delivery",
+        "brief line with manual:true"
+      ],
+      "done-check": "Owner can compose the brief at any time without sending; sending delivers one summary plus one card per action; manual briefs are labelled and do not count toward the two scheduled slots; demo clock ages loops for cold checks only.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/brief.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-12",
+      "name": "Owner intent on WhatsApp: natural approve, edit, ask",
+      "serves": [
+        "spec Pinned: Approve",
+        "spec \u00a72 Ask",
+        "eval F3",
+        "eval F13",
+        "eval F14",
+        "eval A1"
+      ],
+      "in": [
+        "Owner text or voice transcript, with or without a quoted card"
+      ],
+      "out": [
+        "intent audit line",
+        "approve / drop / edit / cashup / receipt / ask routing",
+        "Answer from loops, Books and stock",
+        "New card after an edit"
+      ],
+      "done-check": "A natural yes on a quoted card sends once; confidence under 0.8 sends nothing; an edit raises the version and rebinds a new card; a question is answered without any send or write; exact yes needs no model call.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/intent.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

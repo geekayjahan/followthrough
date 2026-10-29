@@ -22,10 +22,10 @@
       "grow (qualify, tier, place in network; warm-path ranking, intro draft, introducer proposal, map, lead background panel)",
       "WhatsApp briefs 08:00 and 18:00 Europe/London",
       "one web page: Where I stand",
-      "suppression list"
+      "suppression list",
+      "ask on WhatsApp (read-only answers from loops, Books and stock)"
     ],
     "next": [
-      "ask on WhatsApp",
       "landed cost, customs, duty",
       "courier booking and delivery tracking",
       "Glimmer local mode",
@@ -47,10 +47,10 @@
     "Instagram DMs; Instagram follower-graph intros",
     "helpers, co-runner, second business, roles beyond one shared owner login",
     "real customer data, the current Zoho accounts, any send outside the test lists before live",
-    "Ask on WhatsApp, Glimmer local mode, a real WhatsApp Business number"
+    "Glimmer local mode, a real WhatsApp Business number"
   ],
   "key_constraints": [
-    "Every customer-facing send needs owner approval: a tap, a reply 'yes', or a voice note whose transcript says yes",
+    "Every customer-facing send needs owner approval: a tap, a reply 'yes', or a reply/voice transcript the model reads as clear agreement to the quoted card (confidence >= 0.8); a change request edits the draft and issues a new card",
     "Cold = untouched 3 calendar days; invoice cold the day after due; lot low under 20% of starting kg; stall day uncashed if no cash-up by 21:00 Europe/London",
     "Briefs at 08:00 and 18:00 Europe/London only; nothing unprompted between",
     "Specialty bar: retail price >= GBP 8 per 250g; mid-shelf 8 to 12; premium above 12; below 8 closed with reason",

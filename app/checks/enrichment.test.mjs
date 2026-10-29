@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
+import { focus,
   publicIP,
   qualificationFacts,
   fetchWebsite,
@@ -52,4 +52,14 @@ test("qualification requires exact numeric and Indian evidence; tier boundaries 
     qualificationFacts(below, [{ ...page, text: page.text + " 250g £6" }]).tier,
     "below bar",
   );
+});
+test("focus keeps price, 250g and Indian sentences first and stays under the cap", async () => {
+  const { focus } = await import("../src/enrichment.mjs");
+  const filler = "We roast with care and ship nationwide. ".repeat(2000);
+  const text = filler + "Our Kerala lot is Indian coffee at its best. " + filler + "A 250g bag is £11.50. " + filler;
+  const out = focus(text, 20000);
+  assert.ok(out.length <= 20000);
+  assert.ok(out.startsWith("Our Kerala lot is Indian coffee"));
+  assert.ok(out.includes("A 250g bag is £11.50."));
+  assert.ok(text.includes("A 250g bag is £11.50."));
 });
