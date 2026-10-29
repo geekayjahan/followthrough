@@ -1,4 +1,4 @@
-# Build review: engineering, UX, model use, and what Vince owes by when
+# Build review: engineering, UX, model use, and what the build needs by when
 
 29 Oct 2026. Companion to `mindpalace.md`. Screens in `docs/screens/` were captured from Vince's isolated UI fixture (`checks/serve-ui-fixture.mjs`, injected providers, no network).
 
@@ -34,7 +34,7 @@ Single Node process. SQLite for everything (loops, actions, sessions, provider r
 | Zoho Mail | Polls inbox, binds replies via `[FT:<loop>]` subject marker, classifies intake with a model call. | Highest setup cost, lowest demo value. Candidate to defer: counterparts on WhatsApp for the demo, email path kept and shown in the log. |
 | Zoho Books | Reads invoices/contacts/payments/expenses/cash; writes expenses and sales receipts with readback. | Keep. Fix AR-03 (null balance) and AR-07 (draft invoices) since they are a few lines. |
 | Server hardening | AR-01 crash on malformed URL. | 3-line fix. Do first. |
-| Hosting | None. SQLite + ffmpeg + persistent process. | Fly.io with a 1 GB volume, or Railway. Not Workers. |
+| Hosting | None. SQLite + ffmpeg + persistent process. | Needs HTTPS, a long-lived process, a persistent disk and ffmpeg. Decision open (section 5). |
 | Node version | Targets 24; runs on 22 with a SQLite warning. | Pin `engines` to `>=22.5` and note the flag. |
 
 ### Fix list, ordered by value per hour
@@ -116,14 +116,14 @@ Skip: RAG, embeddings, tool-calling agents, multi-step planners. The engine is d
 
 To verify on dev.meta.ai once the session can reach it: hosted model ids and prices, whether the voice endpoint shares the same key, whether Spark Open on Baseten supports `response_format: json_object` and image input.
 
-## 5. What Vince owes, and by when
+## 5. What the build needs, by when (owners TBC)
 
-Working back from 5 Nov 02:00 UK. Video and submission need the full day of 4 Nov. End-to-end rehearsal 3 Nov. So integration must be live by the end of 2 Nov.
+These are the build's dependencies, not anyone's obligations. Who does each one is open until GK and Vince agree the split. Working back from 5 Nov 02:00 UK. Video and submission need the full day of 4 Nov. End-to-end rehearsal 3 Nov. So integration must be live by the end of 2 Nov.
 
 | By | Deliverable | Detail |
 |---|---|---|
-| **Fri 30 Oct** | WhatsApp Cloud API test number live (GK's number still TBC; Vince needs it for the recipient list) | Meta app, phone number ID, permanent token, verify token, app secret, 5 verified recipients (GK's number, Vince's, 3 counterpart "customer" numbers). Webhook URL can be a tunnel for now. |
-| Fri 30 Oct | Hosting decision made and an empty deploy up | Fly.io or Railway, HTTPS URL, 1 GB volume for SQLite + logs, ffmpeg present, `APP_URL` set. Webhook pointed at it. |
+| **Fri 30 Oct** | WhatsApp Cloud API test number live (GK's number still TBC) | Meta app, phone number ID, permanent token, verify token, app secret, 5 verified recipients (two owner numbers, three counterpart "customer" numbers). Webhook URL can be a tunnel for now. |
+| Fri 30 Oct | Hosting decision made and an empty deploy up | Any host that meets four needs: a public HTTPS URL (WhatsApp webhooks require it), one process that stays up (the scheduler is in-process), a writable disk that survives restarts (SQLite and the action log), and the ability to run a bundled ffmpeg binary. Serverless and edge runtimes fail the second and third. A small VM, a container host with a volume, or a laptop behind a tunnel all pass. The names in earlier drafts were examples, not decisions. |
 | Fri 30 Oct | Role split agreed and `codex/followthrough-v0` merged to `main` | Then both of us branch from `main`. |
 | **Sat 31 Oct** | `synthetic.json` v1 | See the data brief below. |
 | Sat 31 Oct | Fake shop pages live | One static page per lead on a domain we control (GitHub Pages or Cloudflare Pages). Each page must contain a 250g price in GBP in plain text and, for some, an explicit "Indian" line. Hosts go in `ENRICHMENT_ALLOWED_HOSTS`. |
@@ -132,9 +132,9 @@ Working back from 5 Nov 02:00 UK. Video and submission need the full day of 4 No
 | Sun 1 Nov | WhatsApp templates submitted (optional, for the out-of-window brief story) | Two templates, one `{{1}}` body variable each, no header, optional footer. Approval takes hours to a day. |
 | **Mon 2 Nov** | `app/.env` complete on the host, `SYNTHETIC_DATA_APPROVED=true`, `ENABLE_JOBS=true` | `npm run doctor` shows zero missing. |
 | Tue 3 Nov | End-to-end rehearsal with GK on her phone | Brief → tap → email in test inbox; voice yes; voice cash-up → Books sale; receipt photo → Books expense; lead qualify → tier + warm path. |
-| Wed 4 Nov | Video recorded, repo public, both members on CV, submission in | GK on camera, Vince on screen capture. |
+| Wed 4 Nov | Video recorded, repo public, both members on CV, submission in | Who records what is open. |
 
-### Data brief for `synthetic.json` (send verbatim)
+### Data brief for `synthetic.json` (for whoever writes it)
 
 The schema in spec §3 holds. Add `books_contact_id` per org and `books_item_id` per lot once Books exists. Minimum content for the demo story:
 
@@ -147,7 +147,7 @@ The schema in spec §3 holds. Add `books_contact_id` per org and `books_item_id`
 - **Stall days, 2.** Yesterday uncashed, last week cashed.
 - **Timestamps.** Last-touch dates 4 to 7 days ago on the loops we want cold, so even without the demo clock the first brief has content.
 
-Also from Vince, for the receipts path: three photographed receipts from the synthetic suppliers (any paper, names typed in), so the vision call has something real.
+Also, for the receipts path: three photographed receipts from the synthetic suppliers (any paper, names typed in), so the vision call has something real.
 
 ## 6. Decisions taken 29 Oct (GK)
 
@@ -158,4 +158,4 @@ Also from Vince, for the receipts path: three photographed receipts from the syn
 | Model | Spark Open on Baseten for everything; hosted Muse Spark only for receipt photos if Baseten lacks vision. Spec T6 to be edited to drop Daytona. |
 | Brief shape | Summary line + up to 5 action cards with Approve / Edit / Drop, rest in the dashboard. |
 | Owner input style | Natural language with edits, mostly voice notes, questions too. So: model intent classifier on every inbound owner message, and Ask moves from Next to Core for the demo. |
-| Build | Claude builds on `claude/amazing-mayer-0gknmk`, merged from `codex/followthrough-v0`. Vince owns data, shop pages, Zoho, WhatsApp, hosting. |
+| Build | Claude builds on `claude/amazing-mayer-0gknmk`, merged from `codex/followthrough-v0`. Data, shop pages, Zoho, WhatsApp and hosting owners are TBC. |

@@ -53,7 +53,7 @@ Verified here: `npm test` passes 33/33 on Node 22 (SQLite still experimental on 
 | 6 | **9 open findings, 4 P1** from Vince's own adversarial review: server crash on bad URL (AR-01), duplicate sends after a timeout (AR-02), null balance marks invoice paid (AR-03), readback ignores currency (AR-04); plus quote-to-order transition lost, draft invoices chased, rejected leads still in the brief (AR-09 breaks E4). | AR-01 and AR-09 are cheap and directly visible. The rest are correctness under failure; worth fixing only if time allows. |
 | 7 | **Model is generic.** `providers.model()` is an OpenAI-compatible call with `response_format: json_object` and image input for receipts. Nothing in the code is Meta-specific except the voice endpoint. The spec's T6 says "Daytona GPU sandbox"; the context doc says Baseten credit is claimed for `meta-models/muse-spark-open-1026`. These disagree. | "Use of Meta AI tooling" is 25% of the score plus the $10k open-weights bonus. We need to decide the model path and make it visible in the demo. |
 | 8 | **WhatsApp 24-hour window.** Outside it, the brief needs an approved template with exactly one `{{1}}` body variable; approval by Meta can take hours to a day. Inside it, interactive Approve/Drop buttons work. | For the demo, GK messaging the bot first keeps the window open and avoids templates entirely. Templates are a nice-to-have for the "08:00 brief" story. |
-| 9 | **Hosting unselected.** Webhook needs public HTTPS. App needs a persistent process, a writable disk (SQLite + logs) and ffmpeg. Not a Cloudflare Worker. | Fly.io / Railway / a small VPS, or a Cloudflare Tunnel from Vince's machine. Decide by 31 Oct. |
+| 9 | **Hosting unselected.** Webhook needs public HTTPS. App needs a persistent process, a writable disk (SQLite + logs) and ffmpeg. Not a Cloudflare Worker. | Needs HTTPS, a long-lived process, a persistent disk and ffmpeg. Decide by 31 Oct. |
 | 10 | `README` and `app-spec.json` use `npm.cmd` (Windows). Node 24 assumed. | Cosmetic; fix when we touch them. |
 | 11 | Reply holds (AR-05) and no-replay policy (LIMIT-01) make the system fragile unattended. | Acceptable for a hackathon if the demo is scripted; dangerous if we try the 24-hour E3 observation live. |
 
@@ -98,9 +98,9 @@ Everything above is buildable from Vince's code plus: demo clock, richer synthet
 |---|---|---|
 | Model path | (a) hosted Muse Spark via api.meta.ai; (b) Spark Open on Baseten; (c) both, Spark Open for drafts, hosted for receipt images | (c) if Baseten lacks vision, else (b) alone. Drop the Daytona line from the spec. |
 | Zoho | Fresh Mail + Books org this week, or cut Zoho Mail and send email via something simpler | Keep Books (cash, owed, expense, sale are the money story). Mail is the weakest link: OAuth, inbox polling, reply parsing. Consider WhatsApp-only counterparts for the demo and keep email as "built, shown in the log". |
-| Hosting | Fly.io, Railway, VPS, Cloudflare Tunnel from a laptop | Fly.io with a volume, or Railway. One of us owns it by 31 Oct. |
+| Hosting | A VM, a container host with a volume, or a laptop behind a tunnel | Whichever the setup owner already knows. Criteria in build-review §5. |
 | Fake shop pages | Static pages for the synthetic leads on a domain we control | Required for F8/E4. Cheap: GitHub Pages or a Cloudflare Pages site with 3 to 5 lead pages. |
-| Role split | Vince: hosting, Zoho, WhatsApp setup, P1 fixes. Me (with GK): demo clock, synthetic dataset, Meta model wiring, video storyboard, dashboard polish | Needs agreeing with Vince today. |
+| Role split | Open | GK and Vince agree it; nothing here assumes it. |
 | Merge | Merge `codex/followthrough-v0` into `main` now, build on it | Yes. Nothing on `main` conflicts. |
 
 ## 8. Session constraints
