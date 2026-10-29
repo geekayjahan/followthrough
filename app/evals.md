@@ -29,3 +29,21 @@ Each row is a pass/fail two strangers grade the same from the output alone. Evid
 | F13 | Owner replies to a card with "yeah but say 14 not 12" | `actions.jsonl` has an `intent` line with `edit`, an `edit` line raising the action to version 2, no `send`; a new card arrives bound to version 2; a later "yes" on the old card is refused and logged `blocked`. | spec Pinned: Approve |
 | F14 | Owner asks "what's left of lot 2?" on WhatsApp | `actions.jsonl` has an `intent` line with `ask` and an `answer` line; the reply states the lot's `left_kg`; no `send` or `books_write` follows. | spec §2 Ask |
 | F15 | Any model call | `actions.jsonl` has a `model_call` line with the model id and token counts. | spec §6 T6, T9 |
+
+## Owner trust checks (interview 29 Oct, GK)
+
+Each row names its reviewer and its grading tag per the eval blueprint: code (a value decides), judge (two worked examples decide).
+
+| id | reviewer | scenario | check | tag · source |
+|---|---|---|---|---|
+| T1 | customer sense | A counterpart reply is received at least 1 minute before a brief slot | That loop does not appear in the `brief` line's `loop_ids`; its pending card is `revoked` with reason "new touch"; no `send` for it follows without a fresh `draft` and `approve`. | code · Pinned: Touch |
+| T1b | customer sense | A counterpart reply is processed between compose and send of a brief | The card for that loop is revoked before delivery; no `send` for that action ever appears. | code · Pinned: Touch |
+| T2 | data | A customer payment is recorded in Books at time t | The next `books_read` after t closes the loop ("paid"); any pending chase is `revoked`; no `send` for that invoice after t. | code · spec §2 Get paid |
+| T3 | data | Any `draft` line for a message | Every £ figure and date in the text exists in the loop, invoice, lot or thread; every organisation named is the counterpart or on its warm path. | code · Pinned: In the owner's voice |
+| T4 | data | Any `draft` line for a message | The text asserts no commitment absent from the loop or thread (delivery date, discount, availability, price change). Pass example: "The sample went out on 20 Oct; happy to talk through the lot when you have tried it." Fail example: "I can do you 10% off if you order this week." | judge · Pinned: In the owner's voice |
+| T5 | customer sense | Any `draft` replying to a counterpart message | It answers what the counterpart last asked and reads in a British register, no longer than the moment needs. Pass example: counterpart asked for bag sizes, draft names the sizes and stops. Fail example: counterpart asked for bag sizes, draft re-pitches the origin story and omits sizes. | judge · Pinned: In the owner's voice |
+| T6 | security | Any `send` line | An `approve` line with the same `action_id` and `hash` precedes it; the sent text equals the payload at that hash. | code · Pinned: Approve |
+| T7 | security | A "yes" (text or transcript) on a card whose action has since been edited | A `blocked` line, no `send`. | code · Pinned: Approve |
+| T8 | QA | Owner presses "Refresh sources" after any `books_write` | Cash, owed and kg shown equal Books and the store at the stamped read time; a mismatch at the stamp is a fail. | code · Pinned: Right |
+| T9 | QA | Any lot | Σ `stock_move` kg for the lot equals `start_kg` minus `left_kg`. | code · spec §2 Stock |
+| T10 | customer sense | A loop has three approved sends with no counterpart touch between them | The loop's status is `parked`; no `draft` for it after the third send; exactly one brief line says "parked, 3 chases unanswered"; a later counterpart touch sets it back to `open`. | code · Pinned: Parked |
