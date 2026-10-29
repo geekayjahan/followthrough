@@ -12,9 +12,33 @@
     "4. All of it under an hour a day, from the phone."
   ],
   "tiers": {
-    "core": ["chase (lead, sample, quote, order unconfirmed)", "get paid (invoice unpaid)", "keep the books (receipt to Books expense)", "fulfil (order to ship)", "stall (voice-note cash-up to Books sale and stock movement)", "stock (lot low)", "grow (qualify, tier, place in network; warm-path ranking, intro draft, introducer proposal, map, lead background panel)", "WhatsApp briefs 08:00 and 18:00 Europe/London", "one web page: Where I stand", "suppression list"],
-    "next": ["ask on WhatsApp", "landed cost, customs, duty", "courier booking and delivery tracking", "Glimmer local mode", "real WhatsApp Business number", "retention and erasure flows"],
-    "later": ["Instagram DMs and Instagram warm intros", "helpers, co-runner, second business, roles", "VAT, HMRC, year-end", "Meta AI Connector surface", "payment links"]
+    "core": [
+      "chase (lead, sample, quote, order unconfirmed)",
+      "get paid (invoice unpaid)",
+      "keep the books (receipt to Books expense)",
+      "fulfil (order to ship)",
+      "stall (voice-note cash-up to Books sale and stock movement)",
+      "stock (lot low)",
+      "grow (qualify, tier, place in network; warm-path ranking, intro draft, introducer proposal, map, lead background panel)",
+      "WhatsApp briefs 08:00 and 18:00 Europe/London",
+      "one web page: Where I stand",
+      "suppression list"
+    ],
+    "next": [
+      "ask on WhatsApp",
+      "landed cost, customs, duty",
+      "courier booking and delivery tracking",
+      "Glimmer local mode",
+      "real WhatsApp Business number",
+      "retention and erasure flows"
+    ],
+    "later": [
+      "Instagram DMs and Instagram warm intros",
+      "helpers, co-runner, second business, roles",
+      "VAT, HMRC, year-end",
+      "Meta AI Connector surface",
+      "payment links"
+    ]
   },
   "out_of_scope": [
     "replacing Zoho Books: bank reconciliation, VAT, HMRC filing, year-end",
@@ -39,13 +63,23 @@
     "One shared owner login for GK and the partner",
     "AI: a Meta open-weights model served in a Daytona GPU sandbox with auto-stop disabled; voice notes via Meta Voice Transcribe",
     "Evidence output: app/logs/actions.jsonl records every brief, approval, send and Books write with timestamps",
-    "Customer channels at Core: email (Zoho Mail) and WhatsApp"
+    "Customer channels at Core: email (Zoho Mail) and WhatsApp",
+    "Local Node 24 runtime and node:sqlite; ffmpeg-static 5.3.0 is the only runtime package, for WhatsApp OGG-to-WAV conversion; no remote UI assets.",
+    "ENABLE_JOBS=false and ENABLE_POLLING=false by default. Starting the app or opening the UI does not authorize outbound messages, background ingestion or Books writes.",
+    "Missing credentials block dependent provider operations and connected proof while independent implementation continues. Fixtures and local checks never prove external completion."
   ],
   "open_questions": [
-    "Stack rows T2 enrichment access, T3 persistence, T4 frontend, T5 hosting, T7 login mechanism, T8 jobs: owners hand over before S2",
+    "T2 official Instagram API access and owner-approved public shop URL list; T5 always-on HTTPS app host and webhook URL remain open. SQLite, vanilla responsive UI, shared password login and durable local scheduler selected for connected v0.",
     "Fresh Zoho Mail and Books accounts to be created (TBC)",
-    "Which open-weights model; Voice Transcribe hosted or self-served",
+    "Actual Meta open-weights model name and owner-managed Daytona endpoint/access; Meta Voice API key/access.",
     "How many unanswered chases before a loop is parked; whether a parked loop reopens",
     "The five WhatsApp test numbers and the two owner test email addresses"
-  ]
+  ],
+  "implementation_decision": {
+    "date": "2026-10-29",
+    "source": "User selected: Build connected v0; I will configure credentials in app/.env. Guided-mode mechanics resolved by S2 initializer under this instruction.",
+    "scope": "All ten Core features FT-01 through FT-10 remain required; this is a connected application, initially run locally.",
+    "credential_checkpoint": "Independent source implementation and local isolated checks proceed while the owner configures app/.env. Missing configuration blocks dependent provider operations and connected checks. No mock, fixture, local test, or queued request constitutes external proof.",
+    "external_authority": "Building and validation do not authorize external messages or Books writes. Require an explicit owner action in the running UI or unambiguous authenticated reply tied to the exact pending action; synthetic test-recipient and fresh-account boundaries still apply."
+  }
 }
