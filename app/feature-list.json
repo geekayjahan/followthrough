@@ -190,7 +190,11 @@
         "Lot values for the overview page"
       ],
       "done-check": "Every lot balance reflects approved movements; a lot below 20% of starting kg has a lot_low loop and appears in the next brief.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/stock.test.mjs"
+      ]
     },
     {
       "id": "FT-08",
