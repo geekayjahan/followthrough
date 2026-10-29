@@ -1,6 +1,6 @@
 # Followthrough workflow catalogue
 
-Revision 1, 29 Oct 2026. Companion to `spec.html`, which stays the contract; this file is the catalogue §2 points at. It lists what a one-person Indian green-coffee importer with a roasted retail line, wholesale café and roaster customers and a market stall actually battles in a week, and what the app does about each. Written from GK's own business notes (lot catalogue, positioning, wholesale model, sourcing sheets); lines marked **assumed** were not in those notes and need her yes or no (collected in the last section).
+Revision 2, 29 Oct 2026 (revision 1 reconciled against GK's own "Kāma ops app: notes for spec", 16 Oct, her sent mail, the Stall Tracker and the Sales Tracker). Companion to `spec.html`, which stays the contract; this file is the catalogue §2 points at. It lists what a one-person Indian green-coffee importer with a roasted retail line, wholesale café and roaster customers and a market stall actually battles in a week, and what the app does about each. Written from GK's own business notes (lot catalogue, positioning, wholesale model, sourcing sheets); lines marked **assumed** were not in those notes and need her yes or no (collected in the last section).
 
 ## How to read a row
 
@@ -60,6 +60,8 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 | C8 | Stock count disagrees with the store (from A6) | Proposes the correction with the reason recorded | photo | `stock_move` reason count | Next |
 | C9 | A lot sells out | Marks it sold out; drafts a note to anyone with a pending quote on it | lots | `loop_close`, `draft` | Next |
 | C10 | Weekly sell-through | Page shows kg per week per lot and weeks of cover | lots | page | Next |
+| C11 | Old stock meets new stock (ops notes §12) | Flags lots older than a set age when a new crop is due; suggests a clearance price above floor | lots | `brief` line | Next |
+| C12 | Sample stock | Deducted per sample sent (300 g or 1 kg green, roasted bags for cafés); flags when a lot's samples are gone | lots | `stock_move` kind sample | Core |
 
 ## D. Samples and cupping
 
@@ -78,14 +80,14 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 
 | id | Trigger | App | Needs | Evidence | Tier |
 |---|---|---|---|---|---|
-| E1 | New lead captured | Qualifies: shop price per 250 g (bar £8; mid-shelf to £12; premium above), Indian on shelf, guest-filter programme yes/no (**assumed** signal: a "guest" or "rotating" filter on their menu page); places in the network | website, network | `qualified` with sources | Core |
-| E2 | Lead qualified | Picks the **sequence** by type: café → intro, sample, guest slot offer, first order, second slot; roaster → intro, green samples, cupping, quote per kg, first lot; stockist → intro, retail samples, wholesale price list, first case. The next step is always the stage after the last completed one | network | `stage` | Core |
+| E1 | New lead captured | Qualifies. Roaster (GK's rubric): sells Indian coffee +3, blends or Italian range +2, small owner-run +2, market town +1, owner named +1, container importer −3; Companies House entity check (a sole trader is phoned, never cold emailed, under PECR). Café or stockist: shop price per 250 g (bar £8; mid-shelf to £12; premium above), Indian on shelf. Places in the network | website, Companies House, network | `qualified` with sources and score | Core |
+| E2 | Lead qualified | Picks the **sequence** by type. Roaster (GK's own stage list, ops notes §4): Researched → Queued → Sent → Replied → Price aligned → Sample sent → Sample delivered → Feedback → Booked → Deposit paid → Delivered → Paid → Repeat, with a lost reason on exit. Café: intro → sample → guest slot offer → first order → second slot. Stockist: intro → retail samples → wholesale list → first case. The next step is always the stage after the last completed one | network | `stage` | Core |
 | E3 | Lead has a warm path (1 or 2 edges to a customer, supplier or stockist) | Ranks first; the first draft names the connection as a sentence; proposes an introducer ask (separate card) | network | `draft` with path, intro card | Core |
 | E4 | Lead is a stranger | Cold intro in the voice file's register, no claims beyond the lot facts; sent on the counterpart's channel | voice file | `draft` | Core |
-| E5 | **Cadence and channel per tier**: premium roaster, mid-shelf café, stockist | Chase intervals and channel from a table the owner sets (default: premium 5 days by email, café 3 days by WhatsApp, stockist 7 days by email); time of day from the counterpart's last reply time | config | `draft` with cadence reason | Core |
+| E5 | **Cadence and channel** | GK's rules (ops notes): chase 7 days after an outreach email with no reply, 5 days after a sample is sent; after a reply the thread sets the next move; every chase near a shipment names the closing date. Channel follows the counterpart's last channel; café contacts on WhatsApp where the number is known. Cold sends capped at 20 to 30 a day, bounce rate above 3% pauses a batch | `app/data/terms.md` | `draft` with cadence reason | Core |
 | E6 | **Offer ladder** at each stage | Only offers from the owner's rules: free sample set; guest slot at list price, 4 to 6 weeks, 5 to 10 kg a week, defined start and end; no first-order discount, no machines, no exclusivity; loyalty terms only after the third order. A draft that offers anything else fails the check | config | `draft` checked against ladder | Core |
 | E7 | Lead goes quiet after 3 chases | Parked; one brief line; re-approach trigger set (new crop, new lot, seasonal) | engine | `parked` | Core |
-| E8 | **Lapsed customer**: no order in N days (default 45 for cafés, 90 for roasters, **assumed**) | Opens a re-engagement loop; draft references their last lot and what is new | Books, orders | `loop_open` lapsed, `draft` | Core |
+| E8 | **Lapsed customer**: no order in N days (ops notes name a reorder cadence for roasted customers but no number; defaults 45 for cafés, 90 for roasters until GK sets them) | Opens a re-engagement loop; draft references their last lot and what is new | Books, orders | `loop_open` lapsed, `draft` | Core |
 | E9 | **Referral ask**: a customer has had 3 or more orders and a lead sits 2 edges from them | Drafts the intro ask to the customer, separate approval | network | intro card | Core |
 | E10 | A lead replies with a question (price per kg, minimums, delivery) | Answer drafted from the price list and terms on file; nothing invented | config, thread | `draft` | Core |
 | E11 | Lead says "not now, next quarter" | Soft no: loop closes, a re-approach loop opens for the date given | thread | `loop_close`, `loop_open` reapproach | Core |
@@ -113,6 +115,10 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 | F10 | Delivery problem reported by the customer | Opens an issue loop; drafts an apology and a fix from the options the owner allows | thread | `loop_open` issue, `draft` | Next |
 | F11 | Repeat order pattern (same café, roughly every 2 weeks) | Predicts the next order date; brief suggests a nudge 3 days before | orders | `draft` reorder | Next |
 | F12 | Minimum order not met | Draft states the minimum from config rather than accepting | config | `draft` | Core |
+| F13 | **Harvest booking** (ops notes §6): roaster approves the offer sample | Booking confirmation with the one-page terms; deposit due date; allocation held in the app; GK pays the estate once deposits cover the order; balance before release; title stays with Kāma until paid | terms.md | `loop_open` booking, `draft` | Next |
+| F14 | Deposit received or overdue | Books payment closes the deposit loop; an overdue deposit is chased; an unpaid allocation is released on the date named | Books | `loop_close`, `draft` | Next |
+| F15 | **Demand log**: a buyer asks for something not stocked (robusta came up twice) | Records product, kg per month, who asked, date; feeds the next estate order | thread | `fact` demand | Next |
+| F16 | Arrival: weigh and moisture check before release | Records weight per sack; a short-weight claim is answered from the record | WhatsApp | `fact` arrival | Next |
 
 ## G. Invoicing and cash (Get paid)
 
@@ -154,6 +160,9 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 | I6 | Online retail order (**assumed**: Stripe link on the site) | Later; orders arrive by email and become fulfil loops | email | `loop_open` order | Later |
 | I7 | Stall performance question ("how did Saturday do vs last month?") | Answer from stall records | Books | `answer` | Next |
 | I8 | Weather or cancellation | Owner cancels the stall day; loop closes with reason | WhatsApp | `loop_close` | Next |
+| I9 | Pre-market checklist (from the Stall Tracker, Oct 2026) | Three days before: roast slot confirmed, bags labelled (labels in hand vs bags needed), card reader tested, insurance and hygiene proof sent, pitch fee paid or invoice expected, transport sorted | calendar, tasks | `brief` checklist | Next |
+| I10 | Pitch fee invoice arrives after the market | Payable loop with due date; paid when the owner says so or Books shows it | forwarded mail, Books | `loop_open` payable | Next |
+| I11 | Lift or transport needed for a market | Drafts the ask to traders on the same market's list; one approval per batch | network | `draft` batch | Later |
 
 ## J. Roasting partner and production
 
@@ -176,6 +185,9 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 | K4 | Supplier declarations, origin certificates per shipment | Stored on the inbound loop; requested from the estate if missing | thread | `fact`, `draft` | Later |
 | K5 | GDPR: a counterpart asks what data is held or to be erased | Data map answer from the store; erasure flow (Next in the spec) | engine | `answer`, `erase` | Next |
 | K6 | Retention: 12 months from last touch | Flags records due for deletion | engine | `retention` | Next |
+| K7 | **Document vault** (ops notes §4): certificate of origin, PLI certificate, hygiene rating, food registration, market application forms, signed terms | Each file attached to the record that needs it; a market booking that needs a certificate shows whether it is on file | photo, forwarded mail | `fact` document | Next |
+| K8 | Market paperwork pack | When a market is booked, the app lists what the organiser asked for (insurance certificate, hygiene proof, signed form) and drafts the email with the files attached | vault | `draft` | Next |
+| K9 | ICO fee, PLI renewal, insurance finance letters | Calendar loops with 30-day warnings; evidence file on the vault | calendar | `loop_open` admin | Later |
 
 ## L. The owner's day (Plan and Ask)
 
@@ -200,17 +212,21 @@ Already built in v0 and this branch (kept): E1 qualify, E3 warm path and introdu
 
 New for the rebuild: A1 to A3 capture and split; A5 delivery note; A8 calendar stall days; C6 reservation shown; D1 to D4 sample stages; E2 sequences; E5 cadence table; E6 offer ladder with a check; E8 lapsed; E9 referral trigger; E18 weekly plan; F3 quote to order; F6 shipped expects invoice; G10 what leaked; L3 first move.
 
-## Assumed, for GK to confirm or strike
+## Assumptions: what the 16 Oct ops notes and the trackers settled
 
-1. Green lands via a freight forwarder with separate duty and freight invoices (B3, B5).
-2. 250 g sample bags are set aside per lot on arrival (B6, C7).
-3. Roasted bags are held separately from green kg, drawn down by the stall and café orders (C3, C4, C5).
-4. Sample sets differ by tier: premium gets the scored naturals, mid-shelf gets Plantation A plus one honey (D1).
-5. A "guest" or "rotating" filter mention on a café's menu page is the qualification signal for the guest-slot sequence (E1).
-6. Default cadence: premium roaster 5 days by email, café 3 days by WhatsApp, stockist 7 days by email (E5).
-7. Lapsed means no order in 45 days for a café, 90 for a roaster (E8).
-8. Trade shows and festivals are a channel worth drafting invites for (E16).
-9. The morning stall brief should suggest bags to take from the last stall's sell-through (I1).
-10. Retail orders arrive from a Stripe link on the site by email (I6).
-11. Cash from the stall is banked weekly (G9).
-12. The three invoice-chase tones (day 1, 14, 30) are how she escalates (G2).
+| # | Assumption in revision 1 | Now |
+|---|---|---|
+| 1 | Freight forwarder with separate duty and freight invoices | Confirmed by the landed-cost model: sea freight per cbm, India fixed and truck costs, UK customs, haulage and destination charges, GST on services and freight. |
+| 2 | 250 g sample bags set aside per lot | Replaced: green samples are 300 g, or 1 kg for lots shared with several roasters; roasted bags for cafés. Sample stock is deducted per send. |
+| 3 | Roasted bags tracked separately from green kg | Confirmed: "roasted bags with roast date and age", movements sale, sample, roast, weight loss. Roast cost about £5/kg; 10 kg green roasted for a market. |
+| 4 | Sample sets differ by tier | Not in the notes. Replaced by the buyer's own request (which lots) plus GK's offer of cupping reports where samples ran out. |
+| 5 | Guest-filter mention as the café signal | Not in the notes; the café side is the smaller channel. Kept as Next; the roaster rubric is the Core scoring. |
+| 6 | Cadence defaults 5/3/7 days | Replaced by GK's rules: 7 days after an outreach email, 5 days after a sample. |
+| 7 | Lapsed at 45/90 days | Still open; the notes name a reorder cadence without a number. |
+| 8 | Trade shows and festivals | A coffee festival intro is in the stall tasks. Kept Later. |
+| 9 | Stall brief suggests bags to take | Confirmed by the tasks: 50 to 55 bags for a Sunday market, labels in hand vs bags needed, roast the gap by Friday. |
+| 10 | Retail orders by Stripe link | Shopify closed Oct 2026, new site reads lots from a Sheet, checkout off. Later. |
+| 11 | Cash banked weekly | Takings by SumUp to the main account; no weekly rule stated. Later. |
+| 12 | Three invoice tones | Not in the notes; £340 was 50 days overdue from two cafés with no automatic reminder. Tones to be written in GK's voice for her sign-off. |
+
+Still open for GK: lapsed days (7), deposit size 30% or 50%, FX clause, cold send cap 20 or 30, retention 12/24/36 months (all from her own "decisions needed" list).

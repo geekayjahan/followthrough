@@ -1,0 +1,86 @@
+{
+  "provenance": "Exported 29 Oct 2026 from the Kāma Stall Tracker artifact (collection: dates). Organiser names, phone numbers and notes removed. Markets are organisations, not people.",
+  "source_artifact": "https://claude.ai/artifact/1dxpATChZVDxJLQVyQHerX",
+  "stall_days": [
+    {
+      "id": "d01",
+      "date": "2026-10-17",
+      "market": "Nailsea Farmers' Market",
+      "status": "booked",
+      "cadence": "3rd Sat",
+      "fee": "£38 with hired canopy",
+      "time": "Trade 9 to 1",
+      "cashed_up": true
+    },
+    {
+      "id": "d03",
+      "date": "2026-10-24",
+      "market": "Whiteladies Road Market",
+      "status": "booked",
+      "cadence": "weekly",
+      "fee": "£30, invoiced after",
+      "time": "Open 8:30, closed 12:00",
+      "cashed_up": true
+    },
+    {
+      "id": "d08",
+      "date": "2026-10-31",
+      "market": "Whiteladies Road Market",
+      "status": "cancelled",
+      "fee": "£60 + VAT"
+    },
+    {
+      "id": "d09",
+      "date": "2026-11-01",
+      "market": "Clevedon Sunday Market",
+      "status": "booked",
+      "cadence": "1st Sun",
+      "fee": "£16 suitcase pitch",
+      "time": "10 to 2",
+      "cashed_up": false
+    },
+    {
+      "id": "d05",
+      "date": "2026-11-01",
+      "end": "2026-11-22",
+      "market": "Tobacco Factory Sunday Market",
+      "status": "waitlist"
+    },
+    {
+      "id": "d06",
+      "date": "2026-11-07",
+      "market": "Midsomer Norton Farmers' Market",
+      "status": "possible",
+      "cadence": "1st Sat",
+      "fee": "£28 in advance",
+      "time": "Trade 9 to 1"
+    },
+    {
+      "id": "d07",
+      "date": "2026-11-14",
+      "market": "Keynsham Farmers' Market",
+      "status": "possible",
+      "cadence": "2nd Sat",
+      "fee": "£28, or £38 with hired canopy",
+      "time": "Trade 9 to 1"
+    },
+    {
+      "id": "d10",
+      "date": "2026-11-28",
+      "end": "2026-11-29",
+      "market": "Chew Valley Animal Park Christmas Market",
+      "status": "cancelled",
+      "fee": "£20 inside"
+    },
+    {
+      "id": "d11",
+      "date": "2026-12-06",
+      "market": "Clevedon Sunday Market",
+      "status": "booked",
+      "cadence": "1st Sun",
+      "fee": "£16 suitcase pitch",
+      "time": "10 to 2",
+      "cashed_up": false
+    }
+  ]
+}
