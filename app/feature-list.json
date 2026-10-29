@@ -247,7 +247,13 @@
         "Expandable lead background panel with sourced facts and network path"
       ],
       "done-check": "The map includes every synthetic organization and edge; the expandable panel shows tier, price, Indian-on-shelf status, path, and source for each fact; displayed cash, owed, lot kg, and due loops match Zoho Books and the loop store at read time; the page is read-only except approvals.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/http.test.mjs",
+        "checks/serve-ui-fixture.mjs"
+      ],
+      "render_verification": "parent browser QA pending"
     },
     {
       "id": "FT-10",
