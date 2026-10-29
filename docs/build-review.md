@@ -159,3 +159,38 @@ Also, for the receipts path: three photographed receipts from the synthetic supp
 | Brief shape | Summary line + up to 5 action cards with Approve / Edit / Drop, rest in the dashboard. |
 | Owner input style | Natural language with edits, mostly voice notes, questions too. So: model intent classifier on every inbound owner message, and Ask moves from Next to Core for the demo. |
 | Build | Claude builds on `claude/amazing-mayer-0gknmk`, merged from `codex/followthrough-v0`. Data, shop pages, Zoho, WhatsApp and hosting owners are TBC. |
+
+## 7. Rebuild brief for the build agent (29 Oct, after the workflow catalogue)
+
+GK's read on 29 Oct: the v0 build and the original spec were one workflow deep (email chase) and an inch deep everywhere else. The product is "the owner talks about whatever is on her plate, in any order, and it comes back as loops, facts and next moves, with the outbound strategy handled". Spec revision 6 and `app/workflows.md` (118 workflows, 20 Core) are the new contract. This section is what a build agent should be told.
+
+### Read, in this order
+1. `CLAUDE.md`, `app/CLAUDE.md`, `modules/shared-rules.md`, `modules/s2-build/build-blueprint.md`.
+2. `app/spec.html` revision 6 (sections 2, Pinned words, 3, 5, 6) and `app/workflows.md` (engine rules, Core set, assumptions).
+3. `app/evals.md`: the original 28 rows, T1 to T10, the Roaster Pipeline ports, W1 to W14.
+4. This file, sections 2 to 4, for what v0 got right and wrong.
+5. `app/claude-progress.txt` and `git log` for what already exists.
+
+### Keep from v0 and this branch
+The approval boundary (immutable payload hash, bound cards, replay rejection, test-recipient rewrite), the SQLite store and audit log, the provider layer, the enrichment guards, the brief compose/deliver split, the intent classifier, the demo clock and manual brief, the fixture and the test harness. None of it is email-specific; it is the engine the catalogue runs on.
+
+### What changes in the architecture
+| v0 | Rebuild |
+|---|---|
+| Seven loop types, each hand-wired | Loops carry a `stage` from a sequence per counterpart type (Pinned: Stage); next move derives from stage |
+| Inbound owner text routed to one handler | Capture: one model call splits a message into items; each item routes to its workflow; one read-back; one ask (Pinned: Capture) |
+| Chase every 3 days, same channel | Cadence table per tier and channel; send time from the counterpart's reply hour (Pinned: Cadence) |
+| Model drafts freely | Drafts from the voice file and the thread, checked against the offer ladder in `app/data/terms.md` before a card exists (Pinned: Offer ladder, In the owner's voice) |
+| No concept of lapsed, referral, plan | Lapsed loops from Books order dates; referral cards when a 3-order customer sits 2 edges from a lead; Monday plan section (E8, E9, E18) |
+| Delivery and stall from text only | Photos: delivery note closes an order, receipt becomes expense; calendar opens stall days (A5, A8, H1) |
+| Immediate send | 60-minute hold with undo; `DEMO_SEND_DELAY_MINUTES=0` for the demo (Pinned: Held) |
+| Daily briefs | Weekdays only (Pinned: Brief) |
+
+### Data the rebuild needs from the owners
+`app/data/synthetic.json` per the data brief in section 5, now also with: a `sequences` block (café, roaster, stockist stages), each org's `type` and `tier`, order history dates (for lapsed and referral), stall days in a calendar source (T11), lots with roasted bag counts if assumption 3 holds. `app/data/voice.md` (signed off) and `app/data/terms.md` (price list, minimum order, cadence table, offer ladder, three invoice tones; signed off).
+
+### Order of work
+Decomposer first, per the blueprint, from the Core set in `app/workflows.md`; then initializer (T11 calendar and the two signed-off files are credential-checkpoint items); then coder, one feature per commit, trace line per feature. Rebuild the inbound path (Capture) and the sequence/stage model before touching any individual workflow, because every Core row depends on them.
+
+### Eval results so far
+No S3 run has happened. Evidence to date: v0's 33 local tests, this branch's 43, Vince's 13 adversarial probes (AR-01 and AR-09 now fixed, seven open), nine Playwright browser cases on the fixture. None of it is connected proof. The S3 blueprint requires the independent `judge` agent, a scorecard in `app/eval-results.html`, and human spot-checks of three verdicts; that run is due once credentials and data exist, and again after the rebuild.

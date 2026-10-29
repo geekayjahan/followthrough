@@ -60,3 +60,22 @@ Each row names its reviewer and its grading tag per the eval blueprint: code (a 
 | T7b | security | A tap on a card from an earlier brief whose action has since been revoked (loop touched, loop closed, brief recomposed) | A `blocked` line, no `send`. | code · Pinned: Approve |
 | F16 | security | Owner approves a message, then replies "undo" to the card (or presses Undo on the page) within the hold | A `held` line, then `undone`; no `send`; the loop's last touch is unchanged; a later "yes" on that card is `blocked`. | code · Pinned: Held |
 | F17 | customer sense | `app/data/voice.md` is absent or lacks a `signed-off:` first line | No customer `draft` is produced; the brief carries one line saying the voice file needs sign-off; loops are still listed. With a signed-off file, every draft call's `model_call` line records `voice_file: true`. | code · Pinned: Voice file |
+
+## Workflow checks (catalogue revision 1, 29 Oct)
+
+| id | reviewer | scenario | check | tag · source |
+|---|---|---|---|---|
+| W1 | customer sense | One voice note carries an order, a stall note, a receipt and a chase reminder (workflow A1) | One `capture` line lists four items with types order, stall, receipt, lead or sample; one read-back message names all four; at most one `ask` follows, naming only the fields a Core action needs. | code + judge · Pinned: Capture |
+| W2 | QA | The owner sends the same order twice in two messages (A10) | One loop exists for that counterpart and reference; the second message yields a `capture` with `duplicate: true` and no new `loop_open`. | code · Pinned: Capture |
+| W3 | data | A delivery note photo for an open order (A5) | The read-back names the customer, lots and kg from the photo; after approval the order loop closes "shipped"; without approval nothing closes. | code · workflow A5 |
+| W4 | QA | A calendar entry "Stall" on a date (A8) | A stall loop exists for that date with cash-up due 21:00 London; the 18:00 brief the next weekday lists it if uncashed. | code · workflow A8, I3 |
+| W5 | customer sense | A café lead completes the sample stage (D4) | The loop's `stage` becomes the next one in the café sequence (guest slot offer); the next draft is an offer, not another sample chase. | code · Pinned: Stage |
+| W6 | customer sense | Two leads: a premium roaster quiet 4 days, a café quiet 4 days (E5) | The café is chased (cadence 3 days by WhatsApp); the roaster is not yet (5 days by email); the `draft` line records the cadence reason. | code · Pinned: Cadence |
+| W7 | data | Any customer-facing draft (E6) | No first-order discount, equipment, exclusivity, volume discount or availability promise beyond lots in stock; a draft containing one is `blocked` with reason "offer ladder" and never reaches a card. Pass example: "Samples are on us; the guest slot runs four to six weeks at list price." Fail example: "Take 10% off your first order." | code + judge · Pinned: Offer ladder |
+| W8 | customer sense | A café's last order was 46 days ago (E8) | A `loop_open` of type lapsed exists; its draft names the last lot ordered and at least one lot that is new since. | code · Pinned: Lapsed |
+| W9 | customer sense | A customer has 3 paid orders and a lead sits 2 edges from them (E9) | An introducer card to that customer exists with its own approval; it is never sent with the lead's draft. | code · workflow E9 |
+| W10 | customer sense | Monday 08:00 brief (E18) | The brief carries a plan section listing each open lead with its stage and this week's step; no lead appears without a stage. | code · workflow E18 |
+| W11 | QA | A lead says "go ahead with 20 kg of lot 2" (F3) | The loop moves to order unconfirmed; 20 kg is reserved on lot 2 (free kg drops by 20); an `ask` requests delivery date or address if absent. | code · workflow F3, C6 |
+| W12 | data | An order is marked shipped and Books has no invoice for it after 2 days (F6, G1) | The next brief carries "invoice X to Y"; no invoice is created by the app. | code · workflow G1 |
+| W13 | customer sense | "What should I do first?" with an overdue £480 invoice, a warm lead and a low lot open (L3) | The answer names the invoice first with the amount and days overdue, then the lead; no send or write follows. | judge · workflow L3 |
+| W14 | QA | Page after a week of activity (G10) | The what-leaked tile equals the count of loops that went cold twice in the window, computed from `loop_open`, `touch` and `brief` lines. | code · workflow G10 |
