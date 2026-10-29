@@ -11,3 +11,4 @@
 2026-10-29T10:21:33  S2.INITIALIZER  app/README.md landed  RATIONALE: The setup sequence separates buildable local source from owner-configured provider access and connected proof.
 2026-10-29T10:21:33  S2.INITIALIZER  app/spec.html landed  RATIONALE: The user connected-v0 decision resolves reversible foundation mechanics while retaining consequential access and hosting questions.
 2026-10-29T10:21:33  S2.INITIALIZER  app/spec-summary.json landed  RATIONALE: Machine-readable scope now reflects the same connected-v0 decisions and evidence gates as the canonical spec.
+2026-10-29T10:26:11  S2.CODER  FT-01 Synthetic data boundary and protected runtime landed  RATIONALE: Synthetic validation precedes provider access, while hashed sessions and exact test routing isolate owner authority.

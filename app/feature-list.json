@@ -3,90 +3,239 @@
     {
       "id": "FT-01",
       "name": "Synthetic data boundary and protected runtime",
-      "serves": ["spec §1 outcome 0", "spec §2.3", "spec §3 synthetic dataset", "spec §4 exclusions", "eval A2", "eval A3", "eval A4", "eval A5", "eval A6", "eval E4"],
-      "in": ["Owner-provided app/data/synthetic.json", "Fresh Zoho accounts and credentials configured in app/.env", "APP_LIVE setting"],
-      "out": ["Startup validation and data_rejected evidence", "Test-recipient enforcement until APP_LIVE=true", "Domain suppression and audit events", "No payment, transfer, or bank-write capability"],
+      "serves": [
+        "spec §1 outcome 0",
+        "spec §2.3",
+        "spec §3 synthetic dataset",
+        "spec §4 exclusions",
+        "eval A2",
+        "eval A3",
+        "eval A4",
+        "eval A5",
+        "eval A6",
+        "eval E4"
+      ],
+      "in": [
+        "Owner-provided app/data/synthetic.json",
+        "Fresh Zoho accounts and credentials configured in app/.env",
+        "APP_LIVE setting"
+      ],
+      "out": [
+        "Startup validation and data_rejected evidence",
+        "Test-recipient enforcement until APP_LIVE=true",
+        "Domain suppression and audit events",
+        "No payment, transfer, or bank-write capability"
+      ],
       "done-check": "Invalid fixture data prevents startup and records data_rejected; all fixture email and WhatsApp identities satisfy the spec; pre-live sends are restricted to configured test recipients; declined organization domains are suppressed; secret scan passes; inspection of Books writes finds no money-movement or bank-write calls.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/boundary.test.mjs"
+      ]
     },
     {
       "id": "FT-02",
       "name": "Commercial loop intake and state",
-      "serves": ["spec §2 Chase", "spec §2 Fulfil", "spec pinned words Loop, Cold, Touch", "spec §3 Zoho Mail, WhatsApp and synthetic inputs", "eval F1", "eval A1"],
-      "in": ["Mail threads", "Inbound WhatsApp messages and voice notes", "Orders from email, WhatsApp, and stall", "Synthetic orgs, people, orders, and stall days"],
-      "out": ["Persistent loops with type, counterpart, last touch, next move, and due time", "Reply and owner-action updates", "Order-to-ship loops; shipping closes the loop"],
+      "serves": [
+        "spec §2 Chase",
+        "spec §2 Fulfil",
+        "spec pinned words Loop, Cold, Touch",
+        "spec §3 Zoho Mail, WhatsApp and synthetic inputs",
+        "eval F1",
+        "eval A1"
+      ],
+      "in": [
+        "Mail threads",
+        "Inbound WhatsApp messages and voice notes",
+        "Orders from email, WhatsApp, and stall",
+        "Synthetic orgs, people, orders, and stall days"
+      ],
+      "out": [
+        "Persistent loops with type, counterpart, last touch, next move, and due time",
+        "Reply and owner-action updates",
+        "Order-to-ship loops; shipping closes the loop"
+      ],
       "done-check": "Lead, sample-out, quote, unconfirmed-order, and order-to-ship loops are created and updated from the specified channels; qualifying touches reset cold timing; shipping closes its order loop; an unapproved draft remains unsent and recurs in a later brief.",
       "status": "todo"
     },
     {
       "id": "FT-03",
       "name": "Timed briefs, drafts, and owner approvals",
-      "serves": ["spec §2 Chase", "spec §2.2", "spec pinned words Cold, Brief, Approve, Touch", "eval F1", "eval F2", "eval F3", "eval E1", "eval E3", "eval A1"],
-      "in": ["Open loops and their histories", "Owner approval by tap, reply, or voice note", "Configured WhatsApp test channel and email accounts"],
-      "out": ["08:00 and 18:00 Europe/London WhatsApp briefs", "Channel-appropriate drafts with approve/edit/drop actions", "Logged approval, transcript, send, and reply events"],
+      "serves": [
+        "spec §2 Chase",
+        "spec §2.2",
+        "spec pinned words Cold, Brief, Approve, Touch",
+        "eval F1",
+        "eval F2",
+        "eval F3",
+        "eval E1",
+        "eval E3",
+        "eval A1"
+      ],
+      "in": [
+        "Open loops and their histories",
+        "Owner approval by tap, reply, or voice note",
+        "Configured WhatsApp test channel and email accounts"
+      ],
+      "out": [
+        "08:00 and 18:00 Europe/London WhatsApp briefs",
+        "Channel-appropriate drafts with approve/edit/drop actions",
+        "Logged approval, transcript, send, and reply events"
+      ],
       "done-check": "Cold loops appear in scheduled briefs; only a tap or affirmative reply/transcript authorizes sending; a voice-note refusal sends nothing; tap approval sends the draft on the counterpart channel and resets touch; soft no closes only that loop; exactly two scheduled briefs occur in a 24-hour check and no unprompted owner message is sent between them.",
       "status": "todo"
     },
     {
       "id": "FT-04",
       "name": "Invoice follow-up and payment closure",
-      "serves": ["spec §2 Get paid", "spec pinned words Cold, Loop", "spec §3 Zoho Books", "eval F4", "eval E2"],
-      "in": ["Zoho Books invoices, due dates, payments, and invoice loops"],
-      "out": ["Overdue invoice loop and chase draft naming invoice and amount", "Payment-driven loop closure"],
+      "serves": [
+        "spec §2 Get paid",
+        "spec pinned words Cold, Loop",
+        "spec §3 Zoho Books",
+        "eval F4",
+        "eval E2"
+      ],
+      "in": [
+        "Zoho Books invoices, due dates, payments, and invoice loops"
+      ],
+      "out": [
+        "Overdue invoice loop and chase draft naming invoice and amount",
+        "Payment-driven loop closure"
+      ],
       "done-check": "An unpaid invoice one day overdue appears in the next brief with invoice number and amount; recording its payment in Books closes the loop by the next brief cycle and prevents later chase drafts.",
       "status": "todo"
     },
     {
       "id": "FT-05",
       "name": "Receipt capture and approved expense entry",
-      "serves": ["spec §2 Keep the books", "spec §2.2 approval boundary", "spec §3 WhatsApp and Zoho Books", "eval F5"],
-      "in": ["Receipt photo or forwarded receipt email over WhatsApp", "Owner approval"],
-      "out": ["Extracted supplier and amount for confirmation", "Approved Zoho Books expense and books_write evidence"],
+      "serves": [
+        "spec §2 Keep the books",
+        "spec §2.2 approval boundary",
+        "spec §3 WhatsApp and Zoho Books",
+        "eval F5"
+      ],
+      "in": [
+        "Receipt photo or forwarded receipt email over WhatsApp",
+        "Owner approval"
+      ],
+      "out": [
+        "Extracted supplier and amount for confirmation",
+        "Approved Zoho Books expense and books_write evidence"
+      ],
       "done-check": "A receipt photo produces a reviewable supplier and amount; an expense with those values is written to the fresh Zoho Books account only after owner approval, with its Books id recorded.",
       "status": "todo"
     },
     {
       "id": "FT-06",
       "name": "Stall cash-up and stock movement",
-      "serves": ["spec §2 Stall", "spec pinned words Bag", "spec §2.2 approval boundary", "spec §3 owner voice notes and Zoho Books", "eval F6"],
-      "in": ["WhatsApp voice note with bag count, size, lot, and cash amount", "Meta voice transcription", "Owner approval"],
-      "out": ["Read-back of interpreted cash-up", "Approved Books sale", "Stock movement and stall-day cash-up state"],
+      "serves": [
+        "spec §2 Stall",
+        "spec pinned words Bag",
+        "spec §2.2 approval boundary",
+        "spec §3 owner voice notes and Zoho Books",
+        "eval F6"
+      ],
+      "in": [
+        "WhatsApp voice note with bag count, size, lot, and cash amount",
+        "Meta voice transcription",
+        "Owner approval"
+      ],
+      "out": [
+        "Read-back of interpreted cash-up",
+        "Approved Books sale",
+        "Stock movement and stall-day cash-up state"
+      ],
       "done-check": "Six 250g bags of lot 2 for £120 create an approved £120 sale and reduce lot 2 by exactly 1.5kg; missing bag size prompts for it and causes no Books write until supplied; interpretation is read back before approval.",
       "status": "todo"
     },
     {
       "id": "FT-07",
       "name": "Lot balances and reorder loops",
-      "serves": ["spec §2 Stock", "spec pinned words Cold", "spec §2.2 Where I stand", "spec §3 lots", "eval F7", "eval F12"],
-      "in": ["Lot start and remaining kg", "Approved stock movements", "Loop store"],
-      "out": ["Current kg balance per lot", "Reorder loop below 20% of starting quantity", "Lot values for the overview page"],
+      "serves": [
+        "spec §2 Stock",
+        "spec pinned words Cold",
+        "spec §2.2 Where I stand",
+        "spec §3 lots",
+        "eval F7",
+        "eval F12"
+      ],
+      "in": [
+        "Lot start and remaining kg",
+        "Approved stock movements",
+        "Loop store"
+      ],
+      "out": [
+        "Current kg balance per lot",
+        "Reorder loop below 20% of starting quantity",
+        "Lot values for the overview page"
+      ],
       "done-check": "Every lot balance reflects approved movements; a lot below 20% of starting kg has a lot_low loop and appears in the next brief.",
       "status": "todo"
     },
     {
       "id": "FT-08",
       "name": "Lead qualification, network, and warm introductions",
-      "serves": ["spec §2 Grow", "spec §2.1", "spec pinned words Specialty bar, Warm path", "spec §3 lead websites and public Instagram", "eval F8", "eval F9", "eval F10", "eval E4"],
-      "in": ["Synthetic organizations, people, and network edges", "Lead shop page and public Instagram profile read once", "Open enrichment access decision"],
-      "out": ["Qualified lead with price, tier, Indian coffee flag, and source for each fact", "Below-bar closure with reason", "One- and two-edge network paths and ordered lead priority", "Warm-path draft naming connection and separately approved introducer draft"],
+      "serves": [
+        "spec §2 Grow",
+        "spec §2.1",
+        "spec pinned words Specialty bar, Warm path",
+        "spec §3 lead websites and public Instagram",
+        "eval F8",
+        "eval F9",
+        "eval F10",
+        "eval E4"
+      ],
+      "in": [
+        "Synthetic organizations, people, and network edges",
+        "Lead shop page and public Instagram profile read once",
+        "Open enrichment access decision"
+      ],
+      "out": [
+        "Qualified lead with price, tier, Indian coffee flag, and source for each fact",
+        "Below-bar closure with reason",
+        "One- and two-edge network paths and ordered lead priority",
+        "Warm-path draft naming connection and separately approved introducer draft"
+      ],
       "done-check": "Price below £8 closes the lead with reason and prevents drafting; £8–£12 is mid-shelf and above £12 premium; Indian coffee status and source URLs are recorded; one-edge leads rank before two-edge leads before strangers; warm drafts name the shared connection and propose an introducer without sending absent its own approval.",
       "status": "todo"
     },
     {
       "id": "FT-09",
       "name": "Where I stand dashboard and lead background",
-      "serves": ["spec §2.1", "spec §2.2", "spec pinned word Right", "eval F11", "eval F12"],
-      "in": ["Fresh Zoho Books balances and invoices", "Loop store and lot balances", "Organizations, edges, and lead qualification sources"],
-      "out": ["One web page showing cash, owed, kg per lot, loops due today, and network map", "Expandable lead background panel with sourced facts and network path"],
+      "serves": [
+        "spec §2.1",
+        "spec §2.2",
+        "spec pinned word Right",
+        "eval F11",
+        "eval F12"
+      ],
+      "in": [
+        "Fresh Zoho Books balances and invoices",
+        "Loop store and lot balances",
+        "Organizations, edges, and lead qualification sources"
+      ],
+      "out": [
+        "One web page showing cash, owed, kg per lot, loops due today, and network map",
+        "Expandable lead background panel with sourced facts and network path"
+      ],
       "done-check": "The map includes every synthetic organization and edge; the expandable panel shows tier, price, Indian-on-shelf status, path, and source for each fact; displayed cash, owed, lot kg, and due loops match Zoho Books and the loop store at read time; the page is read-only except approvals.",
       "status": "todo"
     },
     {
       "id": "FT-10",
       "name": "Action evidence and operational safeguards",
-      "serves": ["spec §1 outcome 1", "spec §2 one engine", "spec §5 verification evidence", "spec §6 T9"],
-      "in": ["Brief, approval, message, Books, validation, suppression, and loop events"],
-      "out": ["Timestamped app/logs/actions.jsonl records sufficient to reconcile each run"],
+      "serves": [
+        "spec §1 outcome 1",
+        "spec §2 one engine",
+        "spec §5 verification evidence",
+        "spec §6 T9"
+      ],
+      "in": [
+        "Brief, approval, message, Books, validation, suppression, and loop events"
+      ],
+      "out": [
+        "Timestamped app/logs/actions.jsonl records sufficient to reconcile each run"
+      ],
       "done-check": "Every brief, approval, transcript, send, Books write, stock movement, blocked/suppressed event, and rejected dataset has a timestamped, attributable action-log record with identifiers needed by the stated checks.",
       "status": "todo"
     }
