@@ -135,7 +135,11 @@
         "Approved Zoho Books expense and books_write evidence"
       ],
       "done-check": "A receipt photo produces a reviewable supplier and amount; an expense with those values is written to the fresh Zoho Books account only after owner approval, with its Books id recorded.",
-      "status": "todo"
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/receipts.test.mjs"
+      ]
     },
     {
       "id": "FT-06",
