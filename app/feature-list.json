@@ -439,6 +439,33 @@
         "checks/voice.test.mjs",
         "checks/fixtures/voice-signed.md"
       ]
+    },
+    {
+      "id": "FT-17",
+      "name": "Price list guard and offer ladder",
+      "serves": [
+        "spec Pinned: Price list",
+        "spec Pinned: Offer ladder",
+        "workflows E6, F18",
+        "eval F20",
+        "eval W7",
+        "eval T4"
+      ],
+      "in": [
+        "app/data/terms.md price rows, stall bag prices, cadence and the Never line (TERMS_FILE overrides the path for checks)",
+        "Every model draft before it becomes a card"
+      ],
+      "out": [
+        "src/terms.mjs: parseTerms, loadTerms, checkDraft",
+        "A placeholder, an off-row price or a forbidden offer gives draft_blocked plus an ask naming the gap, no card, and one brief line",
+        "The hold clears when the next draft passes"
+      ],
+      "done-check": "The real terms.md parses to the Fusion Ferment row, £8 and £28 bags and 7/5-day cadence; [price per kg], £20/kg on Fusion Ferment and a 10% first-order discount block; £13.60/kg, the W7 pass example and a pallet discount pass; a blocked draft leaves no action and the brief says what is missing.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/terms.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [
