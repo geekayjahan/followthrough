@@ -357,6 +357,31 @@
         "checks/provider-contracts.test.mjs",
         "checks/domain.test.mjs"
       ]
+    },
+    {
+      "id": "FT-14",
+      "name": "Loop model: stage, chases, reserved kg",
+      "serves": [
+        "spec Pinned: Stage",
+        "spec Pinned: Parked (chase count)",
+        "eval W5"
+      ],
+      "in": [
+        "Counterpart type on the org",
+        "Owner statement or counterpart touch that completes a stage",
+        "Approved sends and counterpart touches"
+      ],
+      "out": [
+        "stage on every loop with a typed counterpart, from the roaster, café or stockist sequence",
+        "stage line on each completion with from, completed and to",
+        "chases counts approved sends since the last counterpart touch; reserved_kg on order loops"
+      ],
+      "done-check": "A café lead starts at intro; completing sample moves it to guest slot offer with a stage line; two approved sends then a counterpart touch leave chases at 0; a stage outside the sequence is rejected.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/domain.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

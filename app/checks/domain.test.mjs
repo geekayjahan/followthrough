@@ -79,3 +79,30 @@ test("revoking a pending card leaves a revoked line with the action, loop and re
   assert.equal(line.reason, "new touch");
   s.close();
 });
+test("loops carry a stage from the counterpart's sequence; completing one moves to the next; chases reset on a counterpart touch", () => {
+  const s = new Store(":memory:"),
+    d = new Domain(s, {
+      ...fixture,
+      orgs: [
+        { id: "cafe", type: "cafe", status: "lead", website: "https://cafe.example.test" },
+        { id: "roaster", type: "roaster", status: "customer", website: "https://r.example.test" },
+      ],
+    });
+  const cafe = s.all("loops").find((l) => l.org_id === "cafe");
+  assert.equal(cafe.stage, "intro");
+  assert.equal(cafe.chases, 0);
+  d.complete(cafe.id, "sample");
+  assert.equal(s.get("loops", cafe.id).stage, "guest slot offer");
+  const line = s.events().find((x) => x.type === "stage");
+  assert.deepEqual([line.completed, line.to], ["sample", "guest slot offer"]);
+  const order = d.loop("order_unconfirmed", "roaster", "o1");
+  assert.equal(order.stage, "Booked");
+  assert.equal(order.reserved_kg, 0);
+  d.touch(order.id, "approved send");
+  d.touch(order.id, "approved send");
+  assert.equal(s.get("loops", order.id).chases, 2);
+  d.touch(order.id, "email");
+  assert.equal(s.get("loops", order.id).chases, 0);
+  assert.throws(() => d.complete(order.id, "guest slot offer"), /Unknown stage/);
+  s.close();
+});

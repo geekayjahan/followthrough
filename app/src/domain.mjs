@@ -50,6 +50,44 @@ export function due(loop, now = new Date()) {
     );
   return dayNumber(now) - dayNumber(loop.last_touch) >= 3;
 }
+// Pinned: Stage. One sequence per counterpart type; the next move is the stage after the last completed one.
+export const SEQUENCES = {
+  roaster: [
+    "Researched",
+    "Queued",
+    "Sent",
+    "Replied",
+    "Price aligned",
+    "Sample sent",
+    "Sample delivered",
+    "Feedback",
+    "Booked",
+    "Deposit paid",
+    "Delivered",
+    "Paid",
+    "Repeat",
+  ],
+  cafe: ["intro", "sample", "guest slot offer", "first order", "second slot"],
+  stockist: ["intro", "retail samples", "wholesale list", "first case", "reorder"],
+};
+// Where a loop of this type starts in its counterpart's sequence.
+const ENTRY = {
+  roaster: { lead: "Researched", sample_out: "Sample sent", quote: "Price aligned", order_unconfirmed: "Booked", order_to_ship: "Deposit paid" },
+  cafe: { lead: "intro", sample_out: "sample", quote: "guest slot offer", order_unconfirmed: "first order", order_to_ship: "first order" },
+  stockist: { lead: "intro", sample_out: "retail samples", quote: "wholesale list", order_unconfirmed: "first case", order_to_ship: "first case" },
+};
+export function sequenceFor(orgType, sequences = SEQUENCES) {
+  return sequences[orgType] || null;
+}
+export function entryStage(loopType, orgType) {
+  return ENTRY[orgType]?.[loopType] || null;
+}
+export function nextStage(stage, orgType, sequences = SEQUENCES) {
+  const seq = sequenceFor(orgType, sequences);
+  if (!seq || !stage) return null;
+  const i = seq.indexOf(stage);
+  return i < 0 ? null : seq[i + 1] || null;
+}
 export function domain(org) {
   try {
     const h = new URL(org.website).hostname
@@ -152,6 +190,7 @@ export class Domain {
     const existing = this.s.all("loops").find((l) => l.key === key);
     if (existing) return existing;
     const now = new Date().toISOString();
+    const org = org_id ? this.s.get("orgs", org_id) : null;
     const l = {
       id: randomUUID(),
       key,
@@ -161,6 +200,9 @@ export class Domain {
       last_touch: now,
       due_at: calendarDue(now),
       next_move: "Review next move",
+      stage: entryStage(type, org?.type),
+      chases: 0,
+      ...(type.startsWith("order") ? { reserved_kg: 0 } : {}),
       ...extra,
     };
     if (type === "invoice")
@@ -208,14 +250,32 @@ export class Domain {
         this.s.audit("revoked", { action_id: a.id, loop_id, reason });
       }
   }
+  // A counterpart touch resets the unanswered-chase count; an approved send adds to it.
   touch(id, source) {
     const l = this.s.get("loops", id);
     if (!l) return;
     l.last_touch = new Date().toISOString();
     l.due_at = calendarDue(l.last_touch);
+    l.chases = source === "approved send" ? (l.chases || 0) + 1 : 0;
     this.s.put("loops", id, l);
     this.revoke(id, "new touch");
     this.s.audit("touch", { loop_id: id, source });
+  }
+  // Pinned: Stage. Complete the loop's current stage (or a named one) and move to the next.
+  complete(id, stage = null, source = "owner") {
+    const l = this.s.get("loops", id);
+    if (!l) return null;
+    const org = l.org_id ? this.s.get("orgs", l.org_id) : null;
+    const seq = sequenceFor(org?.type, this.data.sequences);
+    if (!seq) return l;
+    const done = stage || l.stage;
+    if (!seq.includes(done)) throw Error(`Unknown stage ${done} for ${org.type}`);
+    const from = l.stage;
+    l.stage = nextStage(done, org.type, this.data.sequences) || done;
+    l.stage_completed = done;
+    this.s.put("loops", id, l);
+    this.s.audit("stage", { loop_id: id, from, completed: done, to: l.stage, source });
+    return l;
   }
   close(id, reason) {
     const l = this.s.get("loops", id);
