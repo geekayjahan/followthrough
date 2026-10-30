@@ -1,5 +1,5 @@
 // Moves the pack's reference day (2026-10-29) to a target day so its fixed dates line up with the demo clock.
-// The app ages loops with DEMO_AGE_DAYS from the moment it boots, so the target is boot day + DEMO_AGE_DAYS.
+// The demo clock reads today + DEMO_AGE_DAYS, so the target is the day you run the scenarios (or record) + DEMO_AGE_DAYS.
 //   node data/candidate-v1/shift-dates.mjs 2026-11-07 [out-dir]   (out-dir defaults to data/candidate-run)
 // Dates printed on the receipt images stay as they are: the PNGs cannot move, and extraction must match them.
 import { readFileSync, writeFileSync, mkdirSync, cpSync } from "node:fs";
