@@ -1,0 +1,153 @@
+{
+  "provenance": "Fictional negative boundary fixtures for Followthrough A2/A6 verification. DO NOT seed into app/data/synthetic.json; each case must be rejected or blocked.",
+  "startup_rejection_cases": [
+    {
+      "id": "NEG-A6-01-DUPLICATE-ORG-ID",
+      "eval_ids": ["A6"],
+      "description": "Duplicate organisation ID in orgs collection must fail startup validation and log data_rejected.",
+      "mutation_from_baseline": "Append a second org entry with id 'org-1'.",
+      "expected_error_substring": "Invalid dataset: missing or duplicate orgs ID",
+      "expected_audit_event": "data_rejected",
+      "dataset_patch": {
+        "duplicate_org": {
+          "id": "org-1",
+          "name": "Duplicate Harbour Clone",
+          "type": "roaster",
+          "website": "https://dup.example.test",
+          "instagram": null,
+          "city": "Bristol",
+          "price_per_250g": null,
+          "sells_indian": null,
+          "status": "lead",
+          "books_contact_id": null
+        }
+      }
+    },
+    {
+      "id": "NEG-A6-02-UNRESOLVED-ORDER-REFERENCE",
+      "eval_ids": ["A6"],
+      "description": "Order referencing a non-existent lot ID ('lot-999') or org ID ('org-999') must fail startup validation.",
+      "mutation_from_baseline": "Insert an order referencing lot 'lot-999'.",
+      "expected_error_substring": "Invalid order reference or quantity",
+      "expected_audit_event": "data_rejected",
+      "dataset_patch": {
+        "invalid_order": {
+          "id": "order-bad-ref",
+          "org": "org-1",
+          "lot": "lot-999",
+          "kg": 5,
+          "taken_via": "email",
+          "status": "unconfirmed"
+        }
+      }
+    },
+    {
+      "id": "NEG-A6-03-NON-TEST-EMAIL-DOMAIN",
+      "eval_ids": ["A6"],
+      "description": "Person email outside @example.test must be rejected at startup to prevent accidental live addressing.",
+      "mutation_from_baseline": "Change person-2 email to 'samira@beanandbloom.invalid'.",
+      "expected_error_substring": "Invalid synthetic identity boundary",
+      "expected_audit_event": "data_rejected",
+      "dataset_patch": {
+        "invalid_email": "samira@beanandbloom.invalid"
+      }
+    },
+    {
+      "id": "NEG-A6-04-UNALLOWLISTED-WHATSAPP-IN-DATASET",
+      "eval_ids": ["A2", "A6"],
+      "description": "Person with a WhatsApp number not listed in WHATSAPP_TEST_NUMBERS must fail startup validation.",
+      "mutation_from_baseline": "Set person-5 whatsapp to '+447700900899' while WHATSAPP_TEST_NUMBERS excludes it.",
+      "expected_error_substring": "Invalid synthetic identity boundary",
+      "expected_audit_event": "data_rejected",
+      "dataset_patch": {
+        "invalid_whatsapp": "+447700900899"
+      }
+    },
+    {
+      "id": "NEG-A6-05-INVALID-LOT-STOCK-EXCEEDS-START",
+      "eval_ids": ["A6"],
+      "description": "Lot with left_kg > start_kg (or negative left_kg, or start_kg <= 0) must fail startup validation.",
+      "mutation_from_baseline": "Set lot-1 left_kg to 75 while start_kg is 60.",
+      "expected_error_substring": "Invalid lot quantity",
+      "expected_audit_event": "data_rejected",
+      "dataset_patch": {
+        "invalid_lot": {
+          "id": "lot-1",
+          "name": "Coorg washed",
+          "start_kg": 60,
+          "left_kg": 75,
+          "books_item_id": null
+        }
+      }
+    },
+    {
+      "id": "NEG-A6-06-IMPOSSIBLE-STALL-DATE",
+      "eval_ids": ["A6"],
+      "description": "Non-existent calendar date ('2026-02-30') or duplicate stall date must fail startup validation.",
+      "mutation_from_baseline": "Append stall_day with date '2026-02-30'.",
+      "expected_error_substring": "Invalid stall date",
+      "expected_audit_event": "data_rejected",
+      "dataset_patch": {
+        "invalid_stall_day": {
+          "date": "2026-02-30",
+          "cashed_up": false
+        }
+      }
+    }
+  ],
+  "runtime_recipient_boundary_cases": [
+    {
+      "id": "NEG-A2-01-PRELIVE-EMAIL-REWRITE",
+      "eval_ids": ["A2"],
+      "description": "With APP_LIVE=false, outbound email addressed to a counterpart is rewritten exclusively to OWNER_TEST_EMAILS.",
+      "config": {
+        "APP_LIVE": "false",
+        "OWNER_TEST_EMAILS": "gk-test-inbox@example.test,partner-test-inbox@example.test"
+      },
+      "input": {
+        "channel": "email",
+        "to": "sam@example.test"
+      },
+      "expected_effective_recipient": "gk-test-inbox@example.test,partner-test-inbox@example.test",
+      "expected_original_contacted": false
+    },
+    {
+      "id": "NEG-A2-02-NON-ALLOWLISTED-WHATSAPP-OUTBOUND-BLOCKED",
+      "eval_ids": ["A2"],
+      "description": "Outbound WhatsApp send to any E.164 number absent from WHATSAPP_TEST_NUMBERS is refused before provider call.",
+      "config": {
+        "APP_LIVE": "false",
+        "WHATSAPP_TEST_NUMBERS": "+447700900101,+447700900102"
+      },
+      "input": {
+        "channel": "whatsapp",
+        "to": "+447700900999"
+      },
+      "expected_error_substring": "WhatsApp recipient is not on verified test list",
+      "expected_provider_calls": 0
+    },
+    {
+      "id": "NEG-A2-03-UNKNOWN-WHATSAPP-INBOUND-SENDER-BLOCKED",
+      "eval_ids": ["A2"],
+      "description": "Inbound WhatsApp webhook from a non-allowlisted number is discarded before content persistence and logged as blocked.",
+      "config": {
+        "WHATSAPP_TEST_NUMBERS": "+447700900101",
+        "WHATSAPP_OWNER_NUMBERS": "+447700900101"
+      },
+      "inbound_webhook_message": {
+        "id": "wamid.SYNTH-NEG-UNKNOWN-001",
+        "from": "447700900999",
+        "timestamp": "1793296800",
+        "type": "text",
+        "text": {
+          "body": "yes send it"
+        }
+      },
+      "expected_audit_event": {
+        "type": "blocked",
+        "reason": "unknown_sender"
+      },
+      "expected_persisted_content": false
+    }
+  ]
+}

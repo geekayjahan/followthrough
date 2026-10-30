@@ -1,0 +1,708 @@
+{
+  "provenance": "Fictional scenario test oracles for Followthrough candidate-v1. Expected outcomes define acceptance targets against app/spec.html and app/evals.md; they do NOT claim live provider execution or connected pass status.",
+  "dataset_version": "candidate-v1 (1.0.0)",
+  "reference_clock": {
+    "timezone": "Europe/London",
+    "seed_clock_for_3day_aging": "2026-10-26T09:00:00Z",
+    "reference_time": "2026-10-29T18:00:00Z",
+    "london_local_reference": "2026-10-29 18:00 Europe/London (GMT, UTC+0; UK BST ended 2026-10-25)",
+    "date_offset_rule": "To shift the entire run to a later calendar date D_target (YYYY-MM-DD), add delta_days = (Date.parse(D_target) - Date.parse('2026-10-29')) / 86400000 uniformly to every date in synthetic.json (invoices[].issued, invoices[].due, invoices[].paid_on, stall_days[].date), books-seed.json transaction dates, receipt date fields, and scenario event_time timestamps. Keep Europe/London wall-clock brief times at 08:00 and 18:00 and the stall cash-up threshold at 21:00.",
+    "builder_clock_requirement": "Current Domain constructor (app/src/domain.mjs:146) stamps new loops with new Date().toISOString(). To evaluate 3-day-cold chase scenarios without waiting 72 wall-clock hours, the builder must inject an injectable clock / seed timestamp (2026-10-26T09:00:00Z -> 2026-10-29T18:00:00Z) in a test harness or demo-clock adapter."
+  },
+  "out_of_dataset_checks": [
+    {
+      "eval_id": "A4",
+      "reason": "Codebase static/architectural check verifying zero bank-transfer, bill-pay, or money-movement endpoints exist in app/src/. Cannot be proven by synthetic data."
+    },
+    {
+      "eval_id": "A5",
+      "reason": "Repository publishable-file secret scan (node app/checks/secret-scan.mjs) and .gitignore verification. Cannot be proven by synthetic data alone, though all candidate-v1 files must pass secret-scan with 0 findings."
+    }
+  ],
+  "recommended_run_order": [
+    "SCEN-01-NETWORK-AND-TOTALS",
+    "SCEN-02-STOCK-THRESHOLD",
+    "SCEN-03-QUALIFICATION",
+    "SCEN-04-WARM-INTRODUCTION",
+    "SCEN-05-CHASE-AND-APPROVAL",
+    "SCEN-06-VOICE-APPROVAL",
+    "SCEN-07-INVOICE-COLLECTION",
+    "SCEN-08-RECEIPT-EXPENSE",
+    "SCEN-09-STALL-CASHUP",
+    "SCEN-10-REPLIES-AND-SUPPRESSION",
+    "SCEN-11-SCHEDULING",
+    "SCEN-12-BOUNDARY-AND-NEGATIVE-CASES",
+    "SCEN-13-SHIPMENT-COMPLETION",
+    "SCEN-14-DUPLICATE-INBOUND-EVENTS"
+  ],
+  "scenarios": [
+    {
+      "id": "SCEN-01-NETWORK-AND-TOTALS",
+      "title": "Baseline network graph, sourced background facts, and financial/stock totals",
+      "eval_ids": ["F11", "F12"],
+      "event_time": "2026-10-29T18:00:00Z",
+      "starting_records": {
+        "orgs_count": 12,
+        "people_count": 14,
+        "edges_count": 10,
+        "lots": ["lot-1", "lot-2", "lot-3"],
+        "invoices": ["inv-1", "inv-2", "inv-3", "inv-4", "inv-5", "inv-6"],
+        "orders": ["order-1", "order-2", "order-3", "order-4", "order-5"],
+        "stall_days": ["2026-10-22", "2026-10-25", "2026-10-29"]
+      },
+      "input": {
+        "surface": "web_dashboard",
+        "action": "GET /api/state after seeding synthetic.json (at 2026-10-26T09:00:00Z for 3-day aging, or fresh at 2026-10-29T18:00:00Z) and syncing Zoho Books seeded from books-seed.json."
+      },
+      "expected_state_changes": {
+        "graph_nodes_rendered": 12,
+        "graph_edges_rendered": 10,
+        "startup_suppressed_domains": ["quickcup.example.test"],
+        "open_loops_with_books_synced": 18,
+        "due_loops_if_seeded_fresh_at_18_00": 4,
+        "due_loops_if_aged_3_calendar_days_pre_qualification": 14
+      },
+      "expected_outbound": {
+        "messages_sent": 0,
+        "books_writes": 0
+      },
+      "expected_totals": {
+        "cash_gbp": 3335,
+        "owed_gbp": 1245,
+        "stock_total_kg": 58.5,
+        "lots_left_kg": {
+          "lot-1": 42,
+          "lot-2": 10,
+          "lot-3": 6.5
+        },
+        "due_loops_at_18_00_fresh_seed": 4,
+        "due_loops_at_18_00_aged_3d": 14
+      }
+    },
+    {
+      "id": "SCEN-02-STOCK-THRESHOLD",
+      "title": "Exact 20% stock boundary vs below-20% low-stock loop",
+      "eval_ids": ["F7"],
+      "event_time": "2026-10-29T18:00:00Z",
+      "starting_records": {
+        "lots": [
+          { "id": "lot-1", "name": "Coorg washed", "start_kg": 60, "left_kg": 42, "pct": 70 },
+          { "id": "lot-2", "name": "Chikmagalur natural", "start_kg": 50, "left_kg": 10, "pct": 20 },
+          { "id": "lot-3", "name": "Shevaroy Hills honey", "start_kg": 40, "left_kg": 6.5, "pct": 16.25 }
+        ]
+      },
+      "input": {
+        "action": "Run refreshStock() at startup and inspect open lot_low loops."
+      },
+      "expected_state_changes": {
+        "lot_1_low_loop": false,
+        "lot_2_low_loop": false,
+        "lot_3_low_loop": true,
+        "opened_loop_key": "low:lot-3",
+        "opened_loop_type": "lot_low",
+        "due_immediately": true
+      },
+      "expected_outbound": {
+        "messages_sent": 0,
+        "notes": "low:lot-3 is included in the next scheduled 08:00 or 18:00 brief; lot-2 at exactly 20.0% (10 / 50 kg) does NOT open a lot_low loop until SCEN-09 reduces it below 10 kg."
+      },
+      "expected_totals": {
+        "stock_total_kg": 58.5,
+        "open_lot_low_loops": 1
+      }
+    },
+    {
+      "id": "SCEN-03-QUALIFICATION",
+      "title": "Lead shop qualification across GBP 6, 8, 11, 12, >12 boundaries and yes/no/unknown Indian-coffee evidence",
+      "eval_ids": ["F8", "E4", "F11"],
+      "event_time": "2026-10-29T18:00:00Z",
+      "starting_records": {
+        "orgs": ["org-8", "org-10", "org-2", "org-7", "org-3", "org-9", "org-11"]
+      },
+      "input": {
+        "assets": [
+          "assets/shops/org-8-bargain-bean-mart.html",
+          "assets/shops/org-10-pennine-kiosk.html",
+          "assets/shops/org-2-bean-and-bloom.html",
+          "assets/shops/org-7-moorland-micro-roasters.html",
+          "assets/shops/org-3-northbank-coffee.html",
+          "assets/shops/org-9-foghorn-roastery.html",
+          "assets/shops/org-11-pennine-bakehouse.html"
+        ],
+        "action": "Qualify each active lead against its hosted synthetic shop HTML page mapped in sources.json."
+      },
+      "expected_state_changes": {
+        "per_org_outcomes": [
+          {
+            "org_id": "org-8",
+            "price": 6,
+            "tier": "below bar",
+            "sells_indian": null,
+            "complete": true,
+            "loop_status": "closed",
+            "loop_close_reason": "below bar",
+            "draft_created": false,
+            "builder_bug_note": "Verify AR-09 fix so org-8 is excluded from brief loop list and brief heading count when qualified during brief generation."
+          },
+          {
+            "org_id": "org-10",
+            "price": 8,
+            "tier": "mid-shelf",
+            "sells_indian": true,
+            "complete": true,
+            "loop_status": "open"
+          },
+          {
+            "org_id": "org-2",
+            "price": 11,
+            "tier": "mid-shelf",
+            "sells_indian": true,
+            "complete": true,
+            "loop_status": "open"
+          },
+          {
+            "org_id": "org-7",
+            "price": 12,
+            "tier": "mid-shelf",
+            "sells_indian": false,
+            "complete": true,
+            "loop_status": "open"
+          },
+          {
+            "org_id": "org-3",
+            "price": 14.5,
+            "tier": "premium",
+            "sells_indian": false,
+            "complete": true,
+            "loop_status": "open"
+          },
+          {
+            "org_id": "org-9",
+            "price": 10.5,
+            "tier": null,
+            "sells_indian": null,
+            "complete": false,
+            "expected_error": "Qualification Indian-coffee fact lacks explicit source",
+            "loop_status": "open",
+            "draft_created": false
+          },
+          {
+            "org_id": "org-11",
+            "price": 9.5,
+            "tier": "mid-shelf",
+            "sells_indian": false,
+            "complete": true,
+            "loop_status": "open"
+          }
+        ]
+      },
+      "expected_outbound": {
+        "messages_sent": 0,
+        "notes": "Enrichment performs read-only HTTP GET to allowlisted shop hosts; no customer messages are sent."
+      },
+      "expected_totals": {
+        "qualified_complete_leads": 5,
+        "closed_below_bar_leads": 1,
+        "incomplete_unknown_indian_leads": 1,
+        "open_loops_with_books_synced": 17
+      }
+    },
+    {
+      "id": "SCEN-04-WARM-INTRODUCTION",
+      "title": "1-edge, 2-edge, and no-path prospect ranking, sourced connection naming, and separate introducer approval",
+      "eval_ids": ["F9", "F10"],
+      "event_time": "2026-10-29T18:00:00Z",
+      "starting_records": {
+        "leads_compared": [
+          { "org_id": "org-2", "name": "Bean & Bloom", "warm_path": ["org-2", "org-1"], "edges": 1, "last_touch": "2026-10-26T08:00:00Z" },
+          { "org_id": "org-10", "name": "Pennine Espresso Kiosk", "warm_path": ["org-10", "org-6"], "edges": 1, "last_touch": "2026-10-26T09:00:00Z" },
+          { "org_id": "org-3", "name": "Northbank Coffee", "warm_path": ["org-3", "org-2", "org-1"], "edges": 2, "last_touch": "2026-10-26T08:30:00Z" },
+          { "org_id": "org-11", "name": "Pennine Bakehouse Cafe", "warm_path": ["org-11", "org-10", "org-6"], "edges": 2, "last_touch": "2026-10-26T09:30:00Z" },
+          { "org_id": "org-7", "name": "Moorland Micro Roasters", "warm_path": [], "edges": null, "last_touch": "2026-10-26T07:30:00Z" }
+        ],
+        "edges_used": [
+          { "from": "org-2", "to": "org-1", "kind": "stocks" },
+          { "from": "org-3", "to": "org-2", "kind": "knows" },
+          { "from": "org-10", "to": "org-6", "kind": "buys_from" },
+          { "from": "org-11", "to": "org-10", "kind": "knows" },
+          { "from": "org-9", "to": "org-3", "kind": "knows" }
+        ]
+      },
+      "input": {
+        "action": "Evaluate Domain.cold(2026-10-29T18:00:00Z) ordering and generate brief drafts + introducer proposals."
+      },
+      "expected_state_changes": {
+        "lead_ranking_order": ["org-2", "org-10", "org-3", "org-11", "org-7"],
+        "three_hop_cutoff_verified": "org-9 is 3 edges from org-1 (org-9 -> org-3 -> org-2 -> org-1), so warmPath('org-9') returns [].",
+        "draft_connection_assertions": [
+          { "org_id": "org-2", "must_mention": "Harbour Roasters" },
+          { "org_id": "org-10", "must_mention": "Clifton Pantry" },
+          { "org_id": "org-3", "must_mention": "Bean & Bloom" },
+          { "org_id": "org-7", "must_not_invent_connection": true }
+        ],
+        "introducer_actions_created": [
+          {
+            "for_lead": "org-2",
+            "introducer_org_id": "org-1",
+            "recipient": "alex@example.test",
+            "status": "pending",
+            "requires_separate_approval": true
+          },
+          {
+            "for_lead": "org-3",
+            "introducer_org_id": "org-1",
+            "recipient": "alex@example.test",
+            "status": "pending",
+            "requires_separate_approval": true
+          },
+          {
+            "for_lead": "org-10",
+            "introducer_org_id": "org-6",
+            "recipient": "clara.finch@example.test",
+            "status": "pending",
+            "requires_separate_approval": true
+          }
+        ]
+      },
+      "expected_outbound": {
+        "customer_messages_sent": 0,
+        "introducer_messages_sent_without_own_approval": 0
+      },
+      "expected_totals": {
+        "cash_gbp": 3335,
+        "owed_gbp": 1245,
+        "stock_total_kg": 58.5
+      }
+    },
+    {
+      "id": "SCEN-05-CHASE-AND-APPROVAL",
+      "title": "3-day cold chase across lead/sample_out/quote/order_unconfirmed, unapproved hold, edited draft, tap approval, and duplicate approval block",
+      "eval_ids": ["F1", "F2", "A1"],
+      "event_time": "2026-10-29T18:05:00Z",
+      "starting_records": {
+        "seeded_loops": [
+          { "key": "lead:org-2", "type": "lead", "org_id": "org-2", "last_touch": "2026-10-26T08:00:00Z" },
+          { "key": "order:order-2", "type": "order_unconfirmed", "org_id": "org-5", "last_touch": "2026-10-26T09:00:00Z" }
+        ],
+        "intake_loops_opened_on_2026_10_26": [
+          {
+            "key": "business:org-1:SMP-2026-14",
+            "type": "sample_out",
+            "org_id": "org-1",
+            "intake_text": "Dispatched 250g roasting sample SMP-2026-14 of Coorg washed to Harbour Roasters for cupping feedback.",
+            "last_touch": "2026-10-26T10:00:00Z"
+          },
+          {
+            "key": "business:org-5:QTE-2026-09",
+            "type": "quote",
+            "org_id": "org-5",
+            "intake_text": "Sent wholesale price quote QTE-2026-09 for 30kg Coorg washed at GBP 19.50/kg to Severn Wharf Roastery.",
+            "last_touch": "2026-10-26T11:00:00Z"
+          }
+        ]
+      },
+      "input": {
+        "steps": [
+          "1. At 2026-10-29T18:00:00Z brief, generate pending drafts for all four 3-day-cold chase loops (lead, sample_out, quote, order_unconfirmed).",
+          "2. Leave order:order-2 unapproved (Eval A1).",
+          "3. Edit lead:org-2 draft text to: 'Hello Samira, we supply Harbour Roasters in Bristol and saw Bean & Bloom stocks their espresso in Bath. Would you like a 250g sample of our Coorg washed lot?'",
+          "4. Attempt approval of lead:org-2 with stale version 1 hash (must reject).",
+          "5. Approve lead:org-2 with current version 2 and revised hash via owner tap.",
+          "6. Attempt duplicate approval of the same lead:org-2 action ID (must reject)."
+        ]
+      },
+      "expected_state_changes": {
+        "order_2_unapproved_action_status": "pending",
+        "order_2_reappears_in_next_brief": true,
+        "org_2_edit_increments_version_to": 2,
+        "stale_v1_approval_rejected": true,
+        "org_2_action_status_after_v2_approve": "completed",
+        "org_2_loop_last_touch_reset_to": "2026-10-29T18:05:00Z",
+        "org_2_loop_next_due_at": "2026-11-01T00:00:00Z",
+        "duplicate_approval_rejected": true
+      },
+      "expected_outbound": {
+        "sends_count": 1,
+        "channel": "email",
+        "intended_counterpart": "sam@example.test",
+        "effective_prelive_recipient": "OWNER_TEST_EMAILS",
+        "audit_sequence_for_org_2": ["draft", "edit", "approve", "send", "touch"],
+        "sends_for_unapproved_order_2": 0
+      },
+      "expected_totals": {
+        "cash_gbp": 3335,
+        "owed_gbp": 1245,
+        "stock_total_kg": 58.5
+      }
+    },
+    {
+      "id": "SCEN-06-VOICE-APPROVAL",
+      "title": "Owner WhatsApp voice-note approval ('Yes, send it.') vs voice refusal ('No, hold it.')",
+      "eval_ids": ["F3"],
+      "event_time": "2026-10-29T18:10:00Z",
+      "starting_records": {
+        "pending_action_approve_target": "Pending message action for quote loop business:org-5:QTE-2026-09 (bound via message_bindings to context wamid.BRIEF-ACTION-QTE09)",
+        "pending_action_hold_target": "Pending message action for sample_out loop business:org-1:SMP-2026-14 (bound via message_bindings to context wamid.BRIEF-ACTION-SMP14)"
+      },
+      "input": {
+        "subcase_approve": {
+          "asset": "assets/voice/voice-01-approve-yes-send-it.wav",
+          "expected_transcript": "Yes, send it.",
+          "context_message_id": "wamid.BRIEF-ACTION-QTE09",
+          "sender_role": "WHATSAPP_OWNER_NUMBERS"
+        },
+        "subcase_refuse": {
+          "asset": "assets/voice/voice-02-refuse-no-hold-it.wav",
+          "expected_transcript": "No, hold it.",
+          "context_message_id": "wamid.BRIEF-ACTION-SMP14",
+          "sender_role": "WHATSAPP_OWNER_NUMBERS"
+        }
+      },
+      "expected_state_changes": {
+        "qte09_action_status": "completed",
+        "qte09_loop_last_touch_reset": true,
+        "smp14_action_status": "pending",
+        "smp14_blocked_reason": "not_affirmative_approval"
+      },
+      "expected_outbound": {
+        "qte09_sends": 1,
+        "smp14_sends": 0,
+        "audit_events": ["transcript", "approve", "send", "touch", "transcript", "blocked"]
+      },
+      "expected_totals": {
+        "cash_gbp": 3335,
+        "owed_gbp": 1245,
+        "stock_total_kg": 58.5
+      }
+    },
+    {
+      "id": "SCEN-07-INVOICE-COLLECTION",
+      "title": "1-day-overdue invoice chase draft and closure upon Zoho Books payment sync",
+      "eval_ids": ["F4", "E2"],
+      "event_time": "2026-10-29T18:00:00Z",
+      "starting_records": {
+        "overdue_1d_invoice": {
+          "synthetic_id": "inv-1",
+          "books_invoice_number": "FT-INV-1001",
+          "org_id": "org-1",
+          "due": "2026-10-28",
+          "amount": 480,
+          "balance": 480
+        },
+        "due_today_control_invoice": {
+          "synthetic_id": "inv-2",
+          "books_invoice_number": "FT-INV-1002",
+          "org_id": "org-5",
+          "due": "2026-10-29",
+          "amount": 240,
+          "balance": 240
+        }
+      },
+      "input": {
+        "step_1_at_18_00": "Sync Books and run 18:00 brief: FT-INV-1001 (due 2026-10-28) is 1 day past due and produces a chase draft naming FT-INV-1001 and 480; FT-INV-1002 (due 2026-10-29) is NOT cold.",
+        "step_2_at_19_15": "Record customer payment FT-PAY-2003 of GBP 480.00 against FT-INV-1001 in Zoho Books (balance -> 0, status -> paid), then run syncBooks() / next brief cycle at 2026-10-30T08:00:00Z."
+      },
+      "expected_state_changes": {
+        "step_1_ft_inv_1001_due": true,
+        "step_1_ft_inv_1002_due": false,
+        "step_1_draft_mentions": ["FT-INV-1001", "480"],
+        "step_2_pending_chase_status": "revoked",
+        "step_2_invoice_loop_status": "closed",
+        "step_2_invoice_loop_reason": "paid",
+        "step_2_later_chase_drafts_for_ft_inv_1001": 0
+      },
+      "expected_outbound": {
+        "sends_after_payment": 0,
+        "preflight_guard": "Even if owner attempts to approve stale FT-INV-1001 chase before syncBooks(), preflight() re-reads the invoice, sees balance 0 / status paid, closes the loop, and blocks sending."
+      },
+      "expected_totals": {
+        "owed_before_payment_gbp": 1245,
+        "owed_after_payment_gbp": 765,
+        "cash_before_payment_gbp": 3335,
+        "cash_after_payment_gbp": 3815,
+        "stock_total_kg": 58.5
+      }
+    },
+    {
+      "id": "SCEN-08-RECEIPT-EXPENSE",
+      "title": "Synthetic supplier receipt image extraction and gated Zoho Books expense creation",
+      "eval_ids": ["F5"],
+      "event_time": "2026-10-29T15:20:00Z",
+      "starting_records": {
+        "mapped_supplier_org": { "id": "org-4", "name": "Rainhill Supplies" }
+      },
+      "input": {
+        "primary_asset": "assets/receipts/receipt-01-rainhill-supplies.png",
+        "companion_unmapped_asset": "assets/receipts/receipt-02-unmapped-carrier.png",
+        "steps": [
+          "1. Owner sends receipt-01-rainhill-supplies.png on WhatsApp.",
+          "2. Verify pending expense action matches image (Rainhill Supplies, GBP 48.60, 2026-10-29) and zero Books writes have occurred yet.",
+          "3. Owner approves the expense action.",
+          "4. Companion negative check: owner sends receipt-02-unmapped-carrier.png (Severn Parcel Express, GBP 18.00); verify app asks for clarification and creates no expense action."
+        ]
+      },
+      "expected_state_changes": {
+        "extracted_supplier": "Rainhill Supplies",
+        "extracted_amount_gbp": 48.6,
+        "extracted_date": "2026-10-29",
+        "extracted_currency": "GBP",
+        "action_kind": "expense",
+        "status_before_approval": "pending",
+        "status_after_approval": "completed",
+        "receipt_loop_status_after_approval": "closed",
+        "unmapped_receipt_02_outcome": "ask (receipt_missing_or_unmapped_fields), 0 actions created"
+      },
+      "expected_outbound": {
+        "books_writes_before_approval": 0,
+        "books_writes_after_approval": 1,
+        "books_write_kind": "expense",
+        "books_reference_prefix": "FT-",
+        "audit_events": ["loop_open", "draft", "response", "approve", "books_write", "loop_close"]
+      },
+      "expected_totals": {
+        "expense_recorded_gbp": 48.6,
+        "stock_total_kg": 58.5
+      }
+    },
+    {
+      "id": "SCEN-09-STALL-CASHUP",
+      "title": "Stall voice cash-up: missing bag size asks without writing; six 250g bags of lot 2 records GBP 120 sale and -1.5 kg stock move",
+      "eval_ids": ["F6", "F7"],
+      "event_time": "2026-10-29T17:30:00Z",
+      "starting_records": {
+        "lot": { "id": "lot-2", "name": "Chikmagalur natural", "start_kg": 50, "left_kg": 10, "books_item_id": "<mapped_from_books_seed>" },
+        "stall_day": { "date": "2026-10-29", "cashed_up": false }
+      },
+      "input": {
+        "step_1_missing_size_voice": "assets/voice/voice-04-cashup-missing-size.wav",
+        "step_1_transcript": "Sold six bags of lot 2, 120 pounds cash.",
+        "step_2_complete_voice": "assets/voice/voice-03-cashup-lot2-120gbp.wav",
+        "step_2_transcript": "Sold six 250g bags of lot 2, 120 pounds cash.",
+        "step_3": "Owner approves the pending sale action."
+      },
+      "expected_state_changes": {
+        "after_step_1": {
+          "audit_ask_reason": "cashup_missing_fields",
+          "sale_actions_created": 0,
+          "lot_2_left_kg": 10
+        },
+        "after_step_2_before_approval": {
+          "pending_sale_action": {
+            "count": 6,
+            "bag_grams": 250,
+            "lot_id": "lot-2",
+            "kg": 1.5,
+            "amount": 120,
+            "currency": "GBP"
+          },
+          "lot_2_left_kg": 10
+        },
+        "after_step_3_approval": {
+          "sale_action_status": "completed",
+          "lot_2_left_kg": 8.5,
+          "stock_delta_kg": -1.5,
+          "seeded_stall_2026_10_29_loop_status": "closed",
+          "low_lot_2_loop_opened": true,
+          "low_lot_2_reason": "8.5 kg < 50 * 0.2 (10.0 kg), so refreshStock() opens low:lot-2 immediately"
+        }
+      },
+      "expected_outbound": {
+        "books_writes_on_missing_size": 0,
+        "books_writes_after_approval": 1,
+        "books_write_kind": "sale",
+        "audit_events": ["ask", "draft", "approve", "books_write", "stock_move", "loop_open", "loop_close"]
+      },
+      "expected_totals": {
+        "sale_recorded_gbp": 120,
+        "lot_2_left_kg_after": 8.5,
+        "stock_total_kg_after": 57,
+        "open_lot_low_loops_after": 2
+      }
+    },
+    {
+      "id": "SCEN-10-REPLIES-AND-SUPPRESSION",
+      "title": "Soft-no closes single loop only; 'Stop contacting me' suppresses shared domain across leads while leaving unrelated orgs untouched",
+      "eval_ids": ["E1", "A3"],
+      "event_time": "2026-10-29T18:20:00Z",
+      "starting_records": {
+        "soft_no_org": { "id": "org-3", "name": "Northbank Coffee", "website": "https://northbank.example.test", "status": "lead" },
+        "shared_domain_lead_a": { "id": "org-10", "name": "Pennine Espresso Kiosk", "website": "https://penninegroup.example.test/kiosk", "status": "lead" },
+        "shared_domain_lead_b": { "id": "org-11", "name": "Pennine Bakehouse Cafe", "website": "https://penninegroup.example.test/bakehouse", "status": "lead" },
+        "unrelated_bystander_org": { "id": "org-7", "name": "Moorland Micro Roasters", "website": "https://moorlandroasters.example.test", "status": "lead" },
+        "pre_declined_baseline_org": { "id": "org-12", "name": "QuickCup Office Coffee", "website": "https://quickcup.example.test", "status": "declined" }
+      },
+      "input": {
+        "step_1_soft_no": {
+          "from_person": "person-3 (jo@example.test, org-3)",
+          "channel": "email",
+          "text": "Not now, maybe next quarter"
+        },
+        "step_2_hard_decline": {
+          "from_person": "person-11 (callum.reid@example.test, org-10)",
+          "channel": "email",
+          "text": "Stop contacting me"
+        }
+      },
+      "expected_state_changes": {
+        "after_step_1_soft_no": {
+          "classification": "soft_no",
+          "org_3_loop_status": "closed",
+          "org_3_loop_reason": "human reply",
+          "org_3_status": "lead",
+          "northbank_domain_suppressed": false,
+          "future_drafts_for_closed_org_3_loop": 0
+        },
+        "after_step_2_hard_decline": {
+          "classification": "declined",
+          "suppressed_domain": "penninegroup.example.test",
+          "org_10_status": "declined",
+          "org_11_status": "declined",
+          "org_10_loop_status": "closed",
+          "org_11_loop_status": "closed",
+          "pending_actions_for_org_10_and_11": "revoked",
+          "future_drafts_for_org_10_or_11": 0
+        },
+        "unrelated_org_7_check": {
+          "org_7_status": "lead",
+          "org_7_loop_status": "open",
+          "moorland_domain_suppressed": false
+        },
+        "baseline_org_12_check": {
+          "quickcup_domain_suppressed": true,
+          "drafts_ever_created_for_org_12": 0
+        }
+      },
+      "expected_outbound": {
+        "messages_sent_to_org_3_after_soft_no": 0,
+        "messages_sent_to_penninegroup_domain": 0,
+        "audit_suppressed_domains": ["quickcup.example.test", "penninegroup.example.test"]
+      },
+      "expected_totals": {
+        "suppressed_domains_total": 2
+      }
+    },
+    {
+      "id": "SCEN-11-SCHEDULING",
+      "title": "24-hour Europe/London brief schedule (08:00 and 18:00 only) and 21:00 stall cash-up threshold",
+      "eval_ids": ["E3"],
+      "event_time": "2026-10-29T00:00:00Z",
+      "starting_records": {
+        "cold_loops_present": true,
+        "stall_days": [
+          { "date": "2026-10-25", "cashed_up": false },
+          { "date": "2026-10-29", "cashed_up": false }
+        ]
+      },
+      "input": {
+        "probe_timestamps_utc_and_london": [
+          "2026-10-29T07:59:00Z (07:59 London — pre-window)",
+          "2026-10-29T08:00:00Z (08:00 London — morning brief fires)",
+          "2026-10-29T08:01:30Z (08:01 London — deduplicated within morning window)",
+          "2026-10-29T12:30:00Z (12:30 London — midday quiet period)",
+          "2026-10-29T17:59:00Z (17:59 London — pre-window)",
+          "2026-10-29T18:00:00Z (18:00 London — evening brief fires; stall:2026-10-29 still not due)",
+          "2026-10-29T20:59:00Z (20:59 London — stall:2026-10-29 due === false)",
+          "2026-10-29T21:00:00Z (21:00 London — stall:2026-10-29 due === true; no unprompted message sent)"
+        ]
+      },
+      "expected_state_changes": {
+        "brief_slots_recorded": ["2026-10-29:08:00", "2026-10-29:18:00"],
+        "stall_2026_10_29_due_at_18_00": false,
+        "stall_2026_10_29_due_at_20_59": false,
+        "stall_2026_10_29_due_at_21_00": true
+      },
+      "expected_outbound": {
+        "brief_audit_count_in_24h": 2,
+        "unprompted_owner_messages_outside_08_00_and_18_00": 0,
+        "verification_boundary_note": "Synthetic clock probes verify slot boundary logic and deduplication; live S3 proof for E3 separately requires observing a running process across a real 24-hour London day."
+      },
+      "expected_totals": {
+        "briefs_sent_in_24h": 2
+      }
+    },
+    {
+      "id": "SCEN-12-BOUNDARY-AND-NEGATIVE-CASES",
+      "title": "Pre-live recipient rewriting/blocking and separate negative dataset validation cases",
+      "eval_ids": ["A2", "A6"],
+      "event_time": "2026-10-29T18:00:00Z",
+      "starting_records": {
+        "valid_baseline_file": "synthetic.json",
+        "separate_negative_fixtures_file": "negative-cases.json"
+      },
+      "input": {
+        "action": "1. Validate baseline synthetic.json with validateData(data, config). 2. Run each of the 6 startup_rejection_cases and 3 runtime_recipient_boundary_cases defined in negative-cases.json in isolated test invocations."
+      },
+      "expected_state_changes": {
+        "baseline_valid": true,
+        "startup_rejection_cases_all_throw": true,
+        "startup_rejection_cases_log_data_rejected": true,
+        "negative_cases_seeded_into_baseline": false
+      },
+      "expected_outbound": {
+        "prelive_emails_to_non_owner_addresses": 0,
+        "whatsapp_sends_to_non_allowlisted_numbers": 0
+      },
+      "expected_totals": {
+        "negative_startup_cases_rejected": 6,
+        "negative_runtime_recipient_cases_enforced": 3
+      }
+    },
+    {
+      "id": "SCEN-13-SHIPMENT-COMPLETION",
+      "title": "Core regression: order_to_ship fulfilment confirmation closes loop persistently",
+      "eval_ids": ["F12"],
+      "event_time": "2026-10-29T18:25:00Z",
+      "starting_records": {
+        "order": { "id": "order-1", "org": "org-1", "lot": "lot-1", "kg": 6, "taken_via": "email", "status": "to_ship" },
+        "loop_key": "order:order-1",
+        "loop_type": "order_to_ship"
+      },
+      "input": {
+        "steps": [
+          "1. Brief generates pending shipment action for order:order-1 (Harbour Roasters, 6 kg Coorg washed).",
+          "2. Owner approves shipment confirmation in dashboard or WhatsApp.",
+          "3. Reload state / reopen SQLite store."
+        ]
+      },
+      "expected_state_changes": {
+        "shipment_action_status": "completed",
+        "order_1_loop_status": "closed",
+        "order_1_loop_reason": "shipped",
+        "persists_across_reload": true
+      },
+      "expected_outbound": {
+        "customer_messages_sent": 0,
+        "books_writes": 0,
+        "audit_events": ["draft", "approve", "shipment", "loop_close"]
+      },
+      "expected_totals": {
+        "stock_note": "Fulfilment confirmation closes the shipment loop without deducting lot-1 stock a second time."
+      }
+    },
+    {
+      "id": "SCEN-14-DUPLICATE-INBOUND-EVENTS",
+      "title": "Core regression: duplicate WhatsApp webhook and Zoho Mail message IDs are deduplicated",
+      "eval_ids": ["F2", "F6"],
+      "event_time": "2026-10-29T18:30:00Z",
+      "starting_records": {
+        "whatsapp_event_id": "wamid.SYNTH-DUP-001",
+        "mail_message_id": "zmail-SYNTH-DUP-001"
+      },
+      "input": {
+        "step_1_whatsapp_replay": "Deliver owner WhatsApp message id 'wamid.SYNTH-DUP-001' ('Sold two 250g bags of lot 1, 40 pounds cash') twice consecutively to POST /webhooks/whatsapp.",
+        "step_2_mail_replay": "Poll Zoho Mail returning messageId 'zmail-SYNTH-DUP-001' from alex@example.test twice consecutively via pollMail()."
+      },
+      "expected_state_changes": {
+        "whatsapp_sale_actions_created": 1,
+        "mail_reply_audit_events_created": 1,
+        "duplicate_side_effects": 0
+      },
+      "expected_outbound": {
+        "owner_readback_responses_sent": 1
+      },
+      "expected_totals": {
+        "deduplicated_replays_ignored": 2
+      }
+    }
+  ]
+}

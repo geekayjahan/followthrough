@@ -1,0 +1,464 @@
+{
+  "provenance": "Fictional synthetic candidate dataset v1.0.0 for Followthrough connected-v0 verification (Monsoon & Ghats Green Coffee — Synthetic Test Co.). Contains no real people, businesses, phone numbers, financial transactions, or provider IDs. Owner review and fresh Zoho/WhatsApp test-account mapping are required before setting SYNTHETIC_DATA_APPROVED=true.",
+  "orgs": [
+    {
+      "id": "org-1",
+      "name": "Harbour Roasters",
+      "type": "roaster",
+      "website": "https://harbour.example.test",
+      "instagram": null,
+      "city": "Bristol",
+      "price_per_250g": 11.5,
+      "sells_indian": true,
+      "status": "customer",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-2",
+      "name": "Bean & Bloom",
+      "type": "cafe",
+      "website": "https://bloom.example.test",
+      "instagram": null,
+      "city": "Bath",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-3",
+      "name": "Northbank Coffee",
+      "type": "roaster",
+      "website": "https://northbank.example.test",
+      "instagram": null,
+      "city": "London",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-4",
+      "name": "Rainhill Supplies",
+      "type": "supplier",
+      "website": "https://rainhill.example.test",
+      "instagram": null,
+      "city": "Leeds",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "customer",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-5",
+      "name": "Severn Wharf Roastery",
+      "type": "roaster",
+      "website": "https://severnwharf.example.test",
+      "instagram": null,
+      "city": "Cardiff",
+      "price_per_250g": 10,
+      "sells_indian": true,
+      "status": "customer",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-6",
+      "name": "Clifton Pantry",
+      "type": "stockist",
+      "website": "https://cliftonpantry.example.test",
+      "instagram": null,
+      "city": "Bristol",
+      "price_per_250g": 12.5,
+      "sells_indian": true,
+      "status": "customer",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-7",
+      "name": "Moorland Micro Roasters",
+      "type": "roaster",
+      "website": "https://moorlandroasters.example.test",
+      "instagram": null,
+      "city": "Sheffield",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-8",
+      "name": "Bargain Bean Mart",
+      "type": "cafe",
+      "website": "https://bargainbean.example.test",
+      "instagram": null,
+      "city": "Birmingham",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-9",
+      "name": "Foghorn Roastery",
+      "type": "roaster",
+      "website": "https://foghornroastery.example.test",
+      "instagram": null,
+      "city": "Brighton",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-10",
+      "name": "Pennine Espresso Kiosk",
+      "type": "cafe",
+      "website": "https://penninegroup.example.test/kiosk",
+      "instagram": null,
+      "city": "York",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-11",
+      "name": "Pennine Bakehouse Cafe",
+      "type": "cafe",
+      "website": "https://penninegroup.example.test/bakehouse",
+      "instagram": null,
+      "city": "York",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "lead",
+      "books_contact_id": null
+    },
+    {
+      "id": "org-12",
+      "name": "QuickCup Office Coffee",
+      "type": "roaster",
+      "website": "https://quickcup.example.test",
+      "instagram": null,
+      "city": "Reading",
+      "price_per_250g": null,
+      "sells_indian": null,
+      "status": "declined",
+      "books_contact_id": null
+    }
+  ],
+  "people": [
+    {
+      "id": "person-1",
+      "org": "org-1",
+      "name": "Alex Mercer",
+      "email": "alex@example.test",
+      "whatsapp": null,
+      "role": "head buyer"
+    },
+    {
+      "id": "person-2",
+      "org": "org-2",
+      "name": "Samira Patel",
+      "email": "sam@example.test",
+      "whatsapp": null,
+      "role": "owner"
+    },
+    {
+      "id": "person-3",
+      "org": "org-3",
+      "name": "Jo Castell",
+      "email": "jo@example.test",
+      "whatsapp": null,
+      "role": "green buyer"
+    },
+    {
+      "id": "person-4",
+      "org": "org-4",
+      "name": "Lee Bramwell",
+      "email": "lee@example.test",
+      "whatsapp": null,
+      "role": "accounts and dispatch"
+    },
+    {
+      "id": "person-5",
+      "org": "org-5",
+      "name": "Nia Pritchard",
+      "email": "nia.pritchard@example.test",
+      "whatsapp": null,
+      "role": "roastery director"
+    },
+    {
+      "id": "person-6",
+      "org": "org-5",
+      "name": "Owen Hughes",
+      "email": "owen.hughes@example.test",
+      "whatsapp": null,
+      "role": "accounts payable"
+    },
+    {
+      "id": "person-7",
+      "org": "org-6",
+      "name": "Clara Finch",
+      "email": "clara.finch@example.test",
+      "whatsapp": null,
+      "role": "wholesale buyer"
+    },
+    {
+      "id": "person-8",
+      "org": "org-7",
+      "name": "Tariq Mahmood",
+      "email": "tariq.mahmood@example.test",
+      "whatsapp": null,
+      "role": "founder and roaster"
+    },
+    {
+      "id": "person-9",
+      "org": "org-8",
+      "name": "Derek Moss",
+      "email": "derek.moss@example.test",
+      "whatsapp": null,
+      "role": "purchasing manager"
+    },
+    {
+      "id": "person-10",
+      "org": "org-9",
+      "name": "Freya Lindqvist",
+      "email": "freya.lindqvist@example.test",
+      "whatsapp": null,
+      "role": "head roaster"
+    },
+    {
+      "id": "person-11",
+      "org": "org-10",
+      "name": "Callum Reid",
+      "email": "callum.reid@example.test",
+      "whatsapp": null,
+      "role": "cafe manager"
+    },
+    {
+      "id": "person-12",
+      "org": "org-11",
+      "name": "Hannah Croft",
+      "email": "hannah.croft@example.test",
+      "whatsapp": null,
+      "role": "hospitality buyer"
+    },
+    {
+      "id": "person-13",
+      "org": "org-12",
+      "name": "Gavin Holt",
+      "email": "gavin.holt@example.test",
+      "whatsapp": null,
+      "role": "procurement lead"
+    },
+    {
+      "id": "person-14",
+      "org": "org-1",
+      "name": "Priya Nair",
+      "email": "priya.nair@example.test",
+      "whatsapp": null,
+      "role": "finance and accounts"
+    }
+  ],
+  "edges": [
+    {
+      "from": "org-2",
+      "to": "org-1",
+      "kind": "stocks",
+      "since": "2026-01-15",
+      "note": "Bean & Bloom stocks Harbour Roasters house espresso bags in Bath"
+    },
+    {
+      "from": "org-3",
+      "to": "org-2",
+      "kind": "knows",
+      "since": "2026-02-10",
+      "note": "Northbank Coffee co-hosted a Bath guest cupping evening with Bean & Bloom"
+    },
+    {
+      "from": "org-1",
+      "to": "org-4",
+      "kind": "buys_from",
+      "since": "2025-11-01",
+      "note": "Harbour Roasters buys 250g kraft valve pouches and liners from Rainhill Supplies"
+    },
+    {
+      "from": "org-4",
+      "to": "org-5",
+      "kind": "supplies",
+      "since": "2026-03-01",
+      "note": "Rainhill Supplies delivers wholesale packaging to Severn Wharf Roastery"
+    },
+    {
+      "from": "org-6",
+      "to": "org-1",
+      "kind": "stocks",
+      "since": "2025-09-20",
+      "note": "Clifton Pantry stocks Harbour Roasters filter coffee tins on its Bristol retail shelf"
+    },
+    {
+      "from": "org-6",
+      "to": "org-5",
+      "kind": "buys_from",
+      "since": "2026-04-12",
+      "note": "Clifton Pantry orders guest seasonal filter lots from Severn Wharf Roastery"
+    },
+    {
+      "from": "org-10",
+      "to": "org-6",
+      "kind": "buys_from",
+      "since": "2026-06-01",
+      "note": "Pennine Espresso Kiosk buys guest retail coffee tins from Clifton Pantry"
+    },
+    {
+      "from": "org-11",
+      "to": "org-10",
+      "kind": "knows",
+      "since": "2025-05-01",
+      "note": "Pennine Bakehouse Cafe and Pennine Espresso Kiosk are sister York venues under Pennine Group"
+    },
+    {
+      "from": "org-9",
+      "to": "org-3",
+      "kind": "knows",
+      "since": "2026-07-18",
+      "note": "Foghorn Roastery met Northbank Coffee at a coastal roasting workshop (3 hops from Harbour Roasters)"
+    },
+    {
+      "from": "org-7",
+      "to": "org-8",
+      "kind": "knows",
+      "since": "2026-08-05",
+      "note": "Moorland Micro Roasters once sent a price sheet to Bargain Bean Mart (no path to customers)"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "inv-1",
+      "org": "org-1",
+      "amount": 480,
+      "issued": "2026-10-14",
+      "due": "2026-10-28",
+      "paid_on": null
+    },
+    {
+      "id": "inv-2",
+      "org": "org-5",
+      "amount": 240,
+      "issued": "2026-10-15",
+      "due": "2026-10-29",
+      "paid_on": null
+    },
+    {
+      "id": "inv-3",
+      "org": "org-5",
+      "amount": 360,
+      "issued": "2026-10-26",
+      "due": "2026-11-09",
+      "paid_on": null
+    },
+    {
+      "id": "inv-4",
+      "org": "org-6",
+      "amount": 195,
+      "issued": "2026-10-07",
+      "due": "2026-10-21",
+      "paid_on": null
+    },
+    {
+      "id": "inv-5",
+      "org": "org-1",
+      "amount": 600,
+      "issued": "2026-10-01",
+      "due": "2026-10-15",
+      "paid_on": "2026-10-14"
+    },
+    {
+      "id": "inv-6",
+      "org": "org-6",
+      "amount": 130,
+      "issued": "2026-10-28",
+      "due": "2026-11-11",
+      "paid_on": null
+    }
+  ],
+  "lots": [
+    {
+      "id": "lot-1",
+      "name": "Coorg washed",
+      "start_kg": 60,
+      "left_kg": 42,
+      "books_item_id": null
+    },
+    {
+      "id": "lot-2",
+      "name": "Chikmagalur natural",
+      "start_kg": 50,
+      "left_kg": 10,
+      "books_item_id": null
+    },
+    {
+      "id": "lot-3",
+      "name": "Shevaroy Hills honey",
+      "start_kg": 40,
+      "left_kg": 6.5,
+      "books_item_id": null
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-1",
+      "org": "org-1",
+      "lot": "lot-1",
+      "kg": 6,
+      "taken_via": "email",
+      "status": "to_ship"
+    },
+    {
+      "id": "order-2",
+      "org": "org-5",
+      "lot": "lot-1",
+      "kg": 12,
+      "taken_via": "whatsapp",
+      "status": "unconfirmed"
+    },
+    {
+      "id": "order-3",
+      "org": "org-6",
+      "lot": "lot-3",
+      "kg": 4,
+      "taken_via": "stall",
+      "status": "shipped"
+    },
+    {
+      "id": "order-4",
+      "org": "org-6",
+      "lot": "lot-2",
+      "kg": 5,
+      "taken_via": "whatsapp",
+      "status": "to_ship"
+    },
+    {
+      "id": "order-5",
+      "org": "org-5",
+      "lot": "lot-2",
+      "kg": 10,
+      "taken_via": "email",
+      "status": "shipped"
+    }
+  ],
+  "stall_days": [
+    {
+      "date": "2026-10-22",
+      "cashed_up": true
+    },
+    {
+      "date": "2026-10-25",
+      "cashed_up": false
+    },
+    {
+      "date": "2026-10-29",
+      "cashed_up": false
+    }
+  ]
+}
