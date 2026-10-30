@@ -522,6 +522,31 @@
         "checks/held.test.mjs",
         "checks/intent.test.mjs"
       ]
+    },
+    {
+      "id": "FT-20",
+      "name": "Weekday-only scheduled briefs",
+      "serves": [
+        "spec §2.2 (weekdays, nothing at weekends)",
+        "spec Pinned: Brief",
+        "eval E3",
+        "eval E6"
+      ],
+      "in": [
+        "The London clock",
+        "ENABLE_JOBS"
+      ],
+      "out": [
+        "weekday() in domain.mjs",
+        "No scheduled brief on Saturday or Sunday; manual briefs unaffected",
+        "missedSlots on the page is empty at weekends"
+      ],
+      "done-check": "Saturday 08:00 and Sunday 18:00 produce no brief line; Monday 08:00 produces one listing the loop that went cold on Wednesday.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/brief.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [
