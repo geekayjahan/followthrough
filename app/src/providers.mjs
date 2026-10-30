@@ -267,12 +267,18 @@ export class Providers {
   async email(payload) {
     requireKeys(this.c, ["ZOHO_MAIL_ACCOUNT_ID", "ZOHO_MAIL_FROM"]);
     const to = recipient(this.c, "email", payload.to);
+    // Pinned: Coffee alias, enforced again at send so no path can bypass the draft-time switch.
+    let from = payload.from || this.c.ZOHO_MAIL_FROM;
+    if (payload.coffee && this.c.MAIL_FROM_COFFEE && from !== this.c.MAIL_FROM_COFFEE) {
+      if (this.audit) this.audit("alias_fixed", { from, to: this.c.MAIL_FROM_COFFEE, reason: "coffee counterpart at send" });
+      from = this.c.MAIL_FROM_COFFEE;
+    }
     const r = await this.zoho(
       `/api/accounts/${encodeURIComponent(this.c.ZOHO_MAIL_ACCOUNT_ID)}/messages`,
       {
         method: "POST",
         body: {
-          fromAddress: this.c.ZOHO_MAIL_FROM,
+          fromAddress: from,
           toAddress: to,
           subject: payload.subject || "Following up",
           content: payload.text,
