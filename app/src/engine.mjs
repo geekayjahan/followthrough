@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { hash } from "./store.mjs";
 import { connected, recipient, list, safeError, ROOT } from "./config.mjs";
-import { london, warmPath, affirmative, demoNow, nextStage, weekday, cadence, dayNumber } from "./domain.mjs";
+import { london, warmPath, affirmative, demoNow, nextStage, weekday, cadence, dayNumber, unsentDocuments, daysUntil } from "./domain.mjs";
 import { loadTerms, checkDraft } from "./terms.mjs";
 // Pinned: Voice file. Signed off when the first line reads "signed-off: <date> <name>".
 export function readVoiceFile(path) {
@@ -38,6 +38,46 @@ export class Engine {
       return existsSync(this.calendarPath) ? JSON.parse(readFileSync(this.calendarPath, "utf8")) : {};
     } catch {
       return {};
+    }
+  }
+  // Stall days and compliance dates from the owner's calendar export become loops with their own clocks
+  // (workflows A8, I1, K10; evals W4, F22, E7). Same keys as the synthetic stall days, so nothing doubles.
+  syncCalendar() {
+    const cal = this.calendar();
+    const orgByName = (name) => this.d.orgs().find((o) => name && o.name.toLowerCase() === String(name).toLowerCase())?.id || null;
+    for (const day of cal.stall_days || []) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date || "") || ["cancelled", "waitlist", "possible"].includes(day.status)) continue;
+      const key = `stall:${day.date}`;
+      const fields = {
+        market: day.market || null,
+        documents: Array.isArray(day.documents) ? day.documents : undefined,
+        transport_confirmed: typeof day.transport_confirmed === "boolean" ? day.transport_confirmed : undefined,
+      };
+      // A document the app has already sent stays sent whatever the export says.
+      const merge = (loop) => {
+        if (!fields.documents) return;
+        fields.documents = fields.documents.map((d) => ({ ...d, sent: Boolean(d.sent) || (loop?.documents || []).some((x) => x.name === d.name && x.sent === true) }));
+      };
+      let loop = this.s.all("loops").find((l) => l.key === key);
+      if (!loop) {
+        if (day.cashed_up) continue;
+        loop = this.d.loop("stall", orgByName(day.market), key, { stall_date: day.date, source: "calendar", ...fields });
+      } else if (loop.status === "open") {
+        merge(loop);
+        for (const [k, v] of Object.entries(fields)) if (v !== undefined) loop[k] = v;
+        if (!loop.org_id) loop.org_id = orgByName(day.market);
+        this.s.put("loops", loop.id, loop);
+      }
+    }
+    for (const c of cal.compliance || []) {
+      if (!c.id || !/^\d{4}-\d{2}-\d{2}$/.test(c.due || "")) continue;
+      const key = `compliance:${c.id}`;
+      const loop = this.s.all("loops").find((l) => l.key === key);
+      if (c.done) {
+        if (loop && loop.status === "open") this.d.close(loop.id, "done");
+        continue;
+      }
+      if (!loop) this.d.loop("compliance", null, key, { due_date: c.due, what: c.what || c.id, source: "calendar", next_move: `${c.what || c.id} due ${c.due}` });
     }
   }
   // The next shipment closing date within `days` of now, named in every chase near it (terms.md).
@@ -103,7 +143,7 @@ export class Engine {
       "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. Name the shared connection when supplied. Never name another buyer or roaster.",
       {
         voice_file: voice.text,
-        loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, reserved_kg: loop.reserved_kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases, supplier_shortfall: loop.shortfall || null },
+        loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, reserved_kg: loop.reserved_kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases, supplier_shortfall: loop.shortfall || null, stall_date: loop.stall_date || null, market: loop.market || null, documents_to_send: loop.type === "stall" ? unsentDocuments(loop) : null },
         organization: org.name,
         counterpart_name: person.name || null,
         thread,
@@ -415,6 +455,12 @@ export class Engine {
       if (a.kind === "message" && a.loop_id) {
         this.s.put("message_bindings", receipt.id, { loop_id: a.loop_id });
         this.d.appendThread(a.loop_id, { from: "owner", source: a.payload.channel, text: a.payload.text });
+        // The organiser message carries the stall documents, so they count as sent (workflow K8).
+        const loop = this.s.get("loops", a.loop_id);
+        if (loop?.type === "stall" && unsentDocuments(loop).length) {
+          loop.documents = loop.documents.map((d) => ({ ...d, sent: true, sent_action: d.sent ? d.sent_action : id }));
+          this.s.put("loops", loop.id, loop);
+        }
       }
       this.s.audit(
         a.kind === "message"
@@ -507,7 +553,7 @@ export class Engine {
     return "Business";
   }
   // One line a human would say about why this loop is in the brief.
-  why(loop) {
+  why(loop, now = demoNow(this.c)) {
     const org = this.s.get("orgs", loop.org_id);
     const name =
       org?.name ||
@@ -519,8 +565,18 @@ export class Engine {
     if (loop.type === "invoice")
       return `${name}: invoice ${loop.invoice_number} (GBP ${Number(loop.amount).toFixed(2)}) overdue since ${loop.invoice_due}`;
     if (loop.type === "lot_low") return loop.next_move;
-    if (loop.type === "stall")
-      return `Stall day ${loop.stall_date}: not cashed up`;
+    if (loop.type === "stall") {
+      const where = loop.market ? `${loop.market} ${loop.stall_date}` : loop.stall_date;
+      const docs = unsentDocuments(loop);
+      const until = daysUntil(loop.stall_date, now);
+      if (until > 0 && docs.length) return `Stall ${where}: ${docs.join(" and ")} not sent to the organiser, ${until} ${until === 1 ? "day" : "days"} out`;
+      if (until > 0 && loop.transport_confirmed === false) return `Stall ${where}: transport unconfirmed, ${until} ${until === 1 ? "day" : "days"} out`;
+      return `Stall day ${where}: not cashed up`;
+    }
+    if (loop.type === "compliance")
+      return `${loop.what}: due ${loop.due_date}, ${daysUntil(loop.due_date, now)} days away`;
+    if (loop.type === "receipt")
+      return `${name}: receipt unbooked since ${since}`;
     if (loop.shortfall)
       return `${name}: ${loop.reserved_kg} kg of ${loop.shortfall.lot} reserved, supplier has ${loop.shortfall.supplier_kg} kg against ${loop.shortfall.reserved_kg} reserved (${loop.shortfall.shortfall_kg} kg short)`;
     if (loop.type.startsWith("order") && loop.reserved_kg)
@@ -580,9 +636,17 @@ export class Engine {
     const voice = this.voice();
     if (!voice.ok)
       warnings.push(`No customer drafts: app/data/voice.md needs a signed-off first line (${voice.reason}). Loops are listed below.`);
+    this.syncCalendar();
     const cold = this.d.cold(demoNow(this.c, now)),
       actions = [];
     for (const loop of cold) {
+      // Receipts, compliance dates and low lots are listed; their action, when one exists, is the pending Books write.
+      if (["receipt", "compliance", "lot_low"].includes(loop.type)) {
+        const existing = this.s.all("actions").find((a) => a.loop_id === loop.id && a.status === "pending");
+        if (existing) actions.push(existing);
+        continue;
+      }
+      if (loop.type === "stall" && !(loop.org_id && unsentDocuments(loop).length && daysUntil(loop.stall_date, demoNow(this.c, now)) > 0)) continue;
       if (loop.type === "order_to_ship") {
         const existing = this.s
           .all("actions")
@@ -610,7 +674,7 @@ export class Engine {
           reason: "draft_failed",
           detail: safeError(error),
         });
-        warnings.push(`${this.why(loop)}: no draft (${safeError(error)})`);
+        warnings.push(`${this.why(loop, demoNow(this.c, now))}: no draft (${safeError(error)})`);
       }
       if (action) actions.push(action);
       else if (this.s.get("draft_holds", loop.id))
@@ -645,8 +709,12 @@ export class Engine {
             : l.type === "lot_low"
               ? "low lot"
               : l.type === "stall"
-                ? "stall day to cash up"
-                : l.type.replace(/_/g, " ");
+                ? daysUntil(l.stall_date, demoNow(this.c, now)) > 0 ? "stall day to prepare" : "stall day to cash up"
+                : l.type === "compliance"
+                  ? "compliance date"
+                  : l.type === "receipt"
+                    ? "unbooked receipt"
+                    : l.type.replace(/_/g, " ");
       counts.set(label, (counts.get(label) || 0) + 1);
     }
     // Workflow C15: the brief names the lot, the shortfall and how many counterparts are affected.
@@ -661,7 +729,7 @@ export class Engine {
       `Followthrough ${label}`,
       line,
       ...shortfalls.map((d) => `${d.lot} is ${d.shortfall_kg} kg short of what you've promised (${d.supplier_kg} kg at the supplier, ${d.reserved_kg} reserved). ${d.affected.length} ${d.affected.length === 1 ? "counterpart" : "counterparts"} affected; drafts below.`),
-      ...loops.map((l) => `• ${this.why(l)}`),
+      ...loops.map((l) => `• ${this.why(l, demoNow(this.c, now))}`),
       ...parked.map((l) => `• ${this.title(l)}: parked, ${l.chases} chases unanswered`),
       cards.length
         ? `\n${cards.length} to approve below${kept.length > cards.length ? `, ${kept.length - cards.length} more in Where I stand` : ""}.`

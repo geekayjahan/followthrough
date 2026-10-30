@@ -11,6 +11,7 @@ const data = () => ({
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_AGE_DAYS: "3",
   DEMO_SEND_DELAY_MINUTES: "0", VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
+  CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
 };
 test("T10: three approved sends with no counterpart touch park the loop; no draft after; one brief line; a touch reopens it", async () => {
   const s = new Store(":memory:"), d = new Domain(s, data());

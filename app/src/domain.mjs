@@ -59,16 +59,28 @@ export function cadence(loop, rules = DEFAULT_CADENCE) {
 export const PARK_AFTER = 3;
 // A loop the owner still owns: open, or parked (no drafts, but a reply still reaches it).
 export const live = (loop) => ["open", "parked"].includes(loop?.status);
+// Own clocks (spec Pinned: Cold): a receipt is cold 7 days after it arrives unbooked; a compliance date 30
+// days before it falls due; a stall day 3 days before with a document unsent, 2 days before with transport
+// unconfirmed, and uncashed from 21:00 on the day.
+export const CLOCKS = { receipt_days: 7, compliance_days: 30, stall_document_days: 3, stall_transport_days: 2 };
+export const unsentDocuments = (loop) => (loop.documents || []).filter((d) => d && d.sent === false).map((d) => d.name);
+export const daysUntil = (date, now) => dayNumber(`${date}T12:00:00Z`) - dayNumber(now);
 export function due(loop, now = new Date(), rules = DEFAULT_CADENCE) {
   if (loop.status !== "open") return false;
   if (loop.type === "invoice") return london(now).date > loop.invoice_due;
   if (loop.type === "lot_low") return true;
   if (loop.shortfall) return true;
-  if (loop.type === "stall")
+  if (loop.type === "receipt") return dayNumber(now) - dayNumber(loop.last_touch) >= CLOCKS.receipt_days;
+  if (loop.type === "compliance") return daysUntil(loop.due_date, now) <= CLOCKS.compliance_days;
+  if (loop.type === "stall") {
+    const until = daysUntil(loop.stall_date, now);
     return (
       london(now).date > loop.stall_date ||
-      (london(now).date === loop.stall_date && london(now).time >= "21:00")
+      (london(now).date === loop.stall_date && london(now).time >= "21:00") ||
+      (until >= 0 && until <= CLOCKS.stall_document_days && unsentDocuments(loop).length > 0) ||
+      (until >= 0 && until <= CLOCKS.stall_transport_days && loop.transport_confirmed === false)
     );
+  }
   return dayNumber(now) - dayNumber(loop.last_touch) >= cadence(loop, rules).days;
 }
 // Pinned: Stage. One sequence per counterpart type; the next move is the stage after the last completed one.
@@ -244,6 +256,9 @@ export class Domain {
     if (type === "lot_low") l.due_at = now;
     if (type === "stall")
       l.due_at = calendarDue(`${l.stall_date}T12:00:00Z`, 0, "21:00");
+    if (type === "receipt") l.due_at = calendarDue(now, CLOCKS.receipt_days);
+    if (type === "compliance" && l.due_date)
+      l.due_at = calendarDue(`${l.due_date}T12:00:00Z`, -CLOCKS.compliance_days);
     this.s.put("loops", l.id, l);
     this.s.audit("loop_open", {
       loop_id: l.id,

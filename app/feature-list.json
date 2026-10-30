@@ -676,6 +676,35 @@
       "local_evidence": [
         "checks/stock.reservations.test.mjs"
       ]
+    },
+    {
+      "id": "FT-26",
+      "name": "Own clocks: receipts, compliance dates, stall documents and transport",
+      "serves": [
+        "spec Pinned: Cold (receipt 7 days, compliance 30 days, stall 3 and 2 days)",
+        "spec §2 Stall (before the day)",
+        "workflows A8, I1, I9, F19, K10",
+        "eval E7",
+        "eval F22",
+        "eval W4"
+      ],
+      "in": [
+        "app/data/calendar.json: stall_days (date, market, status, cashed_up, documents[{name, sent}], transport_confirmed) and compliance[{id, what, due, done}]; CALENDAR_FILE overrides the path",
+        "Receipt loops opened by the receipt path or capture"
+      ],
+      "out": [
+        "engine.syncCalendar opens stall loops (cash-up due 21:00 London) and compliance loops, closes done ones, merges document state so a sent document stays sent",
+        "due(): receipt at 7 days unbooked, compliance 30 days before, stall 3 days before with a document unsent and 2 days before with transport unconfirmed",
+        "The brief names the unsent document or the transport and drafts to the organiser when the market is an org with a contact; sending that message marks the documents sent"
+      ],
+      "done-check": "A receipt 6 days old and a date 31 days out stay out of the brief and a receipt 7 days old and a date 30 days out are in it; a booked calendar stall day 3 days out opens a loop due 21:00, names the signed form with a draft to the organiser and not transport; the day after, transport is named.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/clocks.test.mjs",
+        "checks/fixtures/calendar-empty.json"
+      ],
+      "owner_ask": "Re-export calendar.json with documents and transport_confirmed per stall day and a compliance list; the current export has neither, so those clocks run only when the fields exist."
     }
   ],
   "required_external_proof": [

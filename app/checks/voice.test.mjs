@@ -11,7 +11,7 @@ const data = () => ({
   people: [{ id: "p", org: "c", name: "Alex", email: "a@example.test", whatsapp: null }],
   edges: [], invoices: [], lots: [], orders: [], stall_days: [],
 });
-const cfg = { SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://127.0.0.1:4310", DEMO_AGE_DAYS: "3" };
+const cfg = { SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://127.0.0.1:4310", DEMO_AGE_DAYS: "3", CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname };
 test("F17: without a signed-off voice file no customer draft is produced, the brief says so once, loops are still listed", async () => {
   const s = new Store(":memory:"), d = new Domain(s, data());
   let calls = 0;
