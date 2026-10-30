@@ -11,6 +11,7 @@ const data = () => ({
 });
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true",
+  DEMO_SEND_DELAY_MINUTES: "0",
   OWNER_TEST_EMAILS: "owner@example.test",
   WHATSAPP_TEST_NUMBERS: "+15555550002",
   WHATSAPP_OWNER_NUMBERS: "+15555550002",
@@ -57,13 +58,14 @@ test("edit in the owner's words revises the draft, rebinds a new card, and the o
   assert.equal(updated.payload.text, "Hi, price is 14 per kg.");
   assert.equal(replies.at(-1).action, a.id);
   assert.ok(replies.at(-1).text.includes("14 per kg"));
-  const newBinding = s.get("message_bindings", `W${replies.length}`);
+  const newCard = `W${replies.length}`, newBinding = s.get("message_bindings", newCard);
   assert.equal(newBinding.version, 2);
-  // Old card can no longer approve.
-  await assert.rejects(e.inbound(msg("m2", "yes send it", "card1")));
+  // Old card can no longer approve: logged blocked, nothing sent.
+  await e.inbound(msg("m2", "yes send it", "card1"));
+  assert.ok(s.events().some((x) => x.type === "blocked" && x.event_id === "m2"));
   assert.equal(sent.length, 0);
   // The new card can.
-  await e.inbound(msg("m3", "yes send it", `W${replies.length}`));
+  await e.inbound(msg("m3", "yes send it", newCard));
   assert.deepEqual(sent, ["Hi, price is 14 per kg."]);
 });
 test("a question is answered from loops, Books and stock, nothing sent", async () => {

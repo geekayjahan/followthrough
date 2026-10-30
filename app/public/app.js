@@ -109,6 +109,9 @@ function pendingActions() {
     ["pending", "draft", "awaiting_approval"].includes(action.status),
   );
 }
+function heldActions() {
+  return list(state.actions).filter((action) => action.status === "held");
+}
 function attentionActions() {
   return list(state.actions).filter((action) =>
     [
@@ -265,6 +268,13 @@ function renderActions() {
       return `<article class="action attention-action"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">${working ? "Outcome pending" : "Needs reconciliation"}</span></div><p class="outcome-warning">${working ? "This action has started. Its provider outcome is not yet confirmed." : "The external outcome is unconfirmed. Check the provider record or inbox and reconcile this action before any further write."} Refresh sources to check its current status.</p>${view.body}${action.error ? `<p class="small">${esc(action.error)}</p>` : ""}${technical(action)}</article>`;
     })
     .join("");
+  // Pinned: Held. An approved message waits here until send_at; Undo stops it.
+  const held = heldActions()
+    .map((action) => {
+      const view = actionPresentation(action);
+      return `<article class="action held-action" data-action="${esc(action.id)}"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag">Sends ${esc(date(action.send_at))}</span></div>${view.body}<div class="actions"><button class="secondary" data-command="undo">Undo, don't send</button></div></article>`;
+    })
+    .join("");
   const proposed = pending
     .map((action) => {
       const view = actionPresentation(action);
@@ -273,7 +283,7 @@ function renderActions() {
     .join("");
   installContent(
     "action-content",
-    flagged + proposed ||
+    flagged + held + proposed ||
       empty(
         "Nothing waiting on you.",
         "New proposed messages and Books entries will appear here for exact approval.",
@@ -579,7 +589,11 @@ if ($("login-form")) {
         notify(
           command === "drop"
             ? "Action dropped."
-            : `Approval request completed${outcome ? `: ${human(outcome)}` : ". Review activity for the provider outcome."}`,
+            : command === "undo"
+              ? "Undone. The message will not send."
+              : outcome === "held"
+                ? `Approved. It sends at ${date(result.send_at)}; Undo is available until then.`
+                : `Approval request completed${outcome ? `: ${human(outcome)}` : ". Review activity for the provider outcome."}`,
         );
       } catch (error) {
         action.status = "needs_reconciliation";

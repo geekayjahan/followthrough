@@ -244,7 +244,7 @@ export class Domain {
   }
   revoke(loop_id, reason) {
     for (const a of this.s.all("actions"))
-      if (a.loop_id === loop_id && a.status === "pending") {
+      if (a.loop_id === loop_id && ["pending", "held"].includes(a.status)) {
         a.status = "revoked";
         a.reason = reason;
         this.s.put("actions", a.id, a);

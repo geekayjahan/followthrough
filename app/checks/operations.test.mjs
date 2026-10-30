@@ -38,6 +38,7 @@ const fixture = () => ({
 });
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true",
+  DEMO_SEND_DELAY_MINUTES: "0",
   OWNER_TEST_EMAILS: "owner@example.test",
   WHATSAPP_TEST_NUMBERS: "+15555550001,+15555550002",
   WHATSAPP_OWNER_NUMBERS: "+15555550002",

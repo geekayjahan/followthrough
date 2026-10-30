@@ -18,6 +18,7 @@ import { Providers } from "../src/providers.mjs";
 const repo = fileURLToPath(new URL("../../", import.meta.url));
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true",
+  DEMO_SEND_DELAY_MINUTES: "0",
   APP_URL: "http://127.0.0.1:4310",
   OWNER_TEST_EMAILS: "owner@example.test",
   WHATSAPP_TEST_NUMBERS: "+15555550001,+15555550002",

@@ -248,14 +248,88 @@ export class Engine {
     }
     if (a.kind === "sale") this.validateSale(a.payload);
   }
+  // Pinned: Held. Minutes between approval and send; DEMO_SEND_DELAY_MINUTES=0 removes the hold and is logged on every send.
+  sendDelay() {
+    const n = Number(this.c.DEMO_SEND_DELAY_MINUTES);
+    return Number.isFinite(n) && n >= 0 ? n : 60;
+  }
   async approve(id, input, source = "owner UI") {
-    let a = this.validateAction(id, input);
+    const a = this.validateAction(id, input);
     await this.preflight(a);
-    a = this.s.tx(() => {
+    if (a.kind === "message") return this.hold(id, input, source);
+    return this.execute(id, input, source);
+  }
+  // A customer message is held, not sent: the owner can undo it until send_at.
+  hold(id, input, source) {
+    const delay = this.sendDelay();
+    const a = this.s.tx(() => {
       const current = this.validateAction(id, input);
+      current.status = "held";
+      current.approved_at = new Date().toISOString();
+      current.approval_source = source;
+      current.send_at = new Date(Date.parse(current.approved_at) + delay * 60000).toISOString();
+      this.s.put("actions", id, current);
+      return current;
+    });
+    this.s.audit("approve", { action_id: id, loop_id: a.loop_id, hash: a.hash, version: a.version, source });
+    this.s.audit("held", { action_id: id, loop_id: a.loop_id, send_at: a.send_at, demo_delay: delay });
+    return delay === 0 ? this.release(id) : a;
+  }
+  // Undo during the hold: the message never sends and the loop is untouched.
+  undo(id, input = null, source = "owner UI") {
+    const a = this.s.get("actions", id);
+    if (!a || a.status !== "held") throw Error("Action is not held; nothing to undo");
+    if (input && (a.version !== input.version || a.hash !== input.hash)) throw Error("Action changed; refresh before undoing");
+    a.status = "undone";
+    a.undone_at = new Date().toISOString();
+    this.s.put("actions", id, a);
+    this.s.audit("undone", { action_id: id, loop_id: a.loop_id, source });
+    return a;
+  }
+  // Send every held message whose hold has passed. Called by the tick.
+  async releaseDue(now = new Date()) {
+    const due = this.s.all("actions").filter((a) => a.status === "held" && Date.parse(a.send_at) <= now.getTime());
+    const sent = [];
+    for (const a of due) {
+      try {
+        sent.push(await this.release(a.id));
+      } catch {}
+    }
+    return sent;
+  }
+  async release(id) {
+    const a = this.s.get("actions", id);
+    if (!a || a.status !== "held") return a;
+    const loop = a.loop_id ? this.s.get("loops", a.loop_id) : null;
+    const stale =
+      (a.payload.org_id && (this.d.blocked(a.payload.org_id) || this.s.get("reply_holds", a.payload.org_id))) ||
+      (loop && loop.status !== "open");
+    if (stale) {
+      a.status = "revoked";
+      a.reason = "loop changed during the hold";
+      this.s.put("actions", id, a);
+      this.s.audit("revoked", { action_id: id, loop_id: a.loop_id, reason: a.reason });
+      return a;
+    }
+    try {
+      await this.preflight(a);
+    } catch (error) {
+      a.status = "revoked";
+      a.reason = safeError(error);
+      this.s.put("actions", id, a);
+      this.s.audit("revoked", { action_id: id, loop_id: a.loop_id, reason: a.reason });
+      throw error;
+    }
+    return this.execute(id, { version: a.version, hash: a.hash }, a.approval_source, "held");
+  }
+  async execute(id, input, source = "owner UI", from = "pending") {
+    const held = from === "held";
+    let a = this.s.tx(() => {
+      const current = held ? this.s.get("actions", id) : this.validateAction(id, input);
+      if (held && (!current || current.status !== "held" || current.hash !== input.hash)) throw Error("Action changed, already handled, or no longer available");
       if (current.kind === "sale") this.validateSale(current.payload);
       current.status = "executing";
-      current.approved_at = new Date().toISOString();
+      current.approved_at = current.approved_at || new Date().toISOString();
       current.approval_source = source;
       this.s.put("actions", id, current);
       this.s.put("intents", id, {
@@ -266,13 +340,14 @@ export class Engine {
       });
       return current;
     });
-    this.s.audit("approve", {
-      action_id: id,
-      loop_id: a.loop_id,
-      hash: a.hash,
-      version: a.version,
-      source,
-    });
+    if (!held)
+      this.s.audit("approve", {
+        action_id: id,
+        loop_id: a.loop_id,
+        hash: a.hash,
+        version: a.version,
+        source,
+      });
     try {
       let receipt;
       if (a.kind === "message")
@@ -319,6 +394,7 @@ export class Engine {
           kind: a.kind,
           provider_id: receipt.id,
           recipient: receipt.to,
+          ...(a.kind === "message" ? { demo_delay: this.sendDelay(), send_at: a.send_at || null } : {}),
         },
       );
       if (a.kind === "sale")

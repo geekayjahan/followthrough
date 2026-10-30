@@ -87,6 +87,7 @@ export function installIntake(e) {
     if (binding?.action_id) {
       if (affirmative(text)) return { intent: "approve", confidence: 1 };
       if (/^drop[.!\s]*$/i.test(text)) return { intent: "drop", confidence: 1 };
+      if (/^undo[.!\s]*$/i.test(text)) return { intent: "undo", confidence: 1 };
       if (/^edit:\s*\S/i.test(text))
         return {
           intent: "edit",
@@ -105,12 +106,14 @@ export function installIntake(e) {
   e.intent = async (text, binding) => {
     if (affirmative(text) && binding?.action_id)
       return { intent: "approve", confidence: 1, source: "exact yes" };
+    if (/^undo(\s+(it|that|this))?[.!\s]*$/i.test(text) && binding?.action_id)
+      return { intent: "undo", confidence: 1, source: "exact undo" };
     if (typeof e.p.model !== "function") return e.routeByKeyword(text, binding);
     const quoted = binding?.action_id && e.s.get("actions", binding.action_id);
     let r;
     try {
       r = await e.p.model(
-        'Classify a message from a small-business owner to their back-office assistant. JSON {intent:"approve"|"drop"|"edit"|"cashup"|"receipt"|"ask"|"capture"|"other",edited_text:string|null,question:string|null,confidence:number}. capture: the owner reports things that happened or need doing (an order, a stall note, a receipt alongside other items, a chase reminder, a new lead, a message forwarded from a customer), one or several in one message. approve: the owner clearly agrees to send or record the quoted action as it stands. drop: they want it dropped. edit: they want the quoted message changed; put the complete revised message in edited_text, keeping every fact they did not change. cashup: they report stall sales (bags, lot, cash). receipt: they report a purchase or expense. ask: they ask a question about their business. other: anything else, including a no or an unclear reply. confidence is 0 to 1.',
+        'Classify a message from a small-business owner to their back-office assistant. JSON {intent:"approve"|"drop"|"edit"|"undo"|"cashup"|"receipt"|"ask"|"capture"|"other",edited_text:string|null,question:string|null,confidence:number}. undo: they want the message they just approved held back. capture: the owner reports things that happened or need doing (an order, a stall note, a receipt alongside other items, a chase reminder, a new lead, a message forwarded from a customer), one or several in one message. approve: the owner clearly agrees to send or record the quoted action as it stands. drop: they want it dropped. edit: they want the quoted message changed; put the complete revised message in edited_text, keeping every fact they did not change. cashup: they report stall sales (bags, lot, cash). receipt: they report a purchase or expense. ask: they ask a question about their business. other: anything else, including a no or an unclear reply. confidence is 0 to 1.',
         {
           message: text,
           quoted_action: quoted
@@ -128,7 +131,7 @@ export function installIntake(e) {
     } catch {
       return e.routeByKeyword(text, binding);
     }
-    const intents = ["approve", "drop", "edit", "cashup", "receipt", "ask", "capture", "other"];
+    const intents = ["approve", "drop", "edit", "undo", "cashup", "receipt", "ask", "capture", "other"];
     if (!intents.includes(r.intent)) return { intent: "other", confidence: 0 };
     return {
       intent: r.intent,
@@ -290,13 +293,33 @@ export function installIntake(e) {
           ask: "I read that as not quite a yes. Reply yes to send it as written, or tell me what to change.",
         });
       }
-      const a = await e.approve(binding.action_id, binding, "owner WhatsApp reply");
+      let a;
+      try {
+        a = await e.approve(binding.action_id, binding, "owner WhatsApp reply");
+      } catch (error) {
+        // A card that was undone, edited, revoked or already sent can no longer approve (F16, T7, T7b).
+        if (!/Action changed|Loop is closed|suppressed|held until/.test(error.message)) throw error;
+        e.s.audit("blocked", { event_id: id, action_id: binding.action_id, reason: "card_no_longer_approvable" });
+        return e.respond(from, { ask: "That card is no longer live (undone, changed or already handled). Open Where I stand for the current one." });
+      }
       return e.respond(from, {
         ask:
           a.kind === "message"
-            ? `Sent to ${a.receipt?.to || a.payload.to} by ${a.payload.channel}.`
+            ? a.status === "held"
+              ? `Held. It goes to ${a.payload.to} by ${a.payload.channel} at ${london(new Date(a.send_at)).time}; reply undo to stop it.`
+              : `Sent to ${a.receipt?.to || a.payload.to} by ${a.payload.channel}.`
             : `Recorded: ${a.kind}.`,
       });
+    }
+    if (classified.intent === "undo") {
+      if (!binding?.action_id) return needsCard();
+      try {
+        e.undo(binding.action_id, null, "owner WhatsApp reply");
+      } catch (error) {
+        e.s.audit("blocked", { event_id: id, action_id: binding.action_id, reason: "undo_not_held" });
+        return e.respond(from, { ask: "Nothing to undo on that card: it is not on hold." });
+      }
+      return e.respond(from, { ask: "Undone. It will not send." });
     }
     if (classified.intent === "drop") {
       if (!binding?.action_id) return needsCard();

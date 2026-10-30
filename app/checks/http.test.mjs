@@ -26,6 +26,7 @@ test("HTTP owner guard, same-origin login, CSRF, exact approval, replay and fres
       APP_URL: "http://127.0.0.1",
       OWNER_TEST_EMAILS: "owner@example.test",
       SYNTHETIC_DATA_APPROVED: "true",
+      DEMO_SEND_DELAY_MINUTES: "0",
     };
   let sends = 0;
   const p = {
