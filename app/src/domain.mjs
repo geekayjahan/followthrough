@@ -213,7 +213,8 @@ export class Domain {
     this.s.put("loops", l.id, l);
     this.s.audit("loop_open", {
       loop_id: l.id,
-      type,
+      loop_type: type,
+      org_id,
       source: extra.source || "synthetic",
     });
     return l;
@@ -260,6 +261,23 @@ export class Domain {
     this.s.put("loops", id, l);
     this.revoke(id, "new touch");
     this.s.audit("touch", { loop_id: id, source });
+  }
+  // The thread on a loop: the last messages either way, read by drafts and capture.
+  appendThread(loop_id, message) {
+    const t = this.s.get("threads", loop_id) || { loop_id, messages: [] };
+    t.messages.push({ at: new Date().toISOString(), ...message });
+    t.messages = t.messages.slice(-10);
+    this.s.put("threads", loop_id, t);
+    return t;
+  }
+  thread(loop_id, limit = 3) {
+    return (this.s.get("threads", loop_id)?.messages || []).slice(-limit);
+  }
+  // The key intake() would give this item, so capture can tell a duplicate before opening anything.
+  loopKey(record, source, event_id) {
+    return record.reference
+      ? `business:${record.org_id}:${record.reference}`
+      : `${source}:${record.org_id}:${event_id}`;
   }
   // Pinned: Stage. Complete the loop's current stage (or a named one) and move to the next.
   complete(id, stage = null, source = "owner") {
@@ -340,9 +358,7 @@ export class Domain {
     if (!types.includes(record.type) || !this.s.get("orgs", record.org_id))
       throw Error("Invalid classified loop");
     if (this.blocked(record.org_id)) return null;
-    const key = record.reference
-      ? `business:${record.org_id}:${record.reference}`
-      : `${source}:${record.org_id}:${event_id}`;
+    const key = this.loopKey(record, source, event_id);
     const existing = this.s.all("loops").find((loop) => loop.key === key);
     if (existing && existing.status === "open") {
       if (
