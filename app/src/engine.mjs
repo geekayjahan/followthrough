@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { hash } from "./store.mjs";
 import { connected, recipient, list, safeError, ROOT } from "./config.mjs";
 import { london, warmPath, affirmative, demoNow, nextStage } from "./domain.mjs";
+import { loadTerms, checkDraft } from "./terms.mjs";
 // Pinned: Voice file. Signed off when the first line reads "signed-off: <date> <name>".
 export function readVoiceFile(path) {
   if (!path || !existsSync(path)) return { ok: false, reason: "voice file missing", text: "" };
@@ -19,6 +20,10 @@ export class Engine {
     this.p = providers;
     this.c = c;
     this.voicePath = c.VOICE_FILE || resolve(ROOT, "data/voice.md");
+    this.termsPath = c.TERMS_FILE || resolve(ROOT, "data/terms.md");
+  }
+  terms() {
+    return loadTerms(this.termsPath);
   }
   voice() {
     return readVoiceFile(this.voicePath);
@@ -82,6 +87,15 @@ export class Engine {
         !r.text.includes(String(loop.amount)))
     )
       throw Error("Model invoice draft omitted invoice number or amount");
+    // Pinned: Price list, Offer ladder. A placeholder, an off-list price or a forbidden offer never reaches a card.
+    const blocked = checkDraft(r.text, this.terms());
+    if (blocked) {
+      this.s.audit("draft_blocked", { loop_id: loop.id, reason: blocked.reason, detail: blocked.detail });
+      this.s.audit("ask", { loop_id: loop.id, reason: "draft_blocked", ask: `${org.name}: ${blocked.detail}. Tell me the number or the line to use.` });
+      this.s.put("draft_holds", loop.id, { loop_id: loop.id, reason: blocked.reason, detail: blocked.detail, at: new Date().toISOString() });
+      return null;
+    }
+    this.s.del("draft_holds", loop.id);
     const channel =
         loop.channel === "whatsapp" || person.preferred_channel === "whatsapp"
           ? "whatsapp"
@@ -441,6 +455,8 @@ export class Engine {
         warnings.push(`${this.why(loop)}: no draft (${safeError(error)})`);
       }
       if (action) actions.push(action);
+      else if (this.s.get("draft_holds", loop.id))
+        warnings.push(`${this.why(loop)}: draft held, ${this.s.get("draft_holds", loop.id).detail}. Tell me the number or the line to use.`);
       if (action && loop.type === "lead" && this.introduction) {
         const intro = await this.introduction(loop);
         if (intro) actions.push(intro);
