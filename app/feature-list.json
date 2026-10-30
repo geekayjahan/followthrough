@@ -466,6 +466,31 @@
       "local_evidence": [
         "checks/terms.test.mjs"
       ]
+    },
+    {
+      "id": "FT-18",
+      "name": "Coffee alias on every email to a coffee counterpart",
+      "serves": [
+        "spec §2 Chase (coffee alias)",
+        "spec Pinned: Coffee alias",
+        "workflow K12",
+        "eval F21"
+      ],
+      "in": [
+        "MAIL_FROM_COFFEE and ZOHO_MAIL_FROM in app/.env",
+        "The counterpart's type (roaster, café, stockist, supplier)"
+      ],
+      "out": [
+        "Draft payload carries from = coffee alias and coffee: true for coffee counterparts, with an alias_fixed line when it differs from the default",
+        "providers.email sends from that address and fixes a stray payload again at send, logged",
+        "MAIL_FROM_COFFEE joins the required keys the doctor reports"
+      ],
+      "done-check": "A roaster draft carries the coffee alias and one alias_fixed line; a market organiser draft keeps the default; the Zoho Mail body shows the alias as fromAddress even when the payload named another address.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/alias.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

@@ -13,6 +13,8 @@ export function readVoiceFile(path) {
   if (!m) return { ok: false, reason: "voice file needs a signed-off first line", text: "" };
   return { ok: true, signed_off: { date: m[1], by: m[2].trim() }, text };
 }
+// A coffee counterpart: a roaster, café, stockist or supplier (market organisers are not).
+export const isCoffee = (org) => ["roaster", "cafe", "stockist", "supplier"].includes(org?.type) || org?.coffee === true;
 export class Engine {
   constructor(store, domain, providers, c) {
     this.s = store;
@@ -24,6 +26,16 @@ export class Engine {
   }
   terms() {
     return loadTerms(this.termsPath);
+  }
+  // The From address for an email: the coffee alias for coffee counterparts, logged when it differs from the default.
+  mailFrom(coffee, loop_id) {
+    const base = this.c.ZOHO_MAIL_FROM || null;
+    const alias = this.c.MAIL_FROM_COFFEE || null;
+    if (coffee && alias && alias !== base) {
+      this.s.audit("alias_fixed", { loop_id, from: base, to: alias, reason: "coffee counterpart" });
+      return alias;
+    }
+    return base;
   }
   voice() {
     return readVoiceFile(this.voicePath);
@@ -111,11 +123,15 @@ export class Engine {
         this.c.WHATSAPP_FOLLOWUP_TEMPLATE,
         r.text,
       );
+    // Pinned: Coffee alias. Email to a coffee counterpart always leaves from MAIL_FROM_COFFEE.
+    const coffee = isCoffee(org);
+    const from = channel === "email" ? this.mailFrom(coffee, loop.id) : null;
     return this.s.action(
       "message",
       {
         channel,
         to,
+        ...(from ? { from, coffee } : {}),
         text: template?.text || r.text,
         template,
         subject: `${r.subject} [FT:${loop.id}]`,
