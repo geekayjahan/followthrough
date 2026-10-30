@@ -647,6 +647,35 @@
       "local_evidence": [
         "checks/parked.test.mjs"
       ]
+    },
+    {
+      "id": "FT-25",
+      "name": "Reservations never beyond free kg; supplier shortfall reaches every affected counterpart",
+      "serves": [
+        "spec §2 Stock",
+        "spec Pinned: Cold (over-reserved)",
+        "workflows C2, C6, C14, C15, F3",
+        "eval F18",
+        "eval F19",
+        "eval W11"
+      ],
+      "in": [
+        "Order items from capture with kg and lot",
+        "A counterpart accepting a quote (classifyIntake order_unconfirmed with kg, lot_id, delivery)",
+        "A supplier balance email (classifyIntake supplier_balance with balances per lot)"
+      ],
+      "out": [
+        "domain.reserve, reservedKg, freeKg: reserve line, or allocation_conflict naming the lot with other lots and a pre-book proposed in the reply",
+        "domain.supplierDiff: supplier_kg on the lot, supplier_diff line with the shortfall and each affected loop, affected loops made due with their chase revoked",
+        "Brief line naming the lot, the shortfall and how many counterparts; one draft per affected counterpart carrying the shortfall facts",
+        "An ask for delivery date or address when the acceptance gave none"
+      ],
+      "done-check": "With 70 kg left and 70 reserved a second 70 kg bag is refused, logged as a conflict, and the reply names Plantation A's free kg or a pre-book; 40 kg at the supplier against 55 reserved logs a 15 kg diff and the next brief drafts to both roasters with nothing sent; a lead's go-ahead reserves 20 kg on lot 2 and asks for delivery details.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/stock.reservations.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

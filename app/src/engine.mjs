@@ -103,7 +103,7 @@ export class Engine {
       "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. Name the shared connection when supplied. Never name another buyer or roaster.",
       {
         voice_file: voice.text,
-        loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases },
+        loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, reserved_kg: loop.reserved_kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases, supplier_shortfall: loop.shortfall || null },
         organization: org.name,
         counterpart_name: person.name || null,
         thread,
@@ -521,6 +521,10 @@ export class Engine {
     if (loop.type === "lot_low") return loop.next_move;
     if (loop.type === "stall")
       return `Stall day ${loop.stall_date}: not cashed up`;
+    if (loop.shortfall)
+      return `${name}: ${loop.reserved_kg} kg of ${loop.shortfall.lot} reserved, supplier has ${loop.shortfall.supplier_kg} kg against ${loop.shortfall.reserved_kg} reserved (${loop.shortfall.shortfall_kg} kg short)`;
+    if (loop.type.startsWith("order") && loop.reserved_kg)
+      return `${name}: ${loop.type.replace(/_/g, " ")}, ${loop.reserved_kg} kg of ${this.s.get("lots", loop.lot_id)?.name || "a lot"} reserved, no touch since ${since}`;
     if (loop.type === "lead") {
       const path = warmPath(loop.org_id, this.d.orgs(), this.d.data.edges);
       const via =
@@ -645,6 +649,8 @@ export class Engine {
                 : l.type.replace(/_/g, " ");
       counts.set(label, (counts.get(label) || 0) + 1);
     }
+    // Workflow C15: the brief names the lot, the shortfall and how many counterparts are affected.
+    const shortfalls = this.s.all("shortfalls").filter((d) => d.affected.some((a) => this.s.get("loops", a.loop_id)?.shortfall));
     const line = loops.length
       ? `${loops.length} need you: ${[...counts]
           .map(([k, n]) => `${n} ${n === 1 ? k : k.replace(/lead$|invoice$|lot$|order$|quote$/, "$&s")}`)
@@ -654,6 +660,7 @@ export class Engine {
     const text = [
       `Followthrough ${label}`,
       line,
+      ...shortfalls.map((d) => `${d.lot} is ${d.shortfall_kg} kg short of what you've promised (${d.supplier_kg} kg at the supplier, ${d.reserved_kg} reserved). ${d.affected.length} ${d.affected.length === 1 ? "counterpart" : "counterparts"} affected; drafts below.`),
       ...loops.map((l) => `• ${this.why(l)}`),
       ...parked.map((l) => `• ${this.title(l)}: parked, ${l.chases} chases unanswered`),
       cards.length

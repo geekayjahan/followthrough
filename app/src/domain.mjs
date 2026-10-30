@@ -63,6 +63,7 @@ export function due(loop, now = new Date(), rules = DEFAULT_CADENCE) {
   if (loop.status !== "open") return false;
   if (loop.type === "invoice") return london(now).date > loop.invoice_due;
   if (loop.type === "lot_low") return true;
+  if (loop.shortfall) return true;
   if (loop.type === "stall")
     return (
       london(now).date > loop.stall_date ||
@@ -307,6 +308,66 @@ export class Domain {
     this.revoke(id, "new touch");
     this.s.audit("touch", { loop_id: id, source, ...(reopened ? { reopened: true } : {}) });
     if (parked) this.s.audit("parked", { loop_id: id, chases: l.chases });
+  }
+  // Stock words (spec §2 Stock, workflows C2, C6, C14): reserved kg sits on live order loops; free kg is what
+  // is left after them, capped by the supplier's last stated balance when one is known.
+  reservedKg(lot_id, except = null) {
+    return this.s
+      .all("loops")
+      .filter((l) => live(l) && l.lot_id === lot_id && l.id !== except && Number(l.reserved_kg) > 0)
+      .reduce((n, l) => n + Number(l.reserved_kg), 0);
+  }
+  freeKg(lot_id, except = null) {
+    const lot = this.s.get("lots", lot_id);
+    if (!lot) return 0;
+    const available = Number.isFinite(Number(lot.supplier_kg)) ? Math.min(Number(lot.left_kg), Number(lot.supplier_kg)) : Number(lot.left_kg);
+    return Math.round((available - this.reservedKg(lot_id, except)) * 1000) / 1000;
+  }
+  // Reserve kg on a lot for an order loop, never beyond free kg; a conflict proposes another lot or a pre-book.
+  reserve(loop_id, lot_id, kg) {
+    const l = this.s.get("loops", loop_id), lot = this.s.get("lots", lot_id);
+    if (!l || !lot) throw Error("Unknown loop or lot for reservation");
+    if (!Number.isFinite(kg) || kg <= 0) throw Error("Invalid reservation quantity");
+    const free = this.freeKg(lot_id, loop_id);
+    if (kg > free) {
+      const alternatives = this.s.all("lots").filter((x) => x.id !== lot_id && this.freeKg(x.id) >= kg).map((x) => ({ id: x.id, name: x.name, free_kg: this.freeKg(x.id) }));
+      this.s.audit("allocation_conflict", { loop_id, org_id: l.org_id, lot_id, lot: lot.name, requested_kg: kg, free_kg: free, alternatives: alternatives.map((a) => a.id) });
+      return { ok: false, lot, free_kg: free, alternatives, pre_book: true };
+    }
+    l.lot_id = lot_id;
+    l.kg = kg;
+    l.reserved_kg = kg;
+    this.s.put("loops", loop_id, l);
+    this.s.audit("reserve", { loop_id, org_id: l.org_id, lot_id, lot: lot.name, kg, free_kg_after: this.freeKg(lot_id) });
+    return { ok: true, lot, kg, free_kg: this.freeKg(lot_id) };
+  }
+  // A supplier's balance email: for every lot it lists less of than is reserved, name the shortfall and
+  // each counterpart reserved on it (workflow C15). Affected order loops become due for a draft.
+  supplierDiff(balances, event_id, source = "email") {
+    const diffs = [];
+    for (const b of balances || []) {
+      const lot = this.s.get("lots", b.lot_id);
+      if (!lot || !Number.isFinite(Number(b.kg))) continue;
+      lot.supplier_kg = Number(b.kg);
+      lot.supplier_kg_at = new Date().toISOString();
+      this.s.put("lots", lot.id, lot);
+      const reserved = this.reservedKg(lot.id);
+      if (reserved <= lot.supplier_kg) continue;
+      const affected = this.s.all("loops").filter((l) => live(l) && l.lot_id === lot.id && Number(l.reserved_kg) > 0);
+      const shortfall = Math.round((reserved - lot.supplier_kg) * 1000) / 1000;
+      for (const l of affected) {
+        l.shortfall = { lot_id: lot.id, lot: lot.name, supplier_kg: lot.supplier_kg, reserved_kg: reserved, shortfall_kg: shortfall, event_id };
+        l.due_at = new Date().toISOString();
+        l.next_move = `Tell ${this.s.get("orgs", l.org_id)?.name || "the counterpart"} ${lot.name} is ${shortfall} kg short`;
+        this.s.put("loops", l.id, l);
+        this.revoke(l.id, "supplier balance changed");
+      }
+      const diff = { lot_id: lot.id, lot: lot.name, supplier_kg: lot.supplier_kg, reserved_kg: reserved, shortfall_kg: shortfall, affected: affected.map((l) => ({ loop_id: l.id, org_id: l.org_id, kg: l.reserved_kg })), event_id, at: new Date().toISOString() };
+      this.s.put("shortfalls", lot.id, diff);
+      this.s.audit("supplier_diff", { ...diff, source });
+      diffs.push(diff);
+    }
+    return diffs;
   }
   // The thread on a loop: the last messages either way, read by drafts and capture.
   appendThread(loop_id, message) {
