@@ -199,7 +199,9 @@ export function createApplication({
             owed: null,
             updated_at: null,
           },
-          loops: s.all("loops").map((l) => ({ ...l, due_today: due(l, demoNow(c)) })),
+          loops: s.all("loops").map((l) => ({ ...l, due_today: due(l, demoNow(c)), title: e.title(l), why: e.why(l) })),
+          people: data.people.map((p) => ({ id: p.id, org: p.org, name: p.name || null })),
+          leaked: e.leaked(demoNow(c)),
           actions: s.all("actions").map((action) => {
             if (action.kind !== "message") return action;
             let effective_recipient = null;

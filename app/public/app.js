@@ -124,45 +124,57 @@ function attentionActions() {
     ].includes(action.status),
   );
 }
+function personName(orgId) {
+  return list(state.people).find((p) => String(p.org) === String(orgId))?.name || null;
+}
+// Owner copy: who it goes to and where it really lands in test mode (build review §3, item 1).
 function actionPresentation(action) {
   const p = action.payload || {},
     loop = list(state.loops).find((l) => l.id === action.loop_id),
     lot = list(state.lots).find((l) => l.id === p.lot_id);
   const row = (label, value) =>
     `<div><dt>${esc(label)}</dt><dd>${esc(value ?? "Not supplied")}</dd></div>`;
-  const channel =
-    p.channel === "email"
-      ? "Email via Zoho Mail"
-      : p.channel === "whatsapp"
-        ? "WhatsApp"
-        : p.channel || p.provider || "Not supplied";
-  if (action.kind === "message")
+  const channel = p.channel === "email" ? "email" : p.channel === "whatsapp" ? "WhatsApp" : p.channel || p.provider || "its channel";
+  if (action.kind === "message") {
+    const who = personName(p.org_id), org = orgName(p.org_id || loop?.org_id);
+    const redirected = action.effective_recipient && action.effective_recipient !== p.to;
     return {
       title: "Send follow-up",
       button: "Approve and send",
-      body: `<dl class="action-facts">${row("Intended contact", p.to)}${row("Delivery target", action.effective_recipient || "Not resolved; check recipient configuration")}${row("Channel", channel)}${p.subject ? row("Subject", p.subject) : ""}</dl>${p.channel === "email" ? `<p class="small">Configured safe owner emails: ${esc(list(state.setup?.testEmails).join(", ") || "None configured")}</p>` : ""}<div class="draft">${esc(messageText(action))}</div>`,
+      target: `To ${who ? `${who} at ${org}` : org} by ${channel}${redirected ? ` · test mode, lands in ${action.effective_recipient}` : ""}`,
+      summary: p.subject || "",
+      body: `${p.subject ? `<p class="small">Subject: ${esc(p.subject)}</p>` : ""}<div class="draft">${esc(messageText(action))}</div>`,
     };
+  }
   if (action.kind === "expense")
     return {
       title: "Record an expense",
       button: "Approve expense",
+      target: `${p.supplier || "Receipt"}, ${money(p.amount, p.currency || "GBP")}, into Books`,
+      summary: p.description || "",
       body: `<dl class="action-facts">${row("Supplier", p.supplier)}${row("Date", p.date)}${row("Amount", money(p.amount, p.currency || "GBP"))}${row("Description", p.description || "Receipt")}${row("Record in", "Zoho Books expenses")}</dl>`,
     };
   if (action.kind === "sale")
     return {
       title: "Record a stall sale",
       button: "Approve sale",
+      target: `${p.count ?? ""} bags of ${lot?.name || p.lot_id}, ${money(p.amount, p.currency || "GBP")} cash, into Books`,
+      summary: "",
       body: `<dl class="action-facts">${row("Date", p.date)}${row("Quantity", p.count !== undefined ? `${p.count} bags` : p.quantity)}${row("Coffee lot", lot?.name || p.lot_id)}${row("Stock change", p.kg !== undefined ? `−${p.kg} kg` : null)}${row("Sale total", money(p.amount, p.currency || "GBP"))}${row("Record in", "Zoho Books · cash sale")}</dl>`,
     };
   if (action.kind === "shipment")
     return {
       title: "Confirm an order shipped",
       button: "Confirm shipment",
+      target: `Mark the ${orgName(p.org_id || loop?.org_id)} order as shipped`,
+      summary: p.description || "",
       body: `<dl class="action-facts">${row("Customer", orgName(p.org_id || loop?.org_id))}${row("Order", p.order_id || loop?.order_id)}${p.lot_id ? row("Coffee lot", lot?.name || p.lot_id) : ""}${p.kg !== undefined ? row("Quantity", `${p.kg} kg`) : ""}${row("Update", "Mark the order shipped and close this loop")}</dl>`,
     };
   return {
     title: human(action.kind),
     button: "Approve action",
+    target: p.description || human(action.kind),
+    summary: "",
     body: `<p class="action-target">${esc(p.description || "Review the full action details before approving.")}</p><dl class="action-facts">${row("Provider", p.provider || p.channel)}${row("Target", p.to || p.recipient || p.target)}</dl>`,
   };
 }
@@ -180,8 +192,8 @@ function render() {
   const missing = list(setup.missing);
   $("setup").innerHTML =
     !setup.approved || missing.length
-      ? `<div class="banner"><strong>Finish connecting your workspace</strong><p>${!setup.approved ? "The starter dataset still needs owner approval and account mapping. " : ""}${missing.length ? `${missing.length} configuration ${missing.length === 1 ? "value is" : "values are"} missing.` : ""}</p><details><summary>Connection details</summary><p>Configure these in app/.env, restart the server, then refresh. ${missing.map(esc).join(", ") || "Review the starter data and provider mappings before enabling connected operations."}</p><p>Scheduled briefs: ${setup.jobs ? "enabled" : "off"}. Background polling: ${setup.polling ? "enabled" : "off"}.</p></details></div>`
-      : `<div class="provenance">Scheduled briefs ${setup.jobs ? "enabled" : "off"} · Background polling ${setup.polling ? "enabled" : "off"}</div>`;
+      ? `<div class="banner"><strong>Nothing sends yet</strong><p>${!setup.approved ? "The sample data is waiting for your sign-off. " : ""}${missing.length ? "Some accounts are not connected, so drafts stay on this page." : ""}</p><details><summary>What is still to connect</summary><p>Add these to app/.env, restart, then refresh: ${missing.map(esc).join(", ") || "Review the sample data and account mappings, then approve them."}</p><p>Scheduled briefs: ${setup.jobs ? "on" : "off"}. Mail polling: ${setup.polling ? "on" : "off"}.</p></details></div>`
+      : `<div class="provenance">Scheduled briefs ${setup.jobs ? "on" : "off"} · Mail polling ${setup.polling ? "on" : "off"}</div>`;
   const provenance = state.provenance;
   $("provenance").textContent =
     typeof provenance === "string"
@@ -216,6 +228,11 @@ function render() {
     ? `${knownLots.length} lots · current loop-store inventory${knownLots.length !== lots.length ? " · some quantities unknown" : ""}`
     : "No inventory quantities available";
   $("approval-total").textContent = String(actions.length);
+  const leaked = state.leaked || {};
+  $("leaked-total").textContent = Number.isFinite(leaked.count) ? String(leaked.count) : "—";
+  $("leaked-source").textContent = Number.isFinite(leaked.count)
+    ? `${leaked.count === 1 ? "loop" : "loops"} that went cold twice in ${leaked.window_days} days · ${leaked.briefed || 0} briefed`
+    : "Computed from the action log";
   renderLoops();
   renderActions();
   renderGraph();
@@ -223,38 +240,55 @@ function render() {
   renderInventory();
   renderActivity();
 }
+function loopStatus(loop) {
+  if (loop.status === "parked") return { label: `Parked, ${loop.chases || 3} chases unanswered`, attention: false };
+  if (loop.due_today === true) return { label: "Needs you today", attention: true };
+  const days = Math.ceil((Date.parse(loop.due_at) - Date.now()) / 86400000);
+  if (!Number.isFinite(days)) return { label: human(loop.status), attention: false };
+  return { label: days <= 0 ? "Cold" : days === 1 ? "Cold tomorrow" : `Cold in ${days} days`, attention: days <= 0 };
+}
+function loopAction(loop) {
+  return list(state.actions).find((a) => a.loop_id === loop.id && ["pending", "held"].includes(a.status));
+}
+// One card per loop: who and why, then its draft with the buttons (build review §3, item 2).
+function loopCard(loop) {
+  const status = loopStatus(loop), action = loopAction(loop);
+  const stage = loop.stage ? `<span class="tag">${esc(loop.stage)}</span>` : "";
+  const head = `<div class="loop-head"><div><h3>${esc(loop.title || orgName(loop.org_id))}</h3><span class="tag ${status.attention ? "attention" : ""}">${esc(status.label)}</span> ${stage}</div><span class="small">${esc(human(loop.type))}</span></div><p class="why">${esc(loop.why || loop.next_move || "")}</p>`;
+  if (!action) return `<article class="loop-row" data-loop="${esc(loop.id)}">${head}<p class="small">${loop.type === "lead" && !list(state.qualifications).some((q) => String(q.org_id) === String(loop.org_id)) ? "Checking their shop before any draft." : "No draft waiting. The next brief will carry one if it goes cold."}</p></article>`;
+  return `<article class="loop-row has-action" data-loop="${esc(loop.id)}" data-action="${esc(action.id)}">${head}${actionBody(action)}</article>`;
+}
+function actionBody(action) {
+  const view = actionPresentation(action);
+  if (action.status === "held")
+    return `<p class="action-target">${esc(view.target)} · sends ${esc(date(action.send_at))}</p><div class="draft">${esc(messageText(action) || view.summary)}</div><div class="actions"><button class="secondary" data-command="undo">Undo, don't send</button></div>`;
+  return `<p class="action-target">${esc(view.target)}</p>${view.body}<div class="edit-slot"></div><div class="actions"><button data-command="approve">${esc(view.button)}</button>${action.kind === "message" ? '<button class="secondary" data-command="edit">Edit message</button>' : ""}<button class="quiet danger" data-command="drop">Drop</button></div>`;
+}
 function renderLoops() {
   const loops = list(state.loops)
-    .filter(
-      (l) => !["closed", "done", "cancelled", "declined"].includes(l.status),
-    )
+    .filter((l) => !["closed", "done", "cancelled", "declined"].includes(l.status))
     .sort(
       (a, b) =>
         Number(b.due_today === true) - Number(a.due_today === true) ||
+        Number(Boolean(loopAction(b))) - Number(Boolean(loopAction(a))) ||
         (Date.parse(a.due_at) || Infinity) - (Date.parse(b.due_at) || Infinity),
     );
   $("loop-count").textContent = `${loops.length} open`;
-  $("due-count").textContent =
-    `${loops.filter((loop) => loop.due_today === true).length} due today · ${loops.length} open in total`;
+  $("due-count").textContent = `${loops.filter((loop) => loop.due_today === true).length} due today · ${loops.length} open in total`;
   $("nav-count").textContent = loops.length || "";
   installContent(
     "loop-content",
     loops.length
-      ? loops
-          .map(
-            (loop) =>
-              `<article class="loop-row"><div><h3>${esc(orgName(loop.org_id))}</h3><span class="tag">${esc(human(loop.type))}</span> <span class="small">${esc(human(loop.status))}</span>${loop.due_today === true ? ' <span class="tag attention">Due today</span>' : ""}</div><time class="date ${loop.due_today === true || Date.parse(loop.due_at) < Date.now() ? "overdue" : ""}">${loop.due_at ? `Due ${esc(date(loop.due_at))}` : "No due date"}</time><p>${esc(loop.next_move || "Next move has not been recorded.")}</p><p class="small">Last touch: ${esc(date(loop.last_touch))}</p></article>`,
-          )
-          .join("")
-      : empty(
-          "Room to breathe.",
-          "No open loops are recorded. Refresh sources to check for new activity.",
-        ),
+      ? loops.map(loopCard).join("")
+      : empty("Room to breathe.", "Nothing is open. Refresh sources to check for new activity."),
   );
 }
 function messageText(action) {
   const p = action.payload || {};
   return p.text ?? p.message ?? p.body ?? null;
+}
+function openLoop(action) {
+  return list(state.loops).some((l) => l.id === action.loop_id && !["closed", "done", "cancelled", "declined"].includes(l.status));
 }
 function renderActions() {
   const pending = pendingActions(),
@@ -268,25 +302,28 @@ function renderActions() {
       return `<article class="action attention-action"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">${working ? "Outcome pending" : "Needs reconciliation"}</span></div><p class="outcome-warning">${working ? "This action has started. Its provider outcome is not yet confirmed." : "The external outcome is unconfirmed. Check the provider record or inbox and reconcile this action before any further write."} Refresh sources to check its current status.</p>${view.body}${action.error ? `<p class="small">${esc(action.error)}</p>` : ""}${technical(action)}</article>`;
     })
     .join("");
-  // Pinned: Held. An approved message waits here until send_at; Undo stops it.
+  // Pinned: Held. An approved message with no open loop waits here until send_at; Undo stops it.
   const held = heldActions()
+    .filter((action) => !openLoop(action))
     .map((action) => {
       const view = actionPresentation(action);
-      return `<article class="action held-action" data-action="${esc(action.id)}"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag">Sends ${esc(date(action.send_at))}</span></div>${view.body}<div class="actions"><button class="secondary" data-command="undo">Undo, don't send</button></div></article>`;
+      return `<article class="action held-action" data-action="${esc(action.id)}"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag">Sends ${esc(date(action.send_at))}</span></div>${actionBody(action)}</article>`;
     })
     .join("");
+  // Loop-bound cards live on their loop above; this section carries the rest (introductions, receipts, sales).
   const proposed = pending
+    .filter((action) => !openLoop(action))
     .map((action) => {
       const view = actionPresentation(action);
-      return `<article class="action" data-action="${esc(action.id)}"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">Needs approval</span></div>${view.body}${technical(action)}<div class="edit-slot"></div><div class="actions"><button data-command="approve">${esc(view.button)}</button>${action.kind === "message" ? '<button class="secondary" data-command="edit">Edit message</button>' : ""}<button class="quiet danger" data-command="drop">Drop</button></div></article>`;
+      return `<article class="action" data-action="${esc(action.id)}"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">Needs approval</span></div>${actionBody(action)}${technical(action)}</article>`;
     })
     .join("");
   installContent(
     "action-content",
     flagged + held + proposed ||
       empty(
-        "Nothing waiting on you.",
-        "New proposed messages and Books entries will appear here for exact approval.",
+        "Nothing else waiting on you.",
+        "Drafts sit on their loop above. Introductions, receipts and stall sales appear here.",
       ),
   );
 }
@@ -364,8 +401,14 @@ function renderLead() {
   const fact = (label, value, source) =>
     `<div class="fact"><span class="small">${esc(label)}</span><strong>${esc(value ?? "Unknown")}</strong>${source?.quote ? `<blockquote>“${esc(source.quote)}”</blockquote>` : '<p class="small">No supporting quotation recorded.</p>'}${source?.url ? sourceLink(source.url, "View source") : ""}</div>`;
   const path = list(q?.path);
+  // Before qualification the panel stays collapsed to one line (build review §3, item 6).
+  if (!q) {
+    $("lead-content").innerHTML =
+      `<details class="lead-panel"><summary>${esc(org.name)}: not checked yet</summary><div class="lead-meta"><span class="tag">${esc(human(org.status))}</span>${org.website ? sourceLink(org.website, "Website") : ""}</div><p class="small">Their shop has not been read, so there is no tier, price or path to show.</p>${org.status === "lead" ? `<button class="secondary" data-qualify="${esc(org.id)}">Qualify this lead</button><p class="small">Reads the approved shop page and public profile once. Anything it cannot source stays unknown.</p>` : ""}</details>`;
+    return;
+  }
   $("lead-content").innerHTML =
-    `<details class="lead-panel" open><summary>${esc(org.name)} background</summary><div class="lead-meta"><span class="tag">${esc(human(org.status))}</span>${org.website ? sourceLink(org.website, "Website") : ""}<span class="small">${q ? "Qualification recorded" : "Not yet qualified"}</span></div><div class="facts">${fact("Shop price per 250g", q?.price === null || q?.price === undefined ? "Unknown" : money(q.price, "GBP") + " per 250g", sources.price)}${fact("Specialty tier", q?.tier, sources.tier || sources.price)}${fact("Sells Indian coffee", q?.sells_indian === true ? "Yes" : q?.sells_indian === false ? "No" : "Unknown", sources.sells_indian)}</div>${path.length ? `<p class="path"><strong>Warm path</strong><br>${path.map((p) => esc(typeof p === "string" ? orgName(p) : p.name || p.label || JSON.stringify(p))).join(" → ")}</p>` : '<p class="small">No sourced warm introduction path recorded.</p>'}<button class="secondary" data-qualify="${esc(org.id)}">${q ? "Refresh qualification" : "Qualify this lead"}</button><p class="small">Fetches the approved public sources and configured model. Missing access stays unknown.</p></details>`;
+    `<details class="lead-panel" open><summary>${esc(org.name)} background</summary><div class="lead-meta"><span class="tag">${esc(human(org.status))}</span>${org.website ? sourceLink(org.website, "Website") : ""}<span class="small">Checked ${esc(date(q.checked_at))}</span></div><div class="facts">${fact("Shop price per 250g", q?.price === null || q?.price === undefined ? "Unknown" : money(q.price, "GBP") + " per 250g", sources.price)}${fact("Specialty tier", q?.tier, sources.tier || sources.price)}${fact("Sells Indian coffee", q?.sells_indian === true ? "Yes" : q?.sells_indian === false ? "No" : "Unknown", sources.sells_indian)}</div>${path.length ? `<p class="path"><strong>Warm path</strong><br>${path.map((p) => esc(typeof p === "string" ? orgName(p) : p.name || p.label || JSON.stringify(p))).join(" → ")}</p>` : '<p class="small">No warm path into your network yet.</p>'}<button class="secondary" data-qualify="${esc(org.id)}">Check their shop again</button></details>`;
 }
 function renderInventory() {
   const lots = list(state.lots);

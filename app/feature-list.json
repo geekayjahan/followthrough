@@ -547,6 +547,36 @@
       "local_evidence": [
         "checks/brief.test.mjs"
       ]
+    },
+    {
+      "id": "FT-21",
+      "name": "Dashboard: owner copy, one card per loop, what leaked, undo",
+      "serves": [
+        "spec §2.2 Where I stand",
+        "spec §7 what leaked",
+        "workflow G10, L9",
+        "eval W14",
+        "eval F16",
+        "build review §3 items 1 to 7"
+      ],
+      "in": [
+        "/api/state: loops with title and why, people names, leaked, held actions"
+      ],
+      "out": [
+        "One card per loop: title (counterpart, lot or stall day), status (needs you today, cold in N days, parked), stage, why line, its draft with Approve, Edit, Drop or Undo",
+        "Owner copy: To <name> at <org> by email · test mode, lands in <test address>; setup banner reads Nothing sends yet",
+        "Lead panel collapsed to one line before qualification",
+        "What leaked tile from engine.leaked (loop_open, touch, brief lines)",
+        "Loop-less actions (introductions, receipts, sales) in their own section"
+      ],
+      "done-check": "engine.leaked counts a loop briefed, touched, briefed again as one leak and a loop briefed twice with no touch as none; a headless run of the fixture shows the cards, the tile, hold then undo with no send, and no overflow at 390 and 320 px with zero browser errors.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/dashboard.test.mjs",
+        "checks/serve-ui-fixture.mjs",
+        "checks/browser-smoke.mjs"
+      ]
     }
   ],
   "required_external_proof": [
