@@ -1,0 +1,307 @@
+{
+  "provenance": "Proposed seed specification for a fresh, dedicated synthetic Zoho Books test organisation (Kāma Coffee (Test)). Contains no real Zoho IDs or customer data. Do NOT apply to any production Zoho organisation.",
+  "reference_clock": {
+    "iso_utc": "2026-10-29T18:00:00Z",
+    "timezone": "Europe/London",
+    "local_wall_time": "2026-10-29 18:00 (GMT, UTC+0)"
+  },
+  "organization_profile": {
+    "display_name": "Kāma Coffee (Test)",
+    "base_currency": "GBP",
+    "time_zone": "Europe/London",
+    "fiscal_year_start_month": "April",
+    "env_var_target": "ZOHO_BOOKS_ORG_ID"
+  },
+  "accounts": [
+    {
+      "logical_id": "acct-cash-main",
+      "name": "Followthrough Synthetic Cash & Takings (GBP)",
+      "account_type": "cash",
+      "currency": "GBP",
+      "env_var_target": "CASH_ACCOUNT_ID",
+      "opening_balance_gbp": 2500,
+      "opening_balance_date": "2026-10-01",
+      "notes": "Read via GET /books/v3/bankaccounts/{CASH_ACCOUNT_ID} for Where I stand cash total."
+    },
+    {
+      "logical_id": "acct-expense-supplies",
+      "name": "Packaging & Roastery Consumables (Synthetic)",
+      "account_type": "expense",
+      "currency": "GBP",
+      "env_var_target": "EXPENSE_ACCOUNT_ID",
+      "notes": "Target account_id for POST /books/v3/expenses upon receipt approval."
+    }
+  ],
+  "contacts": [
+    {
+      "logical_id": "books-contact-org-1",
+      "maps_to_synthetic_org": "org-1",
+      "contact_name": "Harbour Roasters",
+      "contact_type": "customer",
+      "currency_code": "GBP",
+      "primary_email": "alex@example.test",
+      "runtime_mapping_target": "orgs[id='org-1'].books_contact_id"
+    },
+    {
+      "logical_id": "books-contact-org-4",
+      "maps_to_synthetic_org": "org-4",
+      "contact_name": "Rainhill Supplies",
+      "contact_type": "vendor",
+      "currency_code": "GBP",
+      "primary_email": "lee@example.test",
+      "runtime_mapping_target": "orgs[id='org-4'].books_contact_id"
+    },
+    {
+      "logical_id": "books-contact-org-5",
+      "maps_to_synthetic_org": "org-5",
+      "contact_name": "Severn Wharf Roastery",
+      "contact_type": "customer",
+      "currency_code": "GBP",
+      "primary_email": "nia.pritchard@example.test",
+      "runtime_mapping_target": "orgs[id='org-5'].books_contact_id"
+    },
+    {
+      "logical_id": "books-contact-org-6",
+      "maps_to_synthetic_org": "org-6",
+      "contact_name": "Clifton Pantry",
+      "contact_type": "customer",
+      "currency_code": "GBP",
+      "primary_email": "clara.finch@example.test",
+      "runtime_mapping_target": "orgs[id='org-6'].books_contact_id"
+    },
+    {
+      "logical_id": "books-contact-stall-walkin",
+      "maps_to_synthetic_org": null,
+      "contact_name": "Market Stall Walk-In Cash Sales (Synthetic)",
+      "contact_type": "customer",
+      "currency_code": "GBP",
+      "primary_email": "stall-cash@example.test",
+      "env_var_target": "STALL_CUSTOMER_ID",
+      "notes": "Used only for POST /books/v3/salesreceipts; holds zero invoices so books.mjs unmapped-invoice guard remains 0."
+    }
+  ],
+  "items": [
+    {
+      "logical_id": "books-item-lot-1",
+      "maps_to_synthetic_lot": "lot-1",
+      "name": "Coorg washed (250g / wholesale kg)",
+      "sku": "SYNTH-LOT-1",
+      "rate_gbp": 10,
+      "currency_code": "GBP",
+      "runtime_mapping_target": "lots[id='lot-1'].books_item_id"
+    },
+    {
+      "logical_id": "books-item-lot-2",
+      "maps_to_synthetic_lot": "lot-2",
+      "name": "Chikmagalur natural",
+      "sku": "SYNTH-LOT-2",
+      "rate_gbp": 10,
+      "currency_code": "GBP",
+      "runtime_mapping_target": "lots[id='lot-2'].books_item_id",
+      "notes": "Target of Eval F6 ('Sold six 250g bags of lot 2, 60 pounds cash' -> quantity 6, rate GBP 10.00, total GBP 60.00)."
+    },
+    {
+      "logical_id": "books-item-lot-3",
+      "maps_to_synthetic_lot": "lot-3",
+      "name": "Shevaroy Hills honey",
+      "sku": "SYNTH-LOT-3",
+      "rate_gbp": 13,
+      "currency_code": "GBP",
+      "runtime_mapping_target": "lots[id='lot-3'].books_item_id"
+    }
+  ],
+  "invoices": [
+    {
+      "logical_id": "books-inv-1",
+      "maps_to_synthetic_invoice": "inv-1",
+      "invoice_number": "FT-INV-1001",
+      "customer_logical_id": "books-contact-org-1",
+      "org_id": "org-1",
+      "date": "2026-10-14",
+      "due_date": "2026-10-28",
+      "status_in_books": "overdue",
+      "currency_code": "GBP",
+      "total": 240,
+      "payments_applied": 0,
+      "balance": 240,
+      "line_summary": "24 kg Coorg washed green coffee @ GBP 10.00/kg",
+      "scenario_role": "1 day overdue at 2026-10-29 (Eval F4 chase target; closed by GBP 240 payment in Eval E2). IMPORTANT: mark Sent/Approved in Zoho Books, never Draft (see AR-07)."
+    },
+    {
+      "logical_id": "books-inv-2",
+      "maps_to_synthetic_invoice": "inv-2",
+      "invoice_number": "FT-INV-1002",
+      "customer_logical_id": "books-contact-org-5",
+      "org_id": "org-5",
+      "date": "2026-10-15",
+      "due_date": "2026-10-29",
+      "status_in_books": "sent",
+      "currency_code": "GBP",
+      "total": 120,
+      "payments_applied": 0,
+      "balance": 120,
+      "line_summary": "10 kg Chikmagalur natural green coffee @ GBP 12.00/kg (ORD-48205)",
+      "scenario_role": "Due today on 2026-10-29: open invoice loop, NOT cold until 2026-10-30."
+    },
+    {
+      "logical_id": "books-inv-3",
+      "maps_to_synthetic_invoice": "inv-3",
+      "invoice_number": "FT-INV-1003",
+      "customer_logical_id": "books-contact-org-5",
+      "org_id": "org-5",
+      "date": "2026-10-26",
+      "due_date": "2026-11-09",
+      "status_in_books": "partially_paid",
+      "currency_code": "GBP",
+      "total": 180,
+      "payments_applied": 80,
+      "balance": 100,
+      "line_summary": "18 kg Coorg washed @ GBP 10.00/kg; GBP 80 deposit received 2026-10-27 (FT-PAY-2002)",
+      "scenario_role": "Future-due partially paid invoice: synthetic.json records gross amount 180 (no payment ledger in runtime JSON contract), while Zoho Books exposes remaining balance 100."
+    },
+    {
+      "logical_id": "books-inv-4",
+      "maps_to_synthetic_invoice": "inv-4",
+      "invoice_number": "FT-INV-1004",
+      "customer_logical_id": "books-contact-org-6",
+      "org_id": "org-6",
+      "date": "2026-10-07",
+      "due_date": "2026-10-21",
+      "status_in_books": "overdue",
+      "currency_code": "GBP",
+      "total": 97.5,
+      "payments_applied": 0,
+      "balance": 97.5,
+      "line_summary": "7.5 kg Shevaroy Hills honey wholesale refill @ GBP 13.00/kg",
+      "scenario_role": "8 days overdue at 2026-10-29: second cold invoice loop on a distinct customer."
+    },
+    {
+      "logical_id": "books-inv-5",
+      "maps_to_synthetic_invoice": "inv-5",
+      "invoice_number": "FT-INV-1005",
+      "customer_logical_id": "books-contact-org-1",
+      "org_id": "org-1",
+      "date": "2026-10-01",
+      "due_date": "2026-10-15",
+      "status_in_books": "paid",
+      "currency_code": "GBP",
+      "total": 300,
+      "payments_applied": 300,
+      "balance": 0,
+      "paid_on": "2026-10-14",
+      "line_summary": "30 kg Coorg washed @ GBP 10.00/kg; settled by FT-PAY-2001",
+      "scenario_role": "Historical paid invoice: balance 0, must NOT open an invoice loop or contribute to owed."
+    },
+    {
+      "logical_id": "books-inv-6",
+      "maps_to_synthetic_invoice": "inv-6",
+      "invoice_number": "FT-INV-1006",
+      "customer_logical_id": "books-contact-org-6",
+      "org_id": "org-6",
+      "date": "2026-10-28",
+      "due_date": "2026-11-11",
+      "status_in_books": "sent",
+      "currency_code": "GBP",
+      "total": 65,
+      "payments_applied": 0,
+      "balance": 65,
+      "line_summary": "5 kg Chikmagalur natural @ GBP 13.00/kg (ORD-48204)",
+      "scenario_role": "Future-due unpaid invoice: open invoice loop, not cold on 2026-10-29."
+    }
+  ],
+  "customer_payments": [
+    {
+      "logical_id": "FT-PAY-2001",
+      "customer_logical_id": "books-contact-org-1",
+      "applied_to_invoice_number": "FT-INV-1005",
+      "date": "2026-10-14",
+      "amount_gbp": 300,
+      "deposit_to_account": "acct-cash-main",
+      "payment_mode": "bank_transfer",
+      "notes": "Included once in cash balance (+300) and reduces FT-INV-1005 balance from 300 to 0. Do not create a separate manual bank deposit or payment will be counted twice."
+    },
+    {
+      "logical_id": "FT-PAY-2002",
+      "customer_logical_id": "books-contact-org-5",
+      "applied_to_invoice_number": "FT-INV-1003",
+      "date": "2026-10-27",
+      "amount_gbp": 80,
+      "deposit_to_account": "acct-cash-main",
+      "payment_mode": "bank_transfer",
+      "notes": "Partial deposit on FT-INV-1003: included once in cash balance (+80) and reduces FT-INV-1003 balance from 180 to 100."
+    }
+  ],
+  "sales_receipts": [
+    {
+      "logical_id": "FT-SR-3001",
+      "customer_logical_id": "books-contact-stall-walkin",
+      "maps_to_stall_day": "2026-10-22",
+      "date": "2026-10-22",
+      "item_logical_id": "books-item-lot-1",
+      "quantity_bags": 8,
+      "rate_gbp": 10,
+      "total_gbp": 80,
+      "payment_mode": "cash",
+      "deposit_to_account": "acct-cash-main",
+      "notes": "Represents completed stall cash-up for 2026-10-22 (cashed_up: true). Included once in acct-cash-main (+80)."
+    }
+  ],
+  "expenses": [
+    {
+      "logical_id": "FT-EXP-4001",
+      "vendor_logical_id": "books-contact-org-4",
+      "account_logical_id": "acct-expense-supplies",
+      "paid_through_account": "acct-cash-main",
+      "date": "2026-10-20",
+      "amount_gbp": 85,
+      "currency_code": "GBP",
+      "description": "Rainhill Supplies: Initial jute sack and label roll stock (synthetic seed)",
+      "notes": "Deducted once from acct-cash-main (-85)."
+    }
+  ],
+  "expected_balances_at_reference_time": {
+    "cash_account_gbp": 2875,
+    "cash_reconciliation": {
+      "opening_balance_2026_10_01": 2500,
+      "plus_FT_PAY_2001_on_FT_INV_1005": 300,
+      "plus_FT_SR_3001_stall_2026_10_22": 80,
+      "minus_FT_EXP_4001_rainhill_2026_10_20": -85,
+      "plus_FT_PAY_2002_partial_on_FT_INV_1003": 80,
+      "net_cash_gbp": 2875
+    },
+    "total_owed_in_books_gbp": 622.5,
+    "owed_reconciliation": {
+      "FT_INV_1001_overdue_1d": 240,
+      "FT_INV_1002_due_today": 120,
+      "FT_INV_1003_future_partial_remaining": 100,
+      "FT_INV_1004_overdue_8d": 97.5,
+      "FT_INV_1005_paid": 0,
+      "FT_INV_1006_future_unpaid": 65,
+      "gross_unpaid_invoice_face_total_in_synthetic_json": 702.5,
+      "less_partial_payment_FT_PAY_2002": -80,
+      "net_books_owed_gbp": 622.5
+    },
+    "unmapped_invoice_count": 0
+  },
+  "post_scenario_books_mutations": [
+    {
+      "scenario_id": "SCEN-07-INVOICE-COLLECTION",
+      "eval_ids": ["E2"],
+      "operation": "Record customer payment FT-PAY-2003 of GBP 240.00 on 2026-10-29 against FT-INV-1001 deposited to acct-cash-main.",
+      "expected_owed_after_gbp": 382.5,
+      "expected_cash_after_gbp": 3115
+    },
+    {
+      "scenario_id": "SCEN-08-RECEIPT-EXPENSE",
+      "eval_ids": ["F5"],
+      "operation": "Owner approves Rainhill Supplies receipt (RHS-SYNTH-2041, GBP 48.60, 2026-10-29) -> POST /books/v3/expenses.",
+      "builder_note": "Current providers.mjs:186 posts {account_id: EXPENSE_ACCOUNT_ID, date, amount, description, reference_number} without paid_through_account_id. Cash account balance stays unchanged unless paid_through_account_id is set to CASH_ACCOUNT_ID (which would reduce cash by GBP 48.60)."
+    },
+    {
+      "scenario_id": "SCEN-09-STALL-CASHUP",
+      "eval_ids": ["F6"],
+      "operation": "Owner approves stall cash-up ('Sold six 250g bags of lot 2, 60 pounds cash') -> POST /books/v3/salesreceipts.",
+      "builder_note": "Current providers.mjs:212 posts salesreceipt without deposit_to_account_id. Configure Zoho Books default cash sales deposit account to CASH_ACCOUNT_ID (or pass deposit_to_account_id) if Where I stand cash is expected to rise immediately by +GBP 120.00 rather than landing in Undeposited Funds."
+    }
+  ]
+}

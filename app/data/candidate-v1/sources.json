@@ -1,0 +1,359 @@
+{
+  "provenance": "Fictional fact-to-source mapping for Followthrough candidate-v1. Every excerpt is an exact verbatim substring of its local synthetic HTML or media asset. .example.test URLs in synthetic.json are non-routable fictional identities; connected enrichment requires hosting assets/shops/*.html on an owner-approved public HTTPS demo host listed in ENRICHMENT_ALLOWED_HOSTS.",
+  "organization_facts": [
+    {
+      "org_id": "org-1",
+      "name": "Harbour Roasters",
+      "baseline_status": "customer",
+      "identity_url": "https://harbour.example.test",
+      "local_asset": "assets/shops/org-1-harbour-roasters.html",
+      "expected_qualification": {
+        "complete": true,
+        "price": 11.5,
+        "tier": "mid-shelf",
+        "sells_indian": true
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-1-harbour-roasters.html",
+          "quote": "Coorg Washed Filter Roast — 250g whole-bean bag £11.50."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-1-harbour-roasters.html",
+          "quote": "We proudly roast traceable Indian green coffee lots from Karnataka alongside seasonal East African releases."
+        }
+      },
+      "notes": "Existing wholesale customer; price_per_250g (11.5) and sells_indian (true) are also populated on the baseline customer record and backed by this shop fixture."
+    },
+    {
+      "org_id": "org-2",
+      "name": "Bean & Bloom",
+      "baseline_status": "lead",
+      "identity_url": "https://bloom.example.test",
+      "local_asset": "assets/shops/org-2-bean-and-bloom.html",
+      "eval_ids": ["F8", "F10", "F11"],
+      "expected_qualification": {
+        "complete": true,
+        "price": 11,
+        "tier": "mid-shelf",
+        "sells_indian": true,
+        "warm_path": ["org-2", "org-1"],
+        "warm_path_edges": 1
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-2-bean-and-bloom.html",
+          "quote": "House Espresso Blend — 250g retail bag £11."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-2-bean-and-bloom.html",
+          "quote": "Our retail coffee shelf includes single-estate Indian filter coffee from Chikmagalur."
+        }
+      }
+    },
+    {
+      "org_id": "org-3",
+      "name": "Northbank Coffee",
+      "baseline_status": "lead",
+      "identity_url": "https://northbank.example.test",
+      "local_asset": "assets/shops/org-3-northbank-coffee.html",
+      "eval_ids": ["F8", "F9", "F10", "F11"],
+      "expected_qualification": {
+        "complete": true,
+        "price": 14.5,
+        "tier": "premium",
+        "sells_indian": false,
+        "warm_path": ["org-3", "org-2", "org-1"],
+        "warm_path_edges": 2
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-3-northbank-coffee.html",
+          "quote": "Huila Pink Bourbon — 250g box £14.50."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-3-northbank-coffee.html",
+          "quote": "Origin statement: We do not currently stock or roast any Indian coffee on our menu."
+        }
+      }
+    },
+    {
+      "org_id": "org-4",
+      "name": "Rainhill Supplies",
+      "baseline_status": "customer",
+      "identity_url": "https://rainhill.example.test",
+      "local_asset": null,
+      "expected_qualification": null,
+      "sources": {},
+      "notes": "Packaging and roastery consumables supplier (type: supplier); does not retail 250g coffee bags. Referenced by assets/receipts/receipt-01-rainhill-supplies.png."
+    },
+    {
+      "org_id": "org-5",
+      "name": "Severn Wharf Roastery",
+      "baseline_status": "customer",
+      "identity_url": "https://severnwharf.example.test",
+      "local_asset": "assets/shops/org-5-severn-wharf-roastery.html",
+      "expected_qualification": {
+        "complete": true,
+        "price": 10,
+        "tier": "mid-shelf",
+        "sells_indian": true
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-5-severn-wharf-roastery.html",
+          "quote": "Chikmagalur Natural Espresso — 250g pouch £10.00."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-5-severn-wharf-roastery.html",
+          "quote": "We roast direct-import Indian Arabica lots year-round for Welsh cafes and home brewers."
+        }
+      }
+    },
+    {
+      "org_id": "org-6",
+      "name": "Clifton Pantry",
+      "baseline_status": "customer",
+      "identity_url": "https://cliftonpantry.example.test",
+      "local_asset": "assets/shops/org-6-clifton-pantry.html",
+      "expected_qualification": {
+        "complete": true,
+        "price": 12.5,
+        "tier": "premium",
+        "sells_indian": true
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-6-clifton-pantry.html",
+          "quote": "Shevaroy Hills Honey Filter — 250g refillable tin £12.50."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-6-clifton-pantry.html",
+          "quote": "We stock specialty Indian single-origin coffees alongside regional UK guest roasters."
+        }
+      }
+    },
+    {
+      "org_id": "org-7",
+      "name": "Moorland Micro Roasters",
+      "baseline_status": "lead",
+      "identity_url": "https://moorlandroasters.example.test",
+      "local_asset": "assets/shops/org-7-moorland-micro-roasters.html",
+      "eval_ids": ["F8", "F9", "F11"],
+      "expected_qualification": {
+        "complete": true,
+        "price": 12,
+        "tier": "mid-shelf",
+        "sells_indian": false,
+        "warm_path": [],
+        "warm_path_edges": null
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-7-moorland-micro-roasters.html",
+          "quote": "Peak District Seasonal Filter — 250g whole-bean bag £12."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-7-moorland-micro-roasters.html",
+          "quote": "Roastery origin note: We do not currently offer any Indian single-origin coffees."
+        }
+      },
+      "notes": "Exercises exact GBP 12 upper boundary of mid-shelf (8 to 12 inclusive) and zero-path stranger ranking."
+    },
+    {
+      "org_id": "org-8",
+      "name": "Bargain Bean Mart",
+      "baseline_status": "lead",
+      "identity_url": "https://bargainbean.example.test",
+      "local_asset": "assets/shops/org-8-bargain-bean-mart.html",
+      "eval_ids": ["F8", "E4"],
+      "expected_qualification": {
+        "complete": true,
+        "price": 6,
+        "tier": "below bar",
+        "sells_indian": null,
+        "closes_loop_reason": "below bar",
+        "warm_path": [],
+        "warm_path_edges": null
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-8-bargain-bean-mart.html",
+          "quote": "Everyday Value Roast — 250g ground coffee pack £6."
+        },
+        "sells_indian_page_note": {
+          "asset": "assets/shops/org-8-bargain-bean-mart.html",
+          "quote": "Commodity dark-roast catering blend; we do not carry specialty or Indian estate coffees."
+        }
+      },
+      "notes": "Below GBP 8 specialty bar: qualificationFacts returns tier 'below bar' with sells_indian null and closes open lead loop with reason 'below bar'."
+    },
+    {
+      "org_id": "org-9",
+      "name": "Foghorn Roastery",
+      "baseline_status": "lead",
+      "identity_url": "https://foghornroastery.example.test",
+      "local_asset": "assets/shops/org-9-foghorn-roastery.html",
+      "eval_ids": ["F8", "F11"],
+      "expected_qualification": {
+        "complete": false,
+        "price": 10.5,
+        "tier_if_indian_resolved": "mid-shelf",
+        "sells_indian": null,
+        "expected_error": "Qualification Indian-coffee fact lacks explicit source",
+        "warm_path": [],
+        "warm_path_edges": null
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-9-foghorn-roastery.html",
+          "quote": "Harbour Wall Espresso — 250g whole-bean bag £10.50."
+        },
+        "sells_indian": null
+      },
+      "notes": "Required unknown Indian-coffee case: shop page states GBP 10.50 per 250g but makes zero mention of India or Indian coffee. Current v0 enrichment rejects ungrounded boolean inference and leaves qualification incomplete."
+    },
+    {
+      "org_id": "org-10",
+      "name": "Pennine Espresso Kiosk",
+      "baseline_status": "lead",
+      "identity_url": "https://penninegroup.example.test/kiosk",
+      "local_asset": "assets/shops/org-10-pennine-kiosk.html",
+      "eval_ids": ["F8", "F10", "A3"],
+      "expected_qualification": {
+        "complete": true,
+        "price": 8,
+        "tier": "mid-shelf",
+        "sells_indian": true,
+        "warm_path": ["org-10", "org-6"],
+        "warm_path_edges": 1
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-10-pennine-kiosk.html",
+          "quote": "Station Forecourt House Filter — 250g bag £8."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-10-pennine-kiosk.html",
+          "quote": "Our guest hopper and take-home shelf feature washed Indian Arabica beans."
+        }
+      },
+      "notes": "Exercises exact GBP 8 lower specialty-bar boundary (mid-shelf) AND deliberately shares hostname penninegroup.example.test with org-11 for domain-wide suppression testing."
+    },
+    {
+      "org_id": "org-11",
+      "name": "Pennine Bakehouse Cafe",
+      "baseline_status": "lead",
+      "identity_url": "https://penninegroup.example.test/bakehouse",
+      "local_asset": "assets/shops/org-11-pennine-bakehouse.html",
+      "eval_ids": ["A3", "F9"],
+      "expected_qualification": {
+        "complete": true,
+        "price": 9.5,
+        "tier": "mid-shelf",
+        "sells_indian": false,
+        "warm_path": ["org-11", "org-10", "org-6"],
+        "warm_path_edges": 2
+      },
+      "sources": {
+        "price": {
+          "asset": "assets/shops/org-11-pennine-bakehouse.html",
+          "quote": "Sourdough Morning Blend — 250g retail bag £9.50."
+        },
+        "sells_indian": {
+          "asset": "assets/shops/org-11-pennine-bakehouse.html",
+          "quote": "Origin note: Our bakehouse shelf does not stock Indian coffee at present."
+        }
+      },
+      "notes": "Shares hostname penninegroup.example.test with org-10; suppressed automatically when org-10 replies 'Stop contacting me'."
+    },
+    {
+      "org_id": "org-12",
+      "name": "QuickCup Office Coffee",
+      "baseline_status": "declined",
+      "identity_url": "https://quickcup.example.test",
+      "local_asset": null,
+      "eval_ids": ["A3"],
+      "expected_qualification": null,
+      "sources": {},
+      "notes": "Pre-declined organisation in baseline synthetic.json; quickcup.example.test is added to suppression at startup and never fetched or drafted."
+    }
+  ],
+  "receipt_sources": [
+    {
+      "receipt_id": "RECEIPT-01",
+      "local_asset": "assets/receipts/receipt-01-rainhill-supplies.png",
+      "eval_ids": ["F5"],
+      "mapped_org_id": "org-4",
+      "expected_extraction": {
+        "supplier": "Rainhill Supplies",
+        "receipt_number": "RHS-SYNTH-2041",
+        "date": "2026-10-29",
+        "currency": "GBP",
+        "subtotal": 40.5,
+        "vat": 8.1,
+        "amount": 48.6,
+        "line_items": [
+          {
+            "description": "250g Kraft Valve Coffee Pouches",
+            "quantity": 200,
+            "unit_price_gbp": 0.15,
+            "line_total_gbp": 30
+          },
+          {
+            "description": "60kg Hermetic Green-Bean Sack Liners",
+            "quantity": 10,
+            "unit_price_gbp": 1.05,
+            "line_total_gbp": 10.5
+          }
+        ],
+        "supplier_quote": "Rainhill Supplies",
+        "amount_quote": "£48.60"
+      }
+    },
+    {
+      "receipt_id": "RECEIPT-02",
+      "local_asset": "assets/receipts/receipt-02-unmapped-carrier.png",
+      "eval_ids": ["F5"],
+      "mapped_org_id": null,
+      "expected_extraction": {
+        "supplier": "Severn Parcel Express",
+        "receipt_number": "SPE-SYNTH-0098",
+        "date": "2026-10-29",
+        "currency": "GBP",
+        "subtotal": 15,
+        "vat": 3,
+        "amount": 18,
+        "supplier_quote": "Severn Parcel Express",
+        "amount_quote": "£18.00"
+      },
+      "notes": "Deliberately unmapped supplier (absent from orgs) to verify receipt_missing_or_unmapped_fields asks for clarification without creating an expense action."
+    }
+  ],
+  "voice_sources": [
+    {
+      "voice_id": "VOICE-01",
+      "local_asset": "assets/voice/voice-01-approve-yes-send-it.wav",
+      "eval_ids": ["F3"],
+      "verbatim_transcript": "Yes, send it."
+    },
+    {
+      "voice_id": "VOICE-02",
+      "local_asset": "assets/voice/voice-02-refuse-no-hold-it.wav",
+      "eval_ids": ["F3"],
+      "verbatim_transcript": "No, hold it."
+    },
+    {
+      "voice_id": "VOICE-03",
+      "local_asset": "assets/voice/voice-03-cashup-lot2-60gbp.wav",
+      "eval_ids": ["F6", "F7"],
+      "verbatim_transcript": "Sold six 250g bags of lot 2, 60 pounds cash."
+    },
+    {
+      "voice_id": "VOICE-04",
+      "local_asset": "assets/voice/voice-04-cashup-missing-size.wav",
+      "eval_ids": ["F6"],
+      "verbatim_transcript": "Sold six bags of lot 2, 60 pounds cash."
+    }
+  ]
+}

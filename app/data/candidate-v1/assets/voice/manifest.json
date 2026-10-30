@@ -1,0 +1,85 @@
+{
+  "provenance": "Synthetic offline text-to-speech WAV audio fixtures for Followthrough connected-v0 voice verification (Meta Voice Transcribe muse-voice-transcribe-1.0). Contains no real human voice recordings.",
+  "format": {
+    "container": "WAV (RIFF PCM)",
+    "sample_rate_hz": 16000,
+    "bits_per_sample": 16,
+    "channels": 1,
+    "max_duration_seconds": 120,
+    "generator_script": "assets/voice/generate-voice.ps1"
+  },
+  "samples": [
+    {
+      "id": "VOICE-01",
+      "file": "assets/voice/voice-01-approve-yes-send-it.wav",
+      "scenario_id": "SCEN-06-VOICE-APPROVAL",
+      "eval_ids": ["F3"],
+      "tts_input": "Yes, send it.",
+      "expected_transcript": "Yes, send it.",
+      "accepted_asr_variants": [
+        "yes send it",
+        "Yes, send it.",
+        "Yes send it."
+      ],
+      "affirmative_regex_match": true,
+      "expected_runtime_outcome": "Bound pending action is approved and sent once; actions.jsonl logs transcript, approve, and send."
+    },
+    {
+      "id": "VOICE-02",
+      "file": "assets/voice/voice-02-refuse-no-hold-it.wav",
+      "scenario_id": "SCEN-06-VOICE-APPROVAL",
+      "eval_ids": ["F3"],
+      "tts_input": "No, hold it.",
+      "expected_transcript": "No, hold it.",
+      "accepted_asr_variants": [
+        "no, hold it",
+        "No, hold it.",
+        "no hold it"
+      ],
+      "affirmative_regex_match": false,
+      "expected_runtime_outcome": "Bound pending action remains pending; actions.jsonl logs transcript and blocked (not_affirmative_approval); zero sends occur."
+    },
+    {
+      "id": "VOICE-03",
+      "file": "assets/voice/voice-03-cashup-lot2-60gbp.wav",
+      "scenario_id": "SCEN-09-STALL-CASHUP",
+      "eval_ids": ["F6", "F7"],
+      "tts_input": "Sold six 250 gram bags of lot 2, 60 pounds cash.",
+      "expected_transcript": "Sold six 250g bags of lot 2, 60 pounds cash.",
+      "accepted_asr_variants": [
+        "Sold six 250g bags of lot 2, 60 pounds cash.",
+        "Sold six 250 gram bags of lot 2, 60 pounds cash.",
+        "sold 6 250g bags of lot 2, 60 pounds cash"
+      ],
+      "expected_parsed_cashup": {
+        "count": 6,
+        "bag_grams": 250,
+        "lot_id": "lot-2",
+        "kg": 1.5,
+        "amount": 60,
+        "currency": "GBP"
+      },
+      "expected_runtime_outcome": "Creates pending sale action (no write until approved); upon approval writes GBP 60 Books sale and reduces lot-2 left_kg by 1.5 kg (10 -> 8.5 kg, crossing <20% and opening low:lot-2)."
+    },
+    {
+      "id": "VOICE-04",
+      "file": "assets/voice/voice-04-cashup-missing-size.wav",
+      "scenario_id": "SCEN-09-STALL-CASHUP",
+      "eval_ids": ["F6"],
+      "tts_input": "Sold six bags of lot 2, 60 pounds cash.",
+      "expected_transcript": "Sold six bags of lot 2, 60 pounds cash.",
+      "accepted_asr_variants": [
+        "Sold six bags of lot 2, 60 pounds cash.",
+        "sold 6 bags of lot 2, 60 pounds cash"
+      ],
+      "expected_parsed_cashup": {
+        "count": 6,
+        "bag_grams": null,
+        "lot_id": "lot-2",
+        "amount": 60,
+        "currency": "GBP"
+      },
+      "expected_runtime_outcome": "Logs ask (cashup_missing_fields), stores cashup_pending for owner clarification, creates zero pending sale actions and zero Books writes."
+    }
+  ]
+}
