@@ -411,6 +411,34 @@
       "local_evidence": [
         "checks/capture.test.mjs"
       ]
+    },
+    {
+      "id": "FT-16",
+      "name": "Voice file gate and thread-aware drafts",
+      "serves": [
+        "spec Pinned: Voice file",
+        "spec Pinned: In the owner's voice",
+        "eval F17",
+        "eval T5",
+        "eval T3"
+      ],
+      "in": [
+        "app/data/voice.md first line signed-off: <date> <name> (VOICE_FILE overrides the path for checks)",
+        "Inbound counterpart messages stored on the loop thread at receive",
+        "Owner sends appended to the thread on completion"
+      ],
+      "out": [
+        "No customer draft without a signed-off file: draft_blocked line per loop, one brief line saying so, loops still listed",
+        "Draft prompt carries the voice file, the last six thread messages, what the counterpart last asked, stage and next stage",
+        "model_call lines record voice_file: true on draft calls"
+      ],
+      "done-check": "Unsigned file: zero model calls, zero actions, loops listed, one warning line; signed file: the draft call input holds the file text, the two inbound messages and the last question, and the model_call line carries voice_file: true.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/voice.test.mjs",
+        "checks/fixtures/voice-signed.md"
+      ]
     }
   ],
   "required_external_proof": [

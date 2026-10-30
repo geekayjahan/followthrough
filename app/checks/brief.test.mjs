@@ -27,6 +27,7 @@ const cfg = {
   WHATSAPP_TEST_NUMBERS: "+15555550002",
   WHATSAPP_OWNER_NUMBERS: "+15555550002",
   APP_URL: "http://127.0.0.1:4310",
+  VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
 };
 test("demo clock ages loops for cold checks only; real timestamps untouched", () => {
   const s = new Store(":memory:"), d = new Domain(s, data());
