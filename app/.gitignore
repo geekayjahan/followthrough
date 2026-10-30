@@ -7,3 +7,4 @@ logs/*
 !logs/.gitkeep
 .playwright-cli/
 output/
+data/candidate-run/
