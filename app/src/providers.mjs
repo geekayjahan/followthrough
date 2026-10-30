@@ -38,6 +38,13 @@ export class Providers {
     this.fetch = fetcher;
     this.token = null;
   }
+  // Every outbound request leaves one host line, so the eval can check the allowlist (A8).
+  async request(url, options = {}, write = false) {
+    const u = new URL(url);
+    if (this.audit)
+      this.audit("host", { host: u.hostname, method: options.method || "GET" });
+    return jsonRequest(this.fetch, url, options, write);
+  }
   preflight(kind, payload) {
     connected(this.c);
     if (kind === "shipment") return;
@@ -91,9 +98,7 @@ export class Providers {
       client_secret: this.c.ZOHO_CLIENT_SECRET,
       refresh_token: this.c.ZOHO_REFRESH_TOKEN,
     });
-    const r = await jsonRequest(
-      this.fetch,
-      `https://accounts.zoho.${region}/oauth/v2/token`,
+    const r = await this.request(`https://accounts.zoho.${region}/oauth/v2/token`,
       { method: "POST", body },
     );
     if (!r.access_token) throw new ProviderError("oauth");
@@ -114,9 +119,7 @@ export class Providers {
       requireKeys(this.c, ["ZOHO_BOOKS_ORG_ID"]);
       url.searchParams.set("organization_id", this.c.ZOHO_BOOKS_ORG_ID);
     }
-    const r = await jsonRequest(
-      this.fetch,
-      url,
+    const r = await this.request(url,
       {
         method,
         headers: {
@@ -294,7 +297,7 @@ export class Providers {
       `https://graph.facebook.com/${this.c.GRAPH_API_VERSION}/${this.c.WHATSAPP_WABA_ID}/message_templates`,
     );
     url.searchParams.set("name", name);
-    const r = await jsonRequest(this.fetch, url, {
+    const r = await this.request(url, {
       headers: { Authorization: `Bearer ${this.c.WHATSAPP_TOKEN}` },
     });
     const t = r.data?.find(
@@ -407,9 +410,7 @@ export class Providers {
       if (text.length > 4096) throw Error("Invalid WhatsApp text length");
       message = { type: "text", text: { body: text } };
     }
-    const r = await jsonRequest(
-      this.fetch,
-      `https://graph.facebook.com/${this.c.GRAPH_API_VERSION}/${this.c.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    const r = await this.request(`https://graph.facebook.com/${this.c.GRAPH_API_VERSION}/${this.c.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
         method: "POST",
         headers: {
@@ -449,9 +450,7 @@ export class Providers {
           },
         ]
       : prompt;
-    const r = await jsonRequest(
-      this.fetch,
-      this.c.MODEL_BASE_URL.replace(/\/$/, "") + "/chat/completions",
+    const r = await this.request(this.c.MODEL_BASE_URL.replace(/\/$/, "") + "/chat/completions",
       {
         method: "POST",
         headers: {
@@ -495,9 +494,7 @@ export class Providers {
     connected(this.c);
     requireKeys(this.c, ["WHATSAPP_TOKEN", "GRAPH_API_VERSION"]);
     const headers = { Authorization: `Bearer ${this.c.WHATSAPP_TOKEN}` };
-    const info = await jsonRequest(
-      this.fetch,
-      `https://graph.facebook.com/${this.c.GRAPH_API_VERSION}/${encodeURIComponent(id)}`,
+    const info = await this.request(`https://graph.facebook.com/${this.c.GRAPH_API_VERSION}/${encodeURIComponent(id)}`,
       { headers },
     );
     const u = new URL(info.url);
@@ -507,6 +504,7 @@ export class Providers {
     )
       throw Error("Media download host rejected");
     if (info.file_size > 10000000) throw Error("Media exceeds 10 MB limit");
+    if (this.audit) this.audit("host", { host: u.hostname, method: "GET" });
     const r = await this.fetch(u, {
       headers,
       redirect: "error",
@@ -602,9 +600,7 @@ export class Providers {
       }),
     );
     body.set("audio", new Blob([bytes], { type: "audio/wav" }), "voice.wav");
-    const r = await jsonRequest(
-      this.fetch,
-      "https://api.meta.ai/v1/asr/transcribe",
+    const r = await this.request("https://api.meta.ai/v1/asr/transcribe",
       {
         method: "POST",
         headers: { Authorization: `Bearer ${this.c.VOICE_TRANSCRIBE_KEY}` },

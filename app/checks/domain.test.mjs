@@ -67,3 +67,15 @@ test("intake deduplicates business references, shipment closes one loop, touches
   assert.equal(s.get("loops", l.id).status, "closed");
   s.close();
 });
+test("revoking a pending card leaves a revoked line with the action, loop and reason", () => {
+  const s = new Store(":memory:"),
+    d = new Domain(s, fixture);
+  const l = d.loop("quote", "c", "q-revoke");
+  const a = s.action("message", { text: "draft" }, l.id);
+  d.touch(l.id, "reply");
+  const line = s.events().find((x) => x.type === "revoked");
+  assert.equal(line.action_id, a.id);
+  assert.equal(line.loop_id, l.id);
+  assert.equal(line.reason, "new touch");
+  s.close();
+});
