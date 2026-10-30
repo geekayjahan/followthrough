@@ -238,7 +238,7 @@ header .small {
 }
 .summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   border-top: 2px solid var(--nav);
   border-bottom: 1px solid #bccdd1;
   padding: 22px 0;
@@ -317,8 +317,23 @@ header .small {
   padding: 19px 24px;
   border-top: 1px solid var(--line);
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: 7px 16px;
+}
+.loop-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+.loop-row .why {
+  color: var(--ink);
+}
+.loop-row .action-target {
+  margin: 2px 0 8px;
+}
+.loop-row .draft {
+  margin-top: 4px;
 }
 .loop-row h3 {
   margin: 0;

@@ -17,6 +17,9 @@ const config = {
   OWNER_TEST_EMAILS: "owner@example.test",
   ENABLE_JOBS: "false",
   ENABLE_POLLING: "false",
+  // The smoke cases watch a send complete; the hold itself is covered in checks/held.test.mjs.
+  DEMO_SEND_DELAY_MINUTES: "0",
+  VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
 };
 const providers = {
   booksSnapshot: async () => ({

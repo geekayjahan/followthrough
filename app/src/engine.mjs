@@ -444,6 +444,34 @@ export class Engine {
     await this.approve(binding.action_id, binding, "owner WhatsApp reply");
     return true;
   }
+  // What leaked (spec §7, workflow G10, eval W14): loops that went cold twice in the window. A cold
+  // episode starts when a brief lists the loop and ends at the next touch line for it; a second
+  // listing after a touch is a second episode. Read from loop_open, touch and brief lines only.
+  leaked(now = new Date(), days = 7) {
+    const since = new Date(now.getTime() - days * 86400000).toISOString();
+    const episodes = new Map(), open = new Map();
+    for (const event of this.s.eventsSince(since)) {
+      if (event.type === "loop_open") episodes.set(event.loop_id, 0);
+      else if (event.type === "brief") {
+        for (const id of event.loop_ids || [])
+          if (!open.get(id)) {
+            open.set(id, true);
+            episodes.set(id, (episodes.get(id) || 0) + 1);
+          }
+      } else if (event.type === "touch" && event.source !== "approved send") open.set(event.loop_id, false);
+    }
+    const loops = [...episodes].filter(([, n]) => n >= 2).map(([loop_id, n]) => ({ loop_id, episodes: n }));
+    const briefed = [...episodes].filter(([, n]) => n >= 1).length;
+    return { window_days: days, since, count: loops.length, briefed, loops };
+  }
+  // The owner's name for a loop: the counterpart, the lot, or the stall day.
+  title(loop) {
+    const org = loop.org_id && this.s.get("orgs", loop.org_id);
+    if (org) return org.name;
+    if (loop.lot_id) return this.s.get("lots", loop.lot_id)?.name || "Lot";
+    if (loop.type === "stall") return `Stall ${loop.stall_date || ""}`.trim();
+    return "Business";
+  }
   // One line a human would say about why this loop is in the brief.
   why(loop) {
     const org = this.s.get("orgs", loop.org_id);

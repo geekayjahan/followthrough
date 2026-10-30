@@ -100,6 +100,14 @@ export class Store {
       .all()
       .map((row) => JSON.parse(row.json));
   }
+  // Every event since an ISO time, oldest first; the what-leaked count reads a week of them.
+  eventsSince(since) {
+    return this.db
+      .prepare("SELECT json FROM events ORDER BY id ASC")
+      .all()
+      .map((row) => JSON.parse(row.json))
+      .filter((event) => !since || event.at >= since);
+  }
   close() {
     this.db.close();
   }
