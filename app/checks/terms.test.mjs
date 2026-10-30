@@ -4,6 +4,7 @@ import { Store } from "../src/store.mjs";
 import { Domain } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
 import { loadTerms, checkDraft } from "../src/terms.mjs";
+import { fileURLToPath } from "node:url";
 const terms = loadTerms();
 test("terms.md parses into price rows, bag prices and the owner's cadence", () => {
   const fusion = terms.lots.find((l) => l.name === "Fusion Ferment");
@@ -42,8 +43,8 @@ test("F20: a blocked draft produces no card, a draft_blocked line and an ask nam
   let text = "Hi Alex, the Fusion Ferment is [price per kg] ex warehouse.";
   const e = new Engine(s, d, { model: async () => ({ text, subject: "Price" }) }, {
     SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_AGE_DAYS: "3",
-    VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
-    CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
+    VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
+    CALENDAR_FILE: fileURLToPath(new URL("./fixtures/calendar-empty.json", import.meta.url)),
   });
   d.loop("quote", "c", "q");
   const brief = await e.brief(new Date(), { manual: true, send: false });

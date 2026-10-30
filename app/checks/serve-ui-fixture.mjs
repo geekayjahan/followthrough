@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Store } from "../src/store.mjs";
 import { createApplication } from "../src/server.mjs";
+import { fileURLToPath } from "node:url";
 const data = JSON.parse(
   readFileSync(new URL("../data/synthetic.json", import.meta.url), "utf8"),
 );
@@ -19,7 +20,7 @@ const config = {
   ENABLE_POLLING: "false",
   // The smoke cases watch a send complete; the hold itself is covered in checks/held.test.mjs.
   DEMO_SEND_DELAY_MINUTES: "0",
-  VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
+  VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
 };
 const providers = {
   booksSnapshot: async () => ({

@@ -4,11 +4,12 @@ import { Store } from "../src/store.mjs";
 import { Domain } from "../src/domain.mjs";
 import { Engine, isCoffee } from "../src/engine.mjs";
 import { Providers } from "../src/providers.mjs";
+import { fileURLToPath } from "node:url";
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_AGE_DAYS: "3",
   ZOHO_MAIL_FROM: "consulting@example.test", MAIL_FROM_COFFEE: "coffee@example.test",
-  VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
-  CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
+  VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
+  CALENDAR_FILE: fileURLToPath(new URL("./fixtures/calendar-empty.json", import.meta.url)),
 };
 test("F21: a draft to a coffee counterpart is switched to the coffee alias and the switch is logged", async () => {
   const s = new Store(":memory:"), d = new Domain(s, {

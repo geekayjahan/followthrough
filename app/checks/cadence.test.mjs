@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { Store } from "../src/store.mjs";
 import { Domain, due, cadence } from "../src/domain.mjs";
 import { Engine, longDate } from "../src/engine.mjs";
+import { fileURLToPath } from "node:url";
 const data = () => ({
   orgs: [
     { id: "r1", name: "Northbank", type: "roaster", status: "lead", website: "https://a.example.test" },
@@ -43,7 +44,7 @@ test("W6: each draft line records its cadence reason, and a chase within 10 days
   let input = null;
   const e = new Engine(s, d, { model: async (task, i) => { input = i; return { text: "Hi Alex,\n\nHow did you find the samples?\n\nThank you.\n\nBest\nGK", subject: "Samples" }; } }, {
     SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x",
-    VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname, CALENDAR_FILE: join(dir, "calendar.json"),
+    VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)), CALENDAR_FILE: join(dir, "calendar.json"),
   });
   assert.deepEqual(e.d.cadence, { email: 7, sample: 5, cold: 3 }, "cadence read from terms.md");
   const loop = d.loop("sample_out", "r2", "sample:r2");
