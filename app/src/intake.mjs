@@ -53,16 +53,39 @@ export function installIntake(e) {
     }
   };
   e.classifyIntake = async (text, org_id, source, event_id) => {
+    const org = e.s.get("orgs", org_id);
     const r = await e.p.model(
-      'Classify commercial intake only. JSON {type:null|"lead"|"sample_out"|"quote"|"order_unconfirmed"|"order_to_ship",reference:string|null,next_move:string|null,evidence:string|null}. Only create a new item when the text explicitly establishes it; an ordinary reply has null type.',
-      { text, organization: e.s.get("orgs", org_id)?.name },
+      'Classify commercial intake only. JSON {type:null|"lead"|"sample_out"|"quote"|"order_unconfirmed"|"order_to_ship"|"supplier_balance",reference:string|null,next_move:string|null,evidence:string|null,kg:number|null,lot_id:string|null,delivery:string|null,balances:[{lot_id:string,kg:number}]|null}. Only create a new item when the text explicitly establishes it; an ordinary reply has null type. order_unconfirmed when the counterpart agrees to buy ("go ahead with 20 kg of lot 2"): kg and lot_id from the supplied lots, delivery is any date or address given. supplier_balance only from a supplier stating kg left per lot: balances lists each lot named.',
+      { text, organization: org?.name, organization_type: org?.type || null, lots: e.s.all("lots").map((l) => ({ id: l.id, name: l.name })) },
+      { maxTokens: 500 },
     );
     if (!r.type) return;
     if (typeof r.evidence !== "string" || !text.includes(r.evidence))
       throw Error("Source evidence missing for intake");
     if (r.reference && !text.includes(r.reference))
       throw Error("Source reference missing for intake");
-    e.d.intake({ ...r, org_id }, source, event_id);
+    if (r.type === "supplier_balance") {
+      if (org?.type !== "supplier") throw Error("Source is not a supplier");
+      const balances = (r.balances || []).filter((b) => e.s.get("lots", b.lot_id) && Number.isFinite(Number(b.kg)) && text.includes(String(b.kg)));
+      e.d.supplierDiff(balances, event_id, source);
+      return;
+    }
+    const loop = e.d.intake({ ...r, org_id }, source, event_id);
+    if (!loop) return;
+    // Workflow F3: an accepted quote moves to order unconfirmed, reserves the kg, and asks for delivery details.
+    if (r.type === "order_unconfirmed") {
+      if (loop.type !== "order_unconfirmed") { loop.type = "order_unconfirmed"; e.s.put("loops", loop.id, loop); }
+      if (Number.isFinite(r.kg) && r.lot_id && e.s.get("lots", r.lot_id)) e.reserveFor(loop.id, r.lot_id, r.kg);
+      if (!r.delivery)
+        e.s.audit("ask", { loop_id: loop.id, org_id, event_id, reason: "delivery_details_missing", ask: `${org?.name}: delivery date or address for the order?` });
+    }
+  };
+  // Reserve for an order and say what happened in the owner's words; a conflict proposes another lot or a pre-book.
+  e.reserveFor = (loop_id, lot_id, kg) => {
+    const r = e.d.reserve(loop_id, lot_id, kg);
+    if (r.ok) return `${kg} kg of ${r.lot.name} reserved, ${r.free_kg} kg free.`;
+    const alt = r.alternatives.length ? `${r.alternatives.map((a) => `${a.name} has ${a.free_kg} kg free`).join("; ")}` : "no other lot has that much free";
+    return `Not reserved: ${r.lot.name} has only ${r.free_kg} kg free. ${alt}, or pre-book it from the next shipment.`;
   };
   e.respond = async (owner, result) => {
     const text = result.ask || result.readback;
@@ -230,6 +253,11 @@ export function installIntake(e) {
         else {
           if (item.type === "order" && (item.kg || item.lot_id)) { loop.kg = item.kg || null; loop.lot_id = item.lot_id || null; e.s.put("loops", loop.id, loop); }
           lines.push(`${name}: ${item.type === "order" ? `order${item.kg ? ` for ${item.kg} kg` : ""}${item.lot_id ? ` of ${e.s.get("lots", item.lot_id).name}` : ""}` : item.type === "sample" ? "sample loop" : "new lead"} opened.`);
+          if (item.type === "order" && Number.isFinite(item.kg) && item.lot_id) {
+            const said = e.reserveFor(loop.id, item.lot_id, item.kg);
+            lines[lines.length - 1] += ` ${said}`;
+            if (said.startsWith("Not reserved")) entry.conflict = true;
+          }
         }
       } else if (item.type === "stall") {
         const date = /^\d{4}-\d{2}-\d{2}$/.test(item.date || "") ? item.date : london().date;
