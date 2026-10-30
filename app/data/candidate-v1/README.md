@@ -54,7 +54,7 @@ app/data/candidate-v1/
 
 - **Reference clock (`T_ref`):** `2026-10-29T18:00:00Z` → **`2026-10-29 18:00 Europe/London`** (GMT / `UTC+0`; UK British Summer Time ended on Sunday `2026-10-25`).
 - **3-day aging seed clock (`T_seed`):** `2026-10-26T09:00:00Z` (`dayNumber('2026-10-29') - dayNumber('2026-10-26') === 3`), making untouched commercial loops (`lead`, `sample_out`, `quote`, `order_unconfirmed`, `order_to_ship`) cold at `T_ref`.
-- **Uniform date-offset rule for later runs:** To execute this pack on a later target date `D_target` (`YYYY-MM-DD`), add `delta_days = (Date.parse(D_target) - Date.parse('2026-10-29')) / 86400000` uniformly to all ISO dates in `synthetic.json` (`invoices`, `stall_days`), `books-seed.json`, receipt dates, and `scenarios.json` timestamps while keeping `Europe/London` wall-clock brief times at `08:00` and `18:00` and the stall cash-up threshold at `21:00`.
+- **Uniform date-offset rule for later runs:** To execute this pack on a later target date `D_target` (`YYYY-MM-DD`), add `delta_days = (Date.parse(D_target) - Date.parse('2026-10-29')) / 86400000` uniformly to all ISO dates in `synthetic.json` (`invoices`, `stall_days`), `books-seed.json`, and `scenarios.json` timestamps (`shift-dates.mjs` does this; dates read off the receipt images stay put) while keeping `Europe/London` wall-clock brief times at `08:00` and `18:00` and the stall cash-up threshold at `21:00`.
 
 ---
 
@@ -114,7 +114,7 @@ app/data/candidate-v1/
 
 ## 7. Flagged Compatibility & Integration Gaps for the Builder
 
-- **Loop aging / injectable clock:** `app/src/domain.mjs` (`Domain.loop`, line 146) stamps `last_touch = new Date().toISOString()` on first boot. Adding historical dates to `synthetic.json` will **not** make commercial loops cold. The builder needs an injectable clock / demo-clock switch (or seed-time parameter) to test 3-day-cold briefs without waiting 72 wall-clock hours.
+- **Loop aging / demo clock (resolved on `main`, 30 Oct):** `Domain.loop` still stamps `last_touch` with the real boot time, but `DEMO_AGE_DAYS=3` in `app/.env` moves the clock that cold and due checks read by three days, so seeded loops are cold at once. Because that clock starts from today, the pack's fixed dates must move with it: run `node data/candidate-v1/shift-dates.mjs <boot day + DEMO_AGE_DAYS>` from `app/` and promote from the `data/candidate-run/` it writes. Receipt-image dates stay at `2026-10-29` because the PNGs cannot move. `app/checks/candidate-shift.test.mjs` proves the shifted pack gives the cold, stall-day and 21:00 outcomes above.
 - **`invoices` in `synthetic.json` vs Zoho Books:** `validateData` validates `synthetic.json.invoices`, but `books.mjs` derives runtime `invoice` loops exclusively from Zoho Books (`booksSnapshot()`). Connected invoice tests require seeding the fresh Zoho Books account per `books-seed.json`.
 - **Books cash-account write fields:** `providers.mjs` currently posts `/books/v3/expenses` without `paid_through_account_id` and `/books/v3/salesreceipts` without `deposit_to_account_id`. Confirm Zoho Books default deposit/payment account behaviour if `CASH_ACCOUNT_ID` balance is expected to move immediately upon expense/sale approval.
 - **Instagram Business Discovery:** All baseline `instagram` fields are `null`. Hosted HTML shop pages verify web enrichment only and do not prove official Meta Instagram Business Discovery permissions.
