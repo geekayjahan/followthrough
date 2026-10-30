@@ -4,6 +4,7 @@ import { Store } from "../src/store.mjs";
 import { Domain } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
 import { installIntake } from "../src/intake.mjs";
+import { fileURLToPath } from "node:url";
 const data = () => ({
   orgs: [
     { id: "r1", name: "Harbour Roasters", type: "roaster", status: "customer", website: "https://a.example.test" },
@@ -24,8 +25,8 @@ const data = () => ({
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_SEND_DELAY_MINUTES: "0",
   WHATSAPP_TEST_NUMBERS: "+15555550002", WHATSAPP_OWNER_NUMBERS: "+15555550002",
-  VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
-  CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
+  VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
+  CALENDAR_FILE: fileURLToPath(new URL("./fixtures/calendar-empty.json", import.meta.url)),
 };
 test("F18: a reservation beyond free kg is refused with an allocation_conflict naming the lot, and another lot or a pre-book is proposed", async () => {
   const s = new Store(":memory:"), d = new Domain(s, data());

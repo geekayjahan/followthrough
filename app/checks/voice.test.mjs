@@ -4,14 +4,15 @@ import { Store } from "../src/store.mjs";
 import { Domain } from "../src/domain.mjs";
 import { Engine, readVoiceFile } from "../src/engine.mjs";
 import { Providers } from "../src/providers.mjs";
-const signed = new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
-  unsigned = new URL("./fixtures/voice-unsigned.md", import.meta.url).pathname;
+import { fileURLToPath } from "node:url";
+const signed = fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
+  unsigned = fileURLToPath(new URL("./fixtures/voice-unsigned.md", import.meta.url));
 const data = () => ({
   orgs: [{ id: "c", name: "Harbour Roasters", type: "roaster", status: "customer", website: "https://a.example.test" }],
   people: [{ id: "p", org: "c", name: "Alex", email: "a@example.test", whatsapp: null }],
   edges: [], invoices: [], lots: [], orders: [], stall_days: [],
 });
-const cfg = { SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://127.0.0.1:4310", DEMO_AGE_DAYS: "3", CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname };
+const cfg = { SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://127.0.0.1:4310", DEMO_AGE_DAYS: "3", CALENDAR_FILE: fileURLToPath(new URL("./fixtures/calendar-empty.json", import.meta.url)) };
 test("F17: without a signed-off voice file no customer draft is produced, the brief says so once, loops are still listed", async () => {
   const s = new Store(":memory:"), d = new Domain(s, data());
   let calls = 0;

@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { Store } from "../src/store.mjs";
 import { Domain, due, london } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
+import { fileURLToPath } from "node:url";
 const iso = (days) => new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
 const data = () => ({
   orgs: [
@@ -22,7 +23,7 @@ function setup(calendar) {
   const drafts = [];
   const e = new Engine(s, d, { model: async (task, input) => { drafts.push(input); return { text: "Hi Pat, please find the signed application form attached.", subject: "Form" }; } }, {
     SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x",
-    VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname, CALENDAR_FILE: join(dir, "calendar.json"),
+    VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)), CALENDAR_FILE: join(dir, "calendar.json"),
   });
   return { s, d, e, drafts };
 }

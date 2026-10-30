@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { Store } from "../src/store.mjs";
 import { Domain, due } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
+import { fileURLToPath } from "node:url";
 const data = () => ({
   orgs: [{ id: "c", name: "Harbour Roasters", type: "roaster", status: "customer", website: "https://a.example.test" }],
   people: [{ id: "p", org: "c", email: "a@example.test" }],
@@ -10,8 +11,8 @@ const data = () => ({
 });
 const cfg = {
   SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_AGE_DAYS: "3",
-  DEMO_SEND_DELAY_MINUTES: "0", VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
-  CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
+  DEMO_SEND_DELAY_MINUTES: "0", VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
+  CALENDAR_FILE: fileURLToPath(new URL("./fixtures/calendar-empty.json", import.meta.url)),
 };
 test("T10: three approved sends with no counterpart touch park the loop; no draft after; one brief line; a touch reopens it", async () => {
   const s = new Store(":memory:"), d = new Domain(s, data());

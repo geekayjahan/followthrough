@@ -4,6 +4,7 @@ import { Store } from "../src/store.mjs";
 import { Domain, demoNow, due, weekday } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
 import { createApplication } from "../src/server.mjs";
+import { fileURLToPath } from "node:url";
 const data = () => ({
   orgs: [
     { id: "c1", name: "Harbour Roasters", type: "roaster", status: "customer", website: "https://a.example.test" },
@@ -27,8 +28,8 @@ const cfg = {
   WHATSAPP_TEST_NUMBERS: "+15555550002",
   WHATSAPP_OWNER_NUMBERS: "+15555550002",
   APP_URL: "http://127.0.0.1:4310",
-  VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
-  CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
+  VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
+  CALENDAR_FILE: fileURLToPath(new URL("./fixtures/calendar-empty.json", import.meta.url)),
 };
 test("demo clock ages loops for cold checks only; real timestamps untouched", () => {
   const s = new Store(":memory:"), d = new Domain(s, data());
