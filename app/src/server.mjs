@@ -13,7 +13,7 @@ import {
 } from "./config.mjs";
 import { Store, hash } from "./store.mjs";
 import { Auth, verifySignature } from "./auth.mjs";
-import { Domain, london, due, demoNow } from "./domain.mjs";
+import { Domain, london, due, demoNow, weekday } from "./domain.mjs";
 import { Providers } from "./providers.mjs";
 import { Engine } from "./engine.mjs";
 import { installBooks } from "./books.mjs";
@@ -174,7 +174,7 @@ export function createApplication({
           } catch {}
         e.refreshStock();
         const local = london(),
-          missedSlots = (c.ENABLE_JOBS === "true" ? ["08:00", "18:00"] : [])
+          missedSlots = (c.ENABLE_JOBS === "true" && weekday() ? ["08:00", "18:00"] : [])
             .filter(
               (slot) =>
                 local.time > slot &&

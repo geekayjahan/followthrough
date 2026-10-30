@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { hash } from "./store.mjs";
 import { connected, recipient, list, safeError, ROOT } from "./config.mjs";
-import { london, warmPath, affirmative, demoNow, nextStage } from "./domain.mjs";
+import { london, warmPath, affirmative, demoNow, nextStage, weekday } from "./domain.mjs";
 import { loadTerms, checkDraft } from "./terms.mjs";
 // Pinned: Voice file. Signed off when the first line reads "signed-off: <date> <name>".
 export function readVoiceFile(path) {
@@ -655,6 +655,7 @@ export class Engine {
       key = `manual:${now.toISOString()}`;
     } else {
       if (this.c.ENABLE_JOBS !== "true") return;
+      if (!weekday(now)) return;
       const local = london(now);
       slot =
         local.time.startsWith("08:0") && Number(local.time.slice(3)) <= 2

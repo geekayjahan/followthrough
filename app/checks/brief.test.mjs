@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Store } from "../src/store.mjs";
-import { Domain, demoNow, due } from "../src/domain.mjs";
+import { Domain, demoNow, due, weekday } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
 import { createApplication } from "../src/server.mjs";
 const data = () => ({
@@ -90,4 +90,21 @@ test("malformed request target returns 400 and the server survives", async () =>
   assert.ok(/400|Invalid request target/.test(reply), reply);
   assert.equal((await fetch(`http://127.0.0.1:${port}/health`)).status, 200);
   await app.close();
+});
+test("E6: no scheduled brief on Saturday or Sunday; Monday 08:00 lists what went cold over the weekend", async () => {
+  const s = new Store(":memory:"), d = new Domain(s, data());
+  let deliveries = 0;
+  const e = new Engine(s, d, { whatsapp: async () => ({ id: `W${++deliveries}` }) }, { ...cfg, ENABLE_JOBS: "true" });
+  s.put("windows", "+15555550002", { at: new Date().toISOString() });
+  const loop = d.loop("quote", "c1", "q-weekend");
+  assert.equal(await e.brief(new Date("2026-10-31T08:00:00Z")), undefined, "Saturday");
+  assert.equal(await e.brief(new Date("2026-11-01T18:00:00Z")), undefined, "Sunday");
+  assert.equal(deliveries, 0);
+  s.put("loops", loop.id, { ...loop, last_touch: "2026-10-28T09:00:00Z" });
+  const monday = await e.brief(new Date("2026-11-02T08:00:00Z"));
+  assert.equal(monday.slot, "08:00");
+  assert.ok(monday.loops.some((l) => l.id === loop.id));
+  assert.equal(s.events().filter((x) => x.type === "brief" && !x.manual).length, 1);
+  assert.deepEqual([weekday(new Date("2026-10-31T12:00:00Z")), weekday(new Date("2026-11-02T12:00:00Z"))], [false, true]);
+  s.close();
 });
