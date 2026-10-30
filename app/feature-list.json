@@ -730,6 +730,36 @@
       "local_evidence": [
         "checks/ask.test.mjs"
       ]
+    },
+    {
+      "id": "FT-28",
+      "name": "Probe fixes that touch the demo: AR-03, AR-07, AR-08a",
+      "serves": [
+        "spec §2 Get paid",
+        "spec §2 Stall, Pinned: Bag",
+        "spec Pinned: Right",
+        "eval F4",
+        "eval F6",
+        "eval E2",
+        "adversarial review AR-03, AR-07, AR-08a"
+      ],
+      "in": [
+        "Zoho Books invoice records (balance, status)",
+        "Owner cash-up words and the model's extraction"
+      ],
+      "out": [
+        "A missing balance fails the Books read as invalid input instead of reading as paid; a restored balance reopens a loop closed as paid",
+        "Only sent, viewed, overdue, partially paid or unpaid invoices open loops or count toward owed; draft and void close an earlier loop and preflight refuses to send a chase for them",
+        "A bag size the owner never said is dropped from the extraction so the cash-up asks for it; sizes given in a later message complete it"
+      ],
+      "done-check": "The probe script reads AR-03, AR-07 and AR-08a as reproduced: false alongside AR-01 and AR-09; the regression tests cover the null balance, the reversal, the draft invoice at sync and at send, and the cash-up without a size.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/books.test.mjs",
+        "checks/stall.test.mjs",
+        "checks/adversarial-review-2026-10-29.mjs"
+      ]
     }
   ],
   "required_external_proof": [

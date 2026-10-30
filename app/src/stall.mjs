@@ -1,7 +1,17 @@
 import { london } from "./domain.mjs";
+// Bag sizes the owner actually said, in grams ("250g", "250 g", "1kg", "one kilo"); a size the model infers is not one (AR-08a).
+export function sizesInText(text) {
+  const out = new Set();
+  for (const m of String(text).matchAll(/(\d+(?:\.\d+)?)\s*(kg|kilo|kilos|kilogram|kilograms|g|gram|grams)\b/gi))
+    out.add(/^k/i.test(m[2]) ? Math.round(Number(m[1]) * 1000) : Math.round(Number(m[1])));
+  if (/\b(a|one)\s+(kilo|kg|kilogram)\b/i.test(text)) out.add(1000);
+  if (/\b(half|½)\s*(a\s+)?(kilo|kg)\b/i.test(text)) out.add(500);
+  return [...out];
+}
 export function installStall(e) {
   e.cashup = async (text, event_id, owner) => {
     const previous = e.s.get("cashup_pending", owner);
+    const said = sizesInText(`${previous?.texts?.join(" ") || ""} ${text}`);
     const r = await e.p.model(
       'Extract a stall cash-up. JSON {count:number|null,bag_grams:number|null,lot_id:string|null,amount:number|null,currency:"GBP"|null}. No inferred size or values. Combine explicit clarification with prior missing values. Allowed lots supplied.',
       {
@@ -10,6 +20,7 @@ export function installStall(e) {
         lots: e.s.all("lots").map((l) => ({ id: l.id, name: l.name })),
       },
     );
+    if (Number.isFinite(r.bag_grams) && !said.includes(Math.round(r.bag_grams))) r.bag_grams = null;
     if (
       !Number.isInteger(r.count) ||
       r.count <= 0 ||
@@ -28,6 +39,7 @@ export function installStall(e) {
           amount: r.amount,
           currency: r.currency,
         },
+        texts: [...(previous?.texts || []), text].slice(-5),
         event_id,
       });
       e.s.audit("ask", { event_id, reason: "cashup_missing_fields" });
