@@ -12,9 +12,10 @@
     "4. All of it under an hour a day, from the phone."
   ],
   "tiers": {
-    "core": ["chase (lead, sample, quote, order unconfirmed)", "get paid (invoice unpaid)", "keep the books (receipt to Books expense)", "fulfil (order to ship)", "stall (voice-note cash-up to Books sale and stock movement)", "stock (lot low)", "grow (qualify, tier, place in network; warm-path ranking, intro draft, introducer proposal, map, lead background panel)", "WhatsApp briefs 08:00 and 18:00 Europe/London", "one web page: Where I stand", "suppression list"],
-    "next": ["ask on WhatsApp", "landed cost, customs, duty", "courier booking and delivery tracking", "Glimmer local mode", "real WhatsApp Business number", "retention and erasure flows"],
-    "later": ["Instagram DMs and Instagram warm intros", "helpers, co-runner, second business, roles", "VAT, HMRC, year-end", "Meta AI Connector surface", "payment links"]
+    "core_4_nov": "the 19 rows named in app/workflows.md 'One Core list': Capture A1 to A3, brief L1 with warm leads, invoice chase and payment close, lot low, cash-up, qualify and warm path, soft no and declined, receipt to expense, Ask, Where I stand; engine rules approval, voice file, weekday briefs, Held at delay 0, test recipients, logging",
+    "core_after_4_nov": "the remaining Core rows in app/workflows.md including the ported rules: reservations and supplier shortfall, price-list guard, coffee alias, own clocks, stall documents and transport, tax-season Ask, Parked, Auto-reply, Cadence, Offer ladder, Stage, Lapsed, undo",
+    "next": "see app/workflows.md Tier column",
+    "later": "see app/workflows.md Tier column"
   },
   "out_of_scope": [
     "replacing Zoho Books: bank reconciliation, VAT, HMRC filing, year-end",
@@ -23,12 +24,16 @@
     "Instagram DMs; Instagram follower-graph intros",
     "helpers, co-runner, second business, roles beyond one shared owner login",
     "real customer data, the current Zoho accounts, any send outside the test lists before live",
-    "Ask on WhatsApp, Glimmer local mode, a real WhatsApp Business number"
+    "Glimmer local mode, a real WhatsApp Business number"
   ],
   "key_constraints": [
-    "Every customer-facing send needs owner approval: a tap, a reply 'yes', or a voice note whose transcript says yes",
+    "Every customer-facing send needs owner approval: a tap, a reply 'yes', or a reply/voice transcript the model reads as clear agreement to the quoted card (confidence >= 0.8); a change request edits the draft and issues a new card",
     "Cold = untouched 3 calendar days; invoice cold the day after due; lot low under 20% of starting kg; stall day uncashed if no cash-up by 21:00 Europe/London",
-    "Briefs at 08:00 and 18:00 Europe/London only; nothing unprompted between",
+    "Briefs at 08:00 and 18:00 Europe/London on weekdays only; nothing unprompted between or at weekends; owner-requested briefs allowed any time",
+    "Approved customer messages are held 60 minutes with undo; DEMO_SEND_DELAY_MINUTES=0 removes the hold and is logged",
+    "Drafts are grounded in a signed-off owner voice file (app/data/voice.md); no draft without it",
+    "A loop is parked after 3 unanswered chases; any counterpart touch un-parks it",
+    "Auto-replies are not touches",
     "Specialty bar: retail price >= GBP 8 per 250g; mid-shelf 8 to 12; premium above 12; below 8 closed with reason",
     "Warm path: 1 or 2 edges from a lead to an existing customer, supplier or stockist; warm leads rank first and the first draft names the connection",
     "Declined counterpart never drafted to again; block covers the organisation's domain, never a shared free-mail domain",
@@ -37,15 +42,30 @@
     "Never move money; Books writes limited to expenses, customer payments, sales and items",
     "Keys only in app/.env; public repo passes a secret scan",
     "One shared owner login for GK and the partner",
-    "AI: a Meta open-weights model served in a Daytona GPU sandbox with auto-stop disabled; voice notes via Meta Voice Transcribe",
     "Evidence output: app/logs/actions.jsonl records every brief, approval, send and Books write with timestamps",
-    "Customer channels at Core: email (Zoho Mail) and WhatsApp"
+    "Customer channels at Core: email (Zoho Mail) and WhatsApp",
+    "ENABLE_JOBS=false and ENABLE_POLLING=false by default. Starting the app or opening the UI does not authorize outbound messages, background ingestion or Books writes.",
+    "Missing credentials block dependent provider operations and connected proof while independent implementation continues. Fixtures and local checks never prove external completion.",
+    "Drafts offer only what app/data/terms.md allows (offer ladder); cadence and channel per tier from the same file",
+    "Capture reads back every item it understood and asks once for missing Core fields",
+    "AI: Muse Spark Open on Baseten (OpenAI-compatible endpoint) for text; hosted Muse Spark 1.3 only if image input fails; Meta Voice Transcribe for voice notes; model id and token usage logged on every call",
+    "Runtime: Node 22.5 or newer (24 preferred), node:sqlite, ffmpeg-static the only runtime package; ENABLE_JOBS and ENABLE_POLLING default false",
+    "A reservation never exceeds free kg; a supplier shortfall reaches every affected counterpart as a draft",
+    "A draft with a placeholder or an off-list price is blocked; coffee email always leaves from the coffee alias",
+    "Receipts are cold 7 days unbooked; compliance dates 30 days before due; stall days 3 days before with a document unsent, 2 days before with transport unconfirmed"
   ],
   "open_questions": [
-    "Stack rows T2 enrichment access, T3 persistence, T4 frontend, T5 hosting, T7 login mechanism, T8 jobs: owners hand over before S2",
-    "Fresh Zoho Mail and Books accounts to be created (TBC)",
-    "Which open-weights model; Voice Transcribe hosted or self-served",
-    "How many unanswered chases before a loop is parked; whether a parked loop reopens",
-    "The five WhatsApp test numbers and the two owner test email addresses"
-  ]
+    "T5 hosting vendor",
+    "T6: Baseten slug, JSON mode (json_object vs json_schema), image input, Voice Transcribe key coverage and price",
+    "T1: dummy Zoho Mail account and fresh Books organisation; WhatsApp test numbers and owner test addresses",
+    "Owner decisions: lapsed days, deposit 30 or 50%, FX clause, cold-send cap 20 or 30, retention 12/24/36 months"
+  ],
+  "implementation_decision": {
+    "date": "2026-10-29",
+    "source": "User selected: Build connected v0; I will configure credentials in app/.env. Guided-mode mechanics resolved by S2 initializer under this instruction.",
+    "scope": "All ten Core features FT-01 through FT-10 remain required; this is a connected application, initially run locally.",
+    "credential_checkpoint": "Independent source implementation and local isolated checks proceed while the owner configures app/.env. Missing configuration blocks dependent provider operations and connected checks. No mock, fixture, local test, or queued request constitutes external proof.",
+    "external_authority": "Building and validation do not authorize external messages or Books writes. Require an explicit owner action in the running UI or unambiguous authenticated reply tied to the exact pending action; synthetic test-recipient and fresh-account boundaries still apply."
+  },
+  "spec_revision": 8
 }

@@ -1,0 +1,773 @@
+{
+  "features": [
+    {
+      "id": "FT-01",
+      "name": "Synthetic data boundary and protected runtime",
+      "serves": [
+        "spec \u00a71 outcome 0",
+        "spec \u00a72.3",
+        "spec \u00a73 synthetic dataset",
+        "spec \u00a74 exclusions",
+        "eval A2",
+        "eval A3",
+        "eval A4",
+        "eval A5",
+        "eval A6",
+        "eval E4"
+      ],
+      "in": [
+        "Owner-provided app/data/synthetic.json",
+        "Fresh Zoho accounts and credentials configured in app/.env",
+        "APP_LIVE setting"
+      ],
+      "out": [
+        "Startup validation and data_rejected evidence",
+        "Test-recipient enforcement until APP_LIVE=true",
+        "Domain suppression and audit events",
+        "No payment, transfer, or bank-write capability"
+      ],
+      "done-check": "Invalid fixture data prevents startup and records data_rejected; all fixture email and WhatsApp identities satisfy the spec; pre-live sends are restricted to configured test recipients; declined organization domains are suppressed; secret scan passes; inspection of Books writes finds no money-movement or bank-write calls.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/boundary.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-02",
+      "name": "Commercial loop intake and state",
+      "serves": [
+        "spec \u00a72 Chase",
+        "spec \u00a72 Fulfil",
+        "spec pinned words Loop, Cold, Touch",
+        "spec \u00a73 Zoho Mail, WhatsApp and synthetic inputs",
+        "eval F1",
+        "eval A1"
+      ],
+      "in": [
+        "Mail threads",
+        "Inbound WhatsApp messages and voice notes",
+        "Orders from email, WhatsApp, and stall",
+        "Synthetic orgs, people, orders, and stall days"
+      ],
+      "out": [
+        "Persistent loops with type, counterpart, last touch, next move, and due time",
+        "Reply and owner-action updates",
+        "Order-to-ship loops; shipping closes the loop"
+      ],
+      "done-check": "Lead, sample-out, quote, unconfirmed-order, and order-to-ship loops are created and updated from the specified channels; qualifying touches reset cold timing; shipping closes its order loop; an unapproved draft remains unsent and recurs in a later brief.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/domain.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-03",
+      "name": "Timed briefs, drafts, and owner approvals",
+      "serves": [
+        "spec \u00a72 Chase",
+        "spec \u00a72.2",
+        "spec pinned words Cold, Brief, Approve, Touch",
+        "eval F1",
+        "eval F2",
+        "eval F3",
+        "eval E1",
+        "eval E3",
+        "eval A1"
+      ],
+      "in": [
+        "Open loops and their histories",
+        "Owner approval by tap, reply, or voice note",
+        "Configured WhatsApp test channel and email accounts"
+      ],
+      "out": [
+        "08:00 and 18:00 Europe/London WhatsApp briefs",
+        "Channel-appropriate drafts with approve/edit/drop actions",
+        "Logged approval, transcript, send, and reply events"
+      ],
+      "done-check": "Cold loops appear in scheduled briefs; only a tap or affirmative reply/transcript authorizes sending; a voice-note refusal sends nothing; tap approval sends the draft on the counterpart channel and resets touch; soft no closes only that loop; exactly two scheduled briefs occur in a 24-hour check and no unprompted owner message is sent between them.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/approval.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-04",
+      "name": "Invoice follow-up and payment closure",
+      "serves": [
+        "spec \u00a72 Get paid",
+        "spec pinned words Cold, Loop",
+        "spec \u00a73 Zoho Books",
+        "eval F4",
+        "eval E2"
+      ],
+      "in": [
+        "Zoho Books invoices, due dates, payments, and invoice loops"
+      ],
+      "out": [
+        "Overdue invoice loop and chase draft naming invoice and amount",
+        "Payment-driven loop closure"
+      ],
+      "done-check": "An unpaid invoice one day overdue appears in the next brief with invoice number and amount; recording its payment in Books closes the loop by the next brief cycle and prevents later chase drafts.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/books.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-05",
+      "name": "Receipt capture and approved expense entry",
+      "serves": [
+        "spec \u00a72 Keep the books",
+        "spec \u00a72.2 approval boundary",
+        "spec \u00a73 WhatsApp and Zoho Books",
+        "eval F5"
+      ],
+      "in": [
+        "Receipt photo or forwarded receipt email over WhatsApp",
+        "Owner approval"
+      ],
+      "out": [
+        "Extracted supplier and amount for confirmation",
+        "Approved Zoho Books expense and books_write evidence"
+      ],
+      "done-check": "A receipt photo produces a reviewable supplier and amount; an expense with those values is written to the fresh Zoho Books account only after owner approval, with its Books id recorded.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/receipts.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-06",
+      "name": "Stall cash-up and stock movement",
+      "serves": [
+        "spec \u00a72 Stall",
+        "spec pinned words Bag",
+        "spec \u00a72.2 approval boundary",
+        "spec \u00a73 owner voice notes and Zoho Books",
+        "eval F6"
+      ],
+      "in": [
+        "WhatsApp voice note with bag count, size, lot, and cash amount",
+        "Meta voice transcription",
+        "Owner approval"
+      ],
+      "out": [
+        "Read-back of interpreted cash-up",
+        "Approved Books sale",
+        "Stock movement and stall-day cash-up state"
+      ],
+      "done-check": "Six 250g bags of lot 2 for \u00a3120 create an approved \u00a3120 sale and reduce lot 2 by exactly 1.5kg; missing bag size prompts for it and causes no Books write until supplied; interpretation is read back before approval.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/stall.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-07",
+      "name": "Lot balances and reorder loops",
+      "serves": [
+        "spec \u00a72 Stock",
+        "spec pinned words Cold",
+        "spec \u00a72.2 Where I stand",
+        "spec \u00a73 lots",
+        "eval F7",
+        "eval F12"
+      ],
+      "in": [
+        "Lot start and remaining kg",
+        "Approved stock movements",
+        "Loop store"
+      ],
+      "out": [
+        "Current kg balance per lot",
+        "Reorder loop below 20% of starting quantity",
+        "Lot values for the overview page"
+      ],
+      "done-check": "Every lot balance reflects approved movements; a lot below 20% of starting kg has a lot_low loop and appears in the next brief.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/stock.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-08",
+      "name": "Lead qualification, network, and warm introductions",
+      "serves": [
+        "spec \u00a72 Grow",
+        "spec \u00a72.1",
+        "spec pinned words Specialty bar, Warm path",
+        "spec \u00a73 lead websites and public Instagram",
+        "eval F8",
+        "eval F9",
+        "eval F10",
+        "eval E4"
+      ],
+      "in": [
+        "Synthetic organizations, people, and network edges",
+        "Lead shop page and public Instagram profile read once",
+        "Open enrichment access decision"
+      ],
+      "out": [
+        "Qualified lead with price, tier, Indian coffee flag, and source for each fact",
+        "Below-bar closure with reason",
+        "One- and two-edge network paths and ordered lead priority",
+        "Warm-path draft naming connection and separately approved introducer draft"
+      ],
+      "done-check": "Price below \u00a38 closes the lead with reason and prevents drafting; \u00a38\u2013\u00a312 is mid-shelf and above \u00a312 premium; Indian coffee status and source URLs are recorded; one-edge leads rank before two-edge leads before strangers; warm drafts name the shared connection and propose an introducer without sending absent its own approval.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/enrichment.test.mjs",
+        "checks/enrichment.test.mjs (focus cap)"
+      ]
+    },
+    {
+      "id": "FT-09",
+      "name": "Where I stand dashboard and lead background",
+      "serves": [
+        "spec \u00a72.1",
+        "spec \u00a72.2",
+        "spec pinned word Right",
+        "eval F11",
+        "eval F12"
+      ],
+      "in": [
+        "Fresh Zoho Books balances and invoices",
+        "Loop store and lot balances",
+        "Organizations, edges, and lead qualification sources"
+      ],
+      "out": [
+        "One web page showing cash, owed, kg per lot, loops due today, and network map",
+        "Expandable lead background panel with sourced facts and network path"
+      ],
+      "done-check": "The map includes every synthetic organization and edge; the expandable panel shows tier, price, Indian-on-shelf status, path, and source for each fact; displayed cash, owed, lot kg, and due loops match Zoho Books and the loop store at read time; the page is read-only except approvals.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/http.test.mjs",
+        "checks/serve-ui-fixture.mjs"
+      ],
+      "render_verification": "Nine isolated Playwright browser checks passed: sign-in, edit then approve one test send, shipment closure across reload, network selection, 1440px desktop and 390px/320px phone widths, London timestamps, zero final console errors. No connected provider proof. Cases: checks/browser-smoke.mjs."
+    },
+    {
+      "id": "FT-10",
+      "name": "Action evidence and operational safeguards",
+      "serves": [
+        "spec \u00a71 outcome 1",
+        "spec \u00a72 one engine",
+        "spec \u00a75 verification evidence",
+        "spec \u00a76 T9"
+      ],
+      "in": [
+        "Brief, approval, message, Books, validation, suppression, and loop events"
+      ],
+      "out": [
+        "Timestamped app/logs/actions.jsonl records sufficient to reconcile each run"
+      ],
+      "done-check": "Every brief, approval, transcript, send, Books write, stock movement, blocked/suppressed event, and rejected dataset has a timestamped, attributable action-log record with identifiers needed by the stated checks.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/operations.test.mjs",
+        "checks/provider-contracts.test.mjs",
+        "checks/http.test.mjs"
+      ],
+      "implementation_notes": "Explicit failure states, immutable approvals, persisted write intents, complete test-only harness, sanitized evidence and transaction-aware action log."
+    },
+    {
+      "id": "FT-11",
+      "name": "Owner-requested brief and demo clock",
+      "serves": [
+        "spec \u00a77 idea 1",
+        "spec Pinned: Brief",
+        "eval E3"
+      ],
+      "in": [
+        "Owner click on Where I stand",
+        "DEMO_AGE_DAYS"
+      ],
+      "out": [
+        "Composed brief (summary + up to 5 cards) returned to the page",
+        "Optional WhatsApp delivery",
+        "brief line with manual:true"
+      ],
+      "done-check": "Owner can compose the brief at any time without sending; sending delivers one summary plus one card per action; manual briefs are labelled and do not count toward the two scheduled slots; demo clock ages loops for cold checks only.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/brief.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-12",
+      "name": "Owner intent on WhatsApp: natural approve, edit, ask",
+      "serves": [
+        "spec Pinned: Approve",
+        "spec \u00a72 Ask",
+        "eval F3",
+        "eval F13",
+        "eval F14",
+        "eval A1"
+      ],
+      "in": [
+        "Owner text or voice transcript, with or without a quoted card"
+      ],
+      "out": [
+        "intent audit line",
+        "approve / drop / edit / cashup / receipt / ask routing",
+        "Answer from loops, Books and stock",
+        "New card after an edit"
+      ],
+      "done-check": "A natural yes on a quoted card sends once; confidence under 0.8 sends nothing; an edit raises the version and rebinds a new card; a question is answered without any send or write; exact yes needs no model call.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/intent.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-13",
+      "name": "Event vocabulary: host and revoked lines",
+      "serves": [
+        "evals.md event vocabulary",
+        "eval A8",
+        "eval T7b",
+        "spec §6 T9"
+      ],
+      "in": [
+        "Every provider request",
+        "Every revoked pending action"
+      ],
+      "out": [
+        "host line per outbound request (host, method only)",
+        "revoked line per action with loop id and reason",
+        "app-spec.json event list matching evals.md"
+      ],
+      "done-check": "A Books read leaves host lines for the OAuth and API hosts with no token; a touch that revokes a card leaves a revoked line naming action, loop and reason.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/provider-contracts.test.mjs",
+        "checks/domain.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-14",
+      "name": "Loop model: stage, chases, reserved kg",
+      "serves": [
+        "spec Pinned: Stage",
+        "spec Pinned: Parked (chase count)",
+        "eval W5"
+      ],
+      "in": [
+        "Counterpart type on the org",
+        "Owner statement or counterpart touch that completes a stage",
+        "Approved sends and counterpart touches"
+      ],
+      "out": [
+        "stage on every loop with a typed counterpart, from the roaster, café or stockist sequence",
+        "stage line on each completion with from, completed and to",
+        "chases counts approved sends since the last counterpart touch; reserved_kg on order loops"
+      ],
+      "done-check": "A café lead starts at intro; completing sample moves it to guest slot offer with a stage line; two approved sends then a counterpart touch leave chases at 0; a stage outside the sequence is rejected.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/domain.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-15",
+      "name": "Capture: one owner message into many items",
+      "serves": [
+        "spec §2 Capture",
+        "spec Pinned: Capture",
+        "workflows A1, A2, A3, A10",
+        "eval W1",
+        "eval W2",
+        "eval W15"
+      ],
+      "in": [
+        "Owner text or transcript classified as capture",
+        "Forwarded WhatsApp messages (context.forwarded)",
+        "Organisations and lots in the store"
+      ],
+      "out": [
+        "capture line listing every item with type, loop id, duplicate flag and missing fields",
+        "one read-back message; at most one ask naming the fields an order or receipt needs",
+        "order, sample, lead, chase, stall and receipt loops; thread_append on the matching loop for forwarded messages",
+        "a stub lead org for a counterpart the data does not hold"
+      ],
+      "done-check": "Four items in one voice note give one capture line with four items, one read-back naming all four and one ask for the lot; the same order twice is one loop with duplicate: true on the second capture; a forwarded message appends to the matching loop or opens one and nothing is drafted to the forwarded party.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/capture.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-16",
+      "name": "Voice file gate and thread-aware drafts",
+      "serves": [
+        "spec Pinned: Voice file",
+        "spec Pinned: In the owner's voice",
+        "eval F17",
+        "eval T5",
+        "eval T3"
+      ],
+      "in": [
+        "app/data/voice.md first line signed-off: <date> <name> (VOICE_FILE overrides the path for checks)",
+        "Inbound counterpart messages stored on the loop thread at receive",
+        "Owner sends appended to the thread on completion"
+      ],
+      "out": [
+        "No customer draft without a signed-off file: draft_blocked line per loop, one brief line saying so, loops still listed",
+        "Draft prompt carries the voice file, the last six thread messages, what the counterpart last asked, stage and next stage",
+        "model_call lines record voice_file: true on draft calls"
+      ],
+      "done-check": "Unsigned file: zero model calls, zero actions, loops listed, one warning line; signed file: the draft call input holds the file text, the two inbound messages and the last question, and the model_call line carries voice_file: true.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/voice.test.mjs",
+        "checks/fixtures/voice-signed.md"
+      ]
+    },
+    {
+      "id": "FT-17",
+      "name": "Price list guard and offer ladder",
+      "serves": [
+        "spec Pinned: Price list",
+        "spec Pinned: Offer ladder",
+        "workflows E6, F18",
+        "eval F20",
+        "eval W7",
+        "eval T4"
+      ],
+      "in": [
+        "app/data/terms.md price rows, stall bag prices, cadence and the Never line (TERMS_FILE overrides the path for checks)",
+        "Every model draft before it becomes a card"
+      ],
+      "out": [
+        "src/terms.mjs: parseTerms, loadTerms, checkDraft",
+        "A placeholder, an off-row price or a forbidden offer gives draft_blocked plus an ask naming the gap, no card, and one brief line",
+        "The hold clears when the next draft passes"
+      ],
+      "done-check": "The real terms.md parses to the Fusion Ferment row, £8 and £28 bags and 7/5-day cadence; [price per kg], £20/kg on Fusion Ferment and a 10% first-order discount block; £13.60/kg, the W7 pass example and a pallet discount pass; a blocked draft leaves no action and the brief says what is missing.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/terms.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-18",
+      "name": "Coffee alias on every email to a coffee counterpart",
+      "serves": [
+        "spec §2 Chase (coffee alias)",
+        "spec Pinned: Coffee alias",
+        "workflow K12",
+        "eval F21"
+      ],
+      "in": [
+        "MAIL_FROM_COFFEE and ZOHO_MAIL_FROM in app/.env",
+        "The counterpart's type (roaster, café, stockist, supplier)"
+      ],
+      "out": [
+        "Draft payload carries from = coffee alias and coffee: true for coffee counterparts, with an alias_fixed line when it differs from the default",
+        "providers.email sends from that address and fixes a stray payload again at send, logged",
+        "MAIL_FROM_COFFEE joins the required keys the doctor reports"
+      ],
+      "done-check": "A roaster draft carries the coffee alias and one alias_fixed line; a market organiser draft keeps the default; the Zoho Mail body shows the alias as fromAddress even when the payload named another address.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/alias.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-19",
+      "name": "Held sends with undo",
+      "serves": [
+        "spec Pinned: Held",
+        "spec Pinned: Touch (revoke before send)",
+        "workflow L10",
+        "eval F2",
+        "eval F16",
+        "eval T1b"
+      ],
+      "in": [
+        "Owner approval of a message by tap, reply or page",
+        "DEMO_SEND_DELAY_MINUTES (60 when unset)",
+        "An undo reply on the card or the page's Undo button",
+        "The 30-second tick"
+      ],
+      "out": [
+        "approve then held with send_at; the tick's releaseDue sends due messages with demo_delay on the send line",
+        "undo gives undone, no send, loop untouched; a later yes on that card is blocked",
+        "A counterpart touch or a closed loop during the hold revokes the held card",
+        "POST /api/actions/:id/undo; Books writes stay immediate"
+      ],
+      "done-check": "A 60-minute hold sends only when due and resets the touch at send; delay 0 gives approve, held, send within one call; undo leaves held then undone with nothing sent; a reply during the hold revokes the card; the page's undo route works end to end.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/held.test.mjs",
+        "checks/intent.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-20",
+      "name": "Weekday-only scheduled briefs",
+      "serves": [
+        "spec §2.2 (weekdays, nothing at weekends)",
+        "spec Pinned: Brief",
+        "eval E3",
+        "eval E6"
+      ],
+      "in": [
+        "The London clock",
+        "ENABLE_JOBS"
+      ],
+      "out": [
+        "weekday() in domain.mjs",
+        "No scheduled brief on Saturday or Sunday; manual briefs unaffected",
+        "missedSlots on the page is empty at weekends"
+      ],
+      "done-check": "Saturday 08:00 and Sunday 18:00 produce no brief line; Monday 08:00 produces one listing the loop that went cold on Wednesday.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/brief.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-21",
+      "name": "Dashboard: owner copy, one card per loop, what leaked, undo",
+      "serves": [
+        "spec §2.2 Where I stand",
+        "spec §7 what leaked",
+        "workflow G10, L9",
+        "eval W14",
+        "eval F16",
+        "build review §3 items 1 to 7"
+      ],
+      "in": [
+        "/api/state: loops with title and why, people names, leaked, held actions"
+      ],
+      "out": [
+        "One card per loop: title (counterpart, lot or stall day), status (needs you today, cold in N days, parked), stage, why line, its draft with Approve, Edit, Drop or Undo",
+        "Owner copy: To <name> at <org> by email · test mode, lands in <test address>; setup banner reads Nothing sends yet",
+        "Lead panel collapsed to one line before qualification",
+        "What leaked tile from engine.leaked (loop_open, touch, brief lines)",
+        "Loop-less actions (introductions, receipts, sales) in their own section"
+      ],
+      "done-check": "engine.leaked counts a loop briefed, touched, briefed again as one leak and a loop briefed twice with no touch as none; a headless run of the fixture shows the cards, the tile, hold then undo with no send, and no overflow at 390 and 320 px with zero browser errors.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/dashboard.test.mjs",
+        "checks/serve-ui-fixture.mjs",
+        "checks/browser-smoke.mjs"
+      ]
+    },
+    {
+      "id": "FT-22",
+      "name": "Cadence from terms.md and closing dates near a shipment",
+      "serves": [
+        "spec Pinned: Cadence",
+        "workflows D3, E5",
+        "eval W6"
+      ],
+      "in": [
+        "terms.md cadence lines (7 days after an outreach email, 5 after a sample)",
+        "calendar.json shipments[].closing_date when present (CALENDAR_FILE overrides the path)",
+        "The loop's chases and replied flags"
+      ],
+      "out": [
+        "cadence(loop) picks the rule: sample 5 days, emailed lead with no reply 7 days, otherwise 3; due() and due_at use it",
+        "Every draft line carries cadence, cadence_days and closing_date",
+        "A chase within 10 days of a closing date names it, in the owner's own sentence when the model left it out"
+      ],
+      "done-check": "An emailed lead 6 days quiet is not chased and a sampled lead 6 days quiet is; a never-contacted lead is still cold at 3 days; the draft line records the rule and the closing date, and the text names the date before the sign-off.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/cadence.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-23",
+      "name": "Auto-replies are not touches",
+      "serves": [
+        "spec Pinned: Auto-reply",
+        "workflow E13",
+        "eval E5"
+      ],
+      "in": [
+        "Inbound mail subject and body, inbound WhatsApp text"
+      ],
+      "out": [
+        "autoReplyKind: out_of_office, bounce or read_receipt; replyClass returns auto_reply",
+        "receive logs auto_reply and returns: no touch, reply, close, thread append or revoke; intake classification is skipped"
+      ],
+      "done-check": "An out-of-office, a bounce and a read receipt on an open quote leave three auto_reply lines, no touch, reply or loop_close line, the last touch unchanged and the pending chase still pending; a real reply mentioning being back in the office still classes as a reply.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/domain.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-24",
+      "name": "Parked after three unanswered chases",
+      "serves": [
+        "spec Pinned: Parked",
+        "workflows E7, L5",
+        "eval T10"
+      ],
+      "in": [
+        "The loop's chases count (approved sends since the last counterpart touch)"
+      ],
+      "out": [
+        "Status parked after the third send with a parked line; due() is false so no draft follows",
+        "One brief line per parked loop, once, recorded in parked_notice and the brief line's parked_ids",
+        "Any counterpart touch sets it back to open with chases 0 and a touch line marked reopened; replies, intake and capture still reach a parked loop"
+      ],
+      "done-check": "Three drafted and approved sends park the quote; the next brief carries no draft and exactly one parked line; the following brief carries none; a reply reopens it with chases 0.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/parked.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-25",
+      "name": "Reservations never beyond free kg; supplier shortfall reaches every affected counterpart",
+      "serves": [
+        "spec §2 Stock",
+        "spec Pinned: Cold (over-reserved)",
+        "workflows C2, C6, C14, C15, F3",
+        "eval F18",
+        "eval F19",
+        "eval W11"
+      ],
+      "in": [
+        "Order items from capture with kg and lot",
+        "A counterpart accepting a quote (classifyIntake order_unconfirmed with kg, lot_id, delivery)",
+        "A supplier balance email (classifyIntake supplier_balance with balances per lot)"
+      ],
+      "out": [
+        "domain.reserve, reservedKg, freeKg: reserve line, or allocation_conflict naming the lot with other lots and a pre-book proposed in the reply",
+        "domain.supplierDiff: supplier_kg on the lot, supplier_diff line with the shortfall and each affected loop, affected loops made due with their chase revoked",
+        "Brief line naming the lot, the shortfall and how many counterparts; one draft per affected counterpart carrying the shortfall facts",
+        "An ask for delivery date or address when the acceptance gave none"
+      ],
+      "done-check": "With 70 kg left and 70 reserved a second 70 kg bag is refused, logged as a conflict, and the reply names Plantation A's free kg or a pre-book; 40 kg at the supplier against 55 reserved logs a 15 kg diff and the next brief drafts to both roasters with nothing sent; a lead's go-ahead reserves 20 kg on lot 2 and asks for delivery details.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/stock.reservations.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-26",
+      "name": "Own clocks: receipts, compliance dates, stall documents and transport",
+      "serves": [
+        "spec Pinned: Cold (receipt 7 days, compliance 30 days, stall 3 and 2 days)",
+        "spec §2 Stall (before the day)",
+        "workflows A8, I1, I9, F19, K10",
+        "eval E7",
+        "eval F22",
+        "eval W4"
+      ],
+      "in": [
+        "app/data/calendar.json: stall_days (date, market, status, cashed_up, documents[{name, sent}], transport_confirmed) and compliance[{id, what, due, done}]; CALENDAR_FILE overrides the path",
+        "Receipt loops opened by the receipt path or capture"
+      ],
+      "out": [
+        "engine.syncCalendar opens stall loops (cash-up due 21:00 London) and compliance loops, closes done ones, merges document state so a sent document stays sent",
+        "due(): receipt at 7 days unbooked, compliance 30 days before, stall 3 days before with a document unsent and 2 days before with transport unconfirmed",
+        "The brief names the unsent document or the transport and drafts to the organiser when the market is an org with a contact; sending that message marks the documents sent"
+      ],
+      "done-check": "A receipt 6 days old and a date 31 days out stay out of the brief and a receipt 7 days old and a date 30 days out are in it; a booked calendar stall day 3 days out opens a loop due 21:00, names the signed form with a draft to the organiser and not transport; the day after, transport is named.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/clocks.test.mjs",
+        "checks/fixtures/calendar-empty.json"
+      ],
+      "owner_ask": "Re-export calendar.json with documents and transport_confirmed per stall day and a compliance list; the current export has neither, so those clocks run only when the fields exist."
+    },
+    {
+      "id": "FT-27",
+      "name": "Ask: tax-season answer and plain refusals",
+      "serves": [
+        "spec §2 Ask",
+        "spec §4 (never move money, no filing)",
+        "workflows L11, H7, resolution rule refusals",
+        "eval F23",
+        "eval A9"
+      ],
+      "in": [
+        "Owner questions on WhatsApp",
+        "Loop store, Books snapshot, calendar loops"
+      ],
+      "out": [
+        "taxSeason(): receipts not booked, invoices unpaid, stall days not cashed up, statutory dates due, one line each with its source, ending with say 'draft them' for cards; no model call needed",
+        "refusal(): pay or move money, file with HMRC or Companies House, post publicly or edit the website, delete a Books record, create an invoice, each with the nearest in-scope step; a refused line naming the request, before any model call"
+      ],
+      "done-check": "The tax-season voice note lists every open receipt, invoice, stall day and compliance date with its source and nothing is sent or written; file my VAT return, pay the freight invoice and post on Instagram each get a plain no, a refused line and no write.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/ask.test.mjs"
+      ]
+    },
+    {
+      "id": "FT-28",
+      "name": "Probe fixes that touch the demo: AR-03, AR-07, AR-08a",
+      "serves": [
+        "spec §2 Get paid",
+        "spec §2 Stall, Pinned: Bag",
+        "spec Pinned: Right",
+        "eval F4",
+        "eval F6",
+        "eval E2",
+        "adversarial review AR-03, AR-07, AR-08a"
+      ],
+      "in": [
+        "Zoho Books invoice records (balance, status)",
+        "Owner cash-up words and the model's extraction"
+      ],
+      "out": [
+        "A missing balance fails the Books read as invalid input instead of reading as paid; a restored balance reopens a loop closed as paid",
+        "Only sent, viewed, overdue, partially paid or unpaid invoices open loops or count toward owed; draft and void close an earlier loop and preflight refuses to send a chase for them",
+        "A bag size the owner never said is dropped from the extraction so the cash-up asks for it; sizes given in a later message complete it"
+      ],
+      "done-check": "The probe script reads AR-03, AR-07 and AR-08a as reproduced: false alongside AR-01 and AR-09; the regression tests cover the null balance, the reversal, the draft invoice at sync and at send, and the cash-up without a size.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/books.test.mjs",
+        "checks/stall.test.mjs",
+        "checks/adversarial-review-2026-10-29.mjs"
+      ]
+    }
+  ],
+  "required_external_proof": [
+    "Fresh Zoho Mail/Books accounts: verify actual test mail, approved expense and sale create/readback, invoice payment closure and current cash/invoice totals.",
+    "WhatsApp: verify configured test recipients, signed webhook hosting, actual brief delivery, owner tap/quoted reply/voice approval and closed-window approved templates.",
+    "Actual configured Meta text/vision model and Meta Voice service: verify real responses, source-backed facts and complete audio transcription.",
+    "Owner synthetic dataset review and provider record mappings; public shop allowlist and optional Instagram professional-account permissions.",
+    "Always-on public HTTPS hosting remains unselected; observe the real 08:00/18:00 Europe/London cycle for 24 hours.",
+    "Live use remains outside acceptance: verify current lawful basis and explicit owner authority before APP_LIVE=true."
+  ]
+}
