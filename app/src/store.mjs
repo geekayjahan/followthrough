@@ -111,7 +111,7 @@ export class Store {
   close() {
     this.db.close();
   }
-  action(kind, payload, loop_id = null) {
+  action(kind, payload, loop_id = null, evidence = {}) {
     const action = {
       id: randomUUID(),
       kind,
@@ -130,6 +130,7 @@ export class Store {
       text: payload.text || payload.description || "",
       hash: action.hash,
       version: 1,
+      ...evidence,
     });
     return action;
   }

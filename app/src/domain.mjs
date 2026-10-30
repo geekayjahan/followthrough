@@ -45,7 +45,17 @@ export function calendarDue(timestamp, days = 3, time = "00:00") {
   }
   return new Date(target).toISOString();
 }
-export function due(loop, now = new Date()) {
+// Pinned: Cadence. The owner's rules from terms.md: 7 days after an outreach email with no reply,
+// 5 days after a sample is sent; after a reply the thread sets the next move (3 days, Pinned: Cold).
+export const DEFAULT_CADENCE = { email: 7, sample: 5, cold: 3 };
+export function cadence(loop, rules = DEFAULT_CADENCE) {
+  if (loop.type === "sample_out") return { rule: "5 days after a sample is sent", days: rules.sample ?? 5 };
+  // Only once an outreach email has gone out (a chase) with no reply since; an untouched new lead is cold at 3 days (F1).
+  if (loop.type === "lead" && (loop.chases || 0) >= 1 && !loop.replied)
+    return { rule: "7 days after an outreach email with no reply", days: rules.email ?? 7 };
+  return { rule: "3 days since the last touch", days: rules.cold ?? 3 };
+}
+export function due(loop, now = new Date(), rules = DEFAULT_CADENCE) {
   if (loop.status !== "open") return false;
   if (loop.type === "invoice") return london(now).date > loop.invoice_due;
   if (loop.type === "lot_low") return true;
@@ -54,7 +64,7 @@ export function due(loop, now = new Date()) {
       london(now).date > loop.stall_date ||
       (london(now).date === loop.stall_date && london(now).time >= "21:00")
     );
-  return dayNumber(now) - dayNumber(loop.last_touch) >= 3;
+  return dayNumber(now) - dayNumber(loop.last_touch) >= cadence(loop, rules).days;
 }
 // Pinned: Stage. One sequence per counterpart type; the next move is the stage after the last completed one.
 export const SEQUENCES = {
@@ -163,6 +173,7 @@ export class Domain {
   constructor(store, data) {
     this.s = store;
     this.data = data;
+    this.cadence = { ...DEFAULT_CADENCE, ...(data.cadence || {}) };
     if (!store.get("meta", "initialized")) {
       for (const o of data.orgs) store.put("orgs", o.id, o);
       for (const l of data.lots) store.put("lots", l.id, l);
@@ -204,7 +215,7 @@ export class Domain {
       org_id,
       status: "open",
       last_touch: now,
-      due_at: calendarDue(now),
+      due_at: calendarDue(now, cadence({ type }, this.cadence).days),
       next_move: "Review next move",
       stage: entryStage(type, org?.type),
       chases: 0,
@@ -262,8 +273,9 @@ export class Domain {
     const l = this.s.get("loops", id);
     if (!l) return;
     l.last_touch = new Date().toISOString();
-    l.due_at = calendarDue(l.last_touch);
+    if (source !== "approved send") l.replied = true;
     l.chases = source === "approved send" ? (l.chases || 0) + 1 : 0;
+    l.due_at = calendarDue(l.last_touch, cadence(l, this.cadence).days);
     this.s.put("loops", id, l);
     this.revoke(id, "new touch");
     this.s.audit("touch", { loop_id: id, source });
@@ -394,7 +406,7 @@ export class Domain {
     const orgs = this.orgs();
     return this.s
       .all("loops")
-      .filter((l) => due(l, now) && !this.blocked(l.org_id))
+      .filter((l) => due(l, now, this.cadence) && !this.blocked(l.org_id))
       .sort((a, b) => {
         const ap = warmPath(a.org_id, orgs, this.data.edges),
           bp = warmPath(b.org_id, orgs, this.data.edges);
