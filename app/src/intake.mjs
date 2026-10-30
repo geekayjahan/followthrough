@@ -1,5 +1,5 @@
 import { list } from "./config.mjs";
-import { affirmative, london } from "./domain.mjs";
+import { affirmative, london, replyClass } from "./domain.mjs";
 export function newReplyContent(html) {
   return html
     .replace(/<blockquote\b[^>]*>[\s\S]*?<\/blockquote>/gi, " ")
@@ -36,8 +36,9 @@ export function installIntake(e) {
       e.s.put("inbound", `mail:${id}`, { status: "processing" });
       try {
         const text = newReplyContent(await e.p.mailContent(id));
-        e.d.receive(org_id, text, "email", id, threaded?.id);
-        await e.classifyIntake(text, org_id, "email", id);
+        e.d.receive(org_id, text, "email", id, threaded?.id, { subject: String(m.subject || "") });
+        if (replyClass(`${m.subject || ""}\n${text}`) !== "auto_reply")
+          await e.classifyIntake(text, org_id, "email", id);
         e.s.put("inbound", `mail:${id}`, { status: "completed" });
       } catch {
         e.s.put("inbound", `mail:${id}`, {
