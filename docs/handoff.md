@@ -1,10 +1,10 @@
 # Hand-off to the next session
 
-For a fresh Claude Code session on `claude/amazing-mayer-0gknmk`. Written 30 Oct 2026 at `ab53483`, after the S2 build patched the app to spec revision 8. Everything is on this branch and pushed; the session needs nothing from any other branch and must not merge one. The previous hand-off (29 Oct, `893f654`) is in git history.
+For a fresh Claude Code session on `main`. Written 30 Oct 2026 after the S2 build patched the app to spec revision 8 (build commits `0f070ac` to `ab53483`, merged into main on 30 Oct). Main is the only branch; the session creates none and merges none. The previous hand-off (29 Oct, `893f654`) is in git history.
 
 ## Paste this as the first message
 
-> Read `docs/handoff.md` first, then the files it lists in that order. The S2 build is complete on branch `claude/amazing-mayer-0gknmk`. Your job is §4: run the credential checkpoint, then the three one-call checks, then S3 with `/eval`, then the rehearsal. Do not merge or rebase any branch. Stop at any halt in §3 and ask.
+> Read `docs/handoff.md` first, then the files it lists in that order. The S2 build is complete on `main`. Your job is §4: run the credential checkpoint, then the three one-call checks, then S3 with `/eval`, then the rehearsal. Work on main; do not create or merge branches. Stop at any halt in §3 and ask.
 
 ## 1. Read in this order (about 20 minutes)
 
@@ -94,7 +94,7 @@ Not built, by decision: Lapsed and referral (W8, W9), Monday plan (W10), deliver
 - Keys only in `app/.env` or the environment. Never ask for a value in chat.
 - No new runtime package or CDN asset without a one-way defence committed first, on its own.
 - A change that serves no spec line or eval row is an invention; stop and ask.
-- Do not merge `main`, `codex/followthrough-v0`, albattani or blissful-hamilton.
+- Main is the only branch. The old build branches are deleted; their useful files were copied in on 29 Oct.
 - Trace lines only through `node scripts/trace.mjs <session> "<event>" "<why>"`.
 
 ## 6. Open decisions for GK
