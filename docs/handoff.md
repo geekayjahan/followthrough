@@ -1,86 +1,116 @@
-# Hand-off to the build session
+# Hand-off to the next session
 
-For a fresh Claude Code session on `claude/amazing-mayer-0gknmk`, started by GK. Written 29 Oct 2026 at `6a0e2fa`. Everything below is on this branch; the session needs nothing from any other branch and must not merge one.
+For a fresh Claude Code session on `claude/amazing-mayer-0gknmk`. Written 30 Oct 2026 at `ab53483`, after the S2 build patched the app to spec revision 8. Everything is on this branch and pushed; the session needs nothing from any other branch and must not merge one. The previous hand-off (29 Oct, `893f654`) is in git history.
 
 ## Paste this as the first message
 
-> Read `docs/handoff.md` first, then the files it lists in that order. You are the S2 coder for Followthrough, patching the existing app under `app/` to spec revision 8, one feature per commit, on branch `claude/amazing-mayer-0gknmk`. Do not merge or rebase any branch. Before the first feature, run the credential checkpoint in `docs/handoff.md` §3 and stop if anything is missing. Keep every test green and the data boundary intact.
+> Read `docs/handoff.md` first, then the files it lists in that order. The S2 build is complete on branch `claude/amazing-mayer-0gknmk`. Your job is §4: run the credential checkpoint, then the three one-call checks, then S3 with `/eval`, then the rehearsal. Do not merge or rebase any branch. Stop at any halt in §3 and ask.
 
-## 1. Read in this order (about 25 minutes)
+## 1. Read in this order (about 20 minutes)
 
-1. `CLAUDE.md`, `app/CLAUDE.md`, `modules/shared-rules.md`, `modules/s2-build/build-blueprint.md`, `.claude/skills/build/memory.md` (the kit's rules: trace lines only through `node scripts/trace.mjs`, one-way defences in their own commit first, no CDN assets, one commit per feature).
-2. `app/spec.html` revision 8: §2 (jobs and tiers), Pinned words, §3, §6, Open Questions.
-3. `app/workflows.md` revision 4: the "How the agent resolves a request" section, then the section "One Core list", then the 19 Core (4 Nov) rows by id.
-4. `app/demo-scenes.md`: the six moments the build must make true.
-5. `app/evals.md`: the rows cited in §4 below. Every feature names the rows it satisfies.
-6. `app/data/voice.md`, `app/data/terms.md`, `app/data/calendar.json`: owner data the drafts and the stall loop read. Check their `signed-off:` first lines.
-7. `docs/build-review.md` §2 to §4 and §7; `docs/handoff-spec-audit.md` §C (keep, rewrite, delete) and §E.
-8. `app/port-from-albattani.md` for the reasoning behind F18 to F23, E7, A9.
-9. `app/claude-progress.txt` and `git log --oneline -40`.
+1. `CLAUDE.md`, `app/CLAUDE.md`, `modules/shared-rules.md` (trace lines only through `node scripts/trace.mjs`, one-way doors defended first, no CDN assets).
+2. `app/spec.html` revision 8: §2, Pinned words, §3, Open Questions.
+3. `app/evals.md`: every row. S3 grades these.
+4. `app/feature-list.json` rows FT-13 to FT-28: what the build added, the evals each row serves, and its tests.
+5. `app/claude-progress.txt` from the line "baseline recorded before any change" to the end, and `git log --oneline 893f654..HEAD`.
+6. `app/data/voice.md`, `app/data/terms.md`, `app/data/calendar.json`, `app/data/synthetic.json`: check the state in §3.
+7. `app/demo-scenes.md` and §7 of this file for the rehearsal.
 
-Skip `docs/kama-workflow-map.md` (evidence, not a build input) and `docs/market-research.md` (pitch material).
+Skip `docs/kama-workflow-map.md`, `docs/market-research.md`, `docs/build-review.md` and `docs/handoff-spec-audit.md`: they fed the build and are not inputs to S3.
 
-## 2. What exists
+## 2. What exists at `ab53483`
 
-Vince's v0 (Node, `node:sqlite`, vanilla UI, one dependency) plus this branch's additions: manual brief and demo clock, brief as summary plus five cards, intent classifier with natural approve, edit and ask, enrichment input cap, model usage logging, process-env override. 43 tests pass with `node --test checks/*.test.mjs`; the adversarial probes run with `node checks/adversarial-review-2026-10-29.mjs` and must show AR-01 and AR-09 as `reproduced: false`, the rest still true. Run both before touching anything and record the result in the trace.
+Sixteen features, one commit each, on top of Vince's v0 and the 29 Oct additions. `node --test checks/*.test.mjs` passes 81 tests; `node checks/syntax.mjs` and `node checks/secret-scan.mjs` are clean. `node checks/adversarial-review-2026-10-29.mjs` reads AR-01, AR-03, AR-07, AR-08a, AR-09 and LIMIT-01a as `reproduced: false` (LIMIT-01a because a brief now survives a Books read failure with a warning); the rest still reproduce and are not demo-path. Run all four before touching anything and record the result in the trace.
 
-Not built (spec rev 8 names them): Capture, Stage, Cadence, Offer ladder, Price list guard, Coffee alias, Held with undo, Voice file gate, thread-aware drafts, Auto-reply, Parked, weekday-only briefs, reservations and supplier shortfall, own clocks for receipts and compliance dates, stall documents and transport, outbound host logging, Lapsed and referral, Monday plan, "what leaked" tile, the dashboard copy fixes.
+| Commit | Feature | Evals | Tests |
+|---|---|---|---|
+| `72f25ff` | Event vocabulary: `host` on every outbound request, `revoked` on every revoked card; `loop_open` lines carry `loop_type` | A8, T7b | provider-contracts, domain |
+| `22d74e1` | Loop model: `stage` from the roaster, café or stockist sequence, `chases`, `reserved_kg`; `domain.complete` logs `stage` | W5 | domain |
+| `a1373c1` | Capture: `capture` intent splits one owner message into items, one read-back, one ask; dedup by counterpart and reference; forwarded messages `thread_append` | W1, W2, W15 | capture |
+| `06092a8` | Voice file gate: no customer draft without `signed-off:` on `voice.md`; drafts carry the file, the thread and the last question; `model_call` has `voice_file` | F17, T5, T3 | voice |
+| `30357b8` | Price list guard and offer ladder from `terms.md` (`src/terms.mjs`); `draft_blocked` plus an ask | F20, W7, T4 | terms |
+| `b7211f7` | Coffee alias: `MAIL_FROM_COFFEE` at draft and again at send, `alias_fixed`; the key is now required | F21 | alias |
+| `5ee4dbb` | Held sends: approve holds a message for `DEMO_SEND_DELAY_MINUTES` (60 when unset); the tick releases; `undo` by reply or page; a touch during the hold revokes | F2, F16, T1b | held |
+| `6d456a5` | Weekday-only scheduled briefs | E3, E6 | brief |
+| `b2fdf7f` | Where I stand: one card per loop with its draft, owner copy, lot names, collapsed lead panel, what-leaked tile, Undo button | W14, F16 | dashboard, browser fixture |
+| `991106b` | Cadence from `terms.md`: 5 days after a sample, 7 after an outreach send with no reply, else 3; chases within 10 days of a calendar shipment closing date name it | W6 | cadence |
+| `cc23b62` | Auto-replies (out of office, bounce, read receipt) logged `auto_reply`, never a touch | E5 | domain |
+| `5ea39ef` | Parked after three unanswered chases, one brief line, a touch reopens | T10 | parked |
+| `017de7f` | Reservations never beyond free kg (`allocation_conflict`); supplier balance email gives `supplier_diff` and one draft per affected counterpart; an accepted quote reserves and asks for delivery details | F18, F19, W11 | stock.reservations |
+| `c3adfc2` | Own clocks: receipt 7 days, compliance 30 days before, stall 3 days before with a document unsent and 2 days with transport unconfirmed; `engine.syncCalendar` reads `calendar.json` | E7, F22, W4 | clocks |
+| `47e17db` | Ask: tax-season answer from the store with a source per line; plain refusals with a `refused` line | F23, A9 | ask |
+| `ab53483` | AR-03 null balance rejected, AR-07 draft invoices never chased, AR-08a bag size must be spoken | F4, F6, E2 | books, stall |
 
-## 3. Credential checkpoint (halt if any is missing)
+Judgement calls the build made where the spec left room, each in the trace:
 
-Names only, never values; `npm --prefix app run doctor` prints what is missing. Required for the 4 Nov cut:
+- The 7-day cadence applies only after an outreach send; a never-contacted lead is still cold at 3 days, so F1 holds.
+- A parked loop has status `parked` (the eval's word) and still receives replies, intake and capture.
+- A counterpart the owner names but the data does not hold becomes a stub lead org (`source: "capture"`) so the loop exists; it gets no draft until a person is added.
+- Sending the organiser message for a stall day marks its documents sent, since the app cannot attach files.
+- `DEMO_SEND_DELAY_MINUTES` unset means a 60-minute hold. Every test that expects an immediate send sets it to 0.
+- Tests read `checks/fixtures/` (a signed voice file, an unsigned one, an empty calendar) through `VOICE_FILE`, `TERMS_FILE` and `CALENDAR_FILE` overrides, so the real owner files never shape a test.
+- A stale "yes" on an undone, edited or revoked card logs `blocked` and replies, instead of failing the inbound event.
+
+## 3. Checkpoint (halt if anything is missing)
+
+Run `npm --prefix app run doctor`. On 30 Oct it listed 24 missing keys and `synthetic_approved: false`, and GK chose to build offline. Nothing below can run until these exist. Names only, never values; values go in `app/.env` or the cloud environment's variables, never in chat or any other file.
 
 | Group | Keys |
 |---|---|
-| App | `OWNER_PASSWORD`, `APP_URL` (public HTTPS once hosted), `SYNTHETIC_DATA_APPROVED=true`, `DEMO_AGE_DAYS`, `DEMO_SEND_DELAY_MINUTES=0`, `ENABLE_JOBS`, `ENABLE_POLLING=false` |
-| Model | `MODEL_BASE_URL=https://inference.baseten.co/v1`, `MODEL_NAME`, `MODEL_API_KEY`; `VISION_MODEL_*` only if an `image_url` test call fails; `VOICE_TRANSCRIBE_KEY` |
+| App | `OWNER_PASSWORD`, `APP_URL`, `SYNTHETIC_DATA_APPROVED=true`, `DEMO_AGE_DAYS`, `DEMO_SEND_DELAY_MINUTES=0` for the demo, `ENABLE_JOBS`, `ENABLE_POLLING=false` |
+| Model | `MODEL_BASE_URL=https://inference.baseten.co/v1`, `MODEL_NAME`, `MODEL_API_KEY`; `VISION_MODEL_*` only if an `image_url` call fails; `VOICE_TRANSCRIBE_KEY` |
 | WhatsApp | `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TOKEN`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, `GRAPH_API_VERSION`, `WHATSAPP_TEST_NUMBERS`, `WHATSAPP_OWNER_NUMBERS` |
 | Zoho Books | `ZOHO_REGION`, `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, `ZOHO_BOOKS_ORG_ID`, `EXPENSE_ACCOUNT_ID`, `CASH_ACCOUNT_ID`, `STALL_CUSTOMER_ID` |
-| Zoho Mail (dummy account) | `ZOHO_MAIL_ACCOUNT_ID`, `ZOHO_MAIL_FROM`, `MAIL_FROM_COFFEE`, `OWNER_TEST_EMAILS`; `ZOHO_MAIL_INBOX_ID` only if polling |
-| Enrichment | `ENRICHMENT_ALLOWED_HOSTS` (the hosted fake shop pages) |
+| Zoho Mail | `ZOHO_MAIL_ACCOUNT_ID`, `ZOHO_MAIL_FROM`, `MAIL_FROM_COFFEE`, `OWNER_TEST_EMAILS`; `ZOHO_MAIL_INBOX_ID` only if polling |
+| Enrichment | `ENRICHMENT_ALLOWED_HOSTS` |
 
-Also required: `app/data/synthetic.json` v1 per `docs/build-review.md` §5 (every email `@example.test`, WhatsApp numbers on the test list, Books ids mapped, lead websites on the allowlisted hosts), and `signed-off:` lines in `voice.md` and `terms.md`. Missing data is a halt like a missing key. Ask GK; never type a value into any file but `app/.env`.
+Owner data, all still outstanding on 30 Oct:
 
-Three one-call checks before feature 1, logged in the trace: a `/chat/completions` call with `response_format: {type: "json_object"}` (if rejected, switch `providers.model()` to `json_schema`); the same with an `image_url`; a `/v1/asr/transcribe` call with a short WAV.
+| File | State now | Needed |
+|---|---|---|
+| `app/data/voice.md` | first line still "(not yet ...)" | `signed-off: <date> GK`. Until then every customer draft is refused by design and the brief says so. |
+| `app/data/terms.md` | same | same line; the guard parses the file regardless |
+| `app/data/synthetic.json` | four-org starter, no Books ids, no invoices, no orders of note | v1 per `docs/build-review.md` §5: every org with a `type` (roaster, cafe, stockist, supplier, market), people on `@example.test` and the test numbers, `books_contact_id` and lot `books_item_id` mapped, lead websites on the allowlisted hosts, a few invoices and orders so the invoice and reservation scenes have content. Supply it before the first real run: the app refuses a changed dataset once the database exists. |
+| `app/data/calendar.json` | stall days only | re-export with `documents: [{name, sent}]` and `transport_confirmed` per stall day, a `compliance: [{id, what, due, done}]` list, and `shipments: [{name, closing_date}]` if a closing date should be named |
 
-## 4. Build order, one commit each
+Who supplies what: the sign-off lines and voice samples are GK's own words and figures; the ids and keys come from whoever holds the Zoho and Meta accounts.
 
-Each row: what to change, where, which eval rows it satisfies. Rebuild the inbound path and the loop model first; every later row depends on them.
+## 4. What the next session does, in order
 
-| # | Feature | Where | Satisfies |
-|---|---|---|---|
-| 1 | Event vocabulary: add the audit events the evals grade (`capture`, `thread_append`, `stage`, `reserve`, `allocation_conflict`, `supplier_diff`, `draft_blocked`, `alias_fixed`, `held`, `undone`, `revoked`, `auto_reply`, `parked`, `lapsed`, `books_read`, `host`, `refused`) to `app-spec.json` and emit `host` from `providers.jsonRequest` and `revoked` from `domain.revoke` | `src/providers.mjs`, `src/domain.mjs`, `app-spec.json` | A8, T7b |
-| 2 | Loop model: `stage`, `chases`, `reserved_kg` on loops; sequences per counterpart type from spec Pinned: Stage; `domain.touch` resets `chases` on a counterpart touch | `src/domain.mjs` | W5 |
-| 3 | Capture: a new intent `capture` returning `items[]`; each item routes to its workflow; one read-back; dedup by counterpart and reference; forwarded messages attach as `thread_append` | `src/intake.mjs` (extend `e.intent`, add `e.capture`) | W1, W2, W15 |
-| 4 | Voice file gate and thread-aware drafts: `draft()` refuses without a signed-off `app/data/voice.md`, carries the file and the loop's last three inbound messages (store them on `receive`) in the prompt; brief says so when blocked | `src/engine.mjs`, `src/domain.mjs` | F17, T5, T3 |
-| 5 | Price list guard and offer ladder: parse `app/data/terms.md` price rows and ladder rules; a draft with `[placeholder]` or an off-row price or a forbidden offer is `draft_blocked` and asks the owner | `src/engine.mjs`, new `src/terms.mjs` | F20, W7, T4 |
-| 6 | Coffee alias: `MAIL_FROM_COFFEE` replaces `ZOHO_MAIL_FROM` for coffee counterparts; log `alias_fixed` | `src/providers.mjs`, `src/engine.mjs` | F21 |
-| 7 | Held sends with undo: approve on a message sets `held` with `send_at`; the tick sends due ones; `undo` reply or page button cancels; `DEMO_SEND_DELAY_MINUTES` | `src/engine.mjs`, `src/server.mjs`, `public/app.js` | F2, F16 |
-| 8 | Weekday-only scheduled briefs; `missedSlots` skips weekends | `src/engine.mjs`, `src/server.mjs` | E3, E6 |
-| 9 | Cadence from `terms.md` (7 days after email, 5 after sample; closing date named near a shipment) | `src/domain.mjs` `due()`, `src/engine.mjs` | W6 |
-| 10 | Auto-reply detection in `replyClass` (OOO, bounce, read receipt): no touch, no close, `auto_reply` logged | `src/domain.mjs` | E5 |
-| 11 | Parked after three unanswered chases; one brief line; counterpart touch reopens | `src/domain.mjs`, `src/engine.mjs` | T10 |
-| 12 | Reservations and supplier shortfall: `reserve` never beyond free kg, `allocation_conflict`; parse a supplier balance email into `supplier_diff` and one draft per affected counterpart | `src/domain.mjs`, `src/intake.mjs`, `src/engine.mjs` | F18, F19, W11 |
-| 13 | Own clocks: receipts cold at 7 days unbooked; compliance dates from `calendar.json` cold 30 days before; stall days cold 3 days before with a document unsent, 2 days before with transport unconfirmed | `src/domain.mjs` `due()` | E7, F22, W4 |
-| 14 | Ask extensions: tax-season answer, plain refusal with `refused` for out-of-scope asks | `src/intake.mjs` `e.answer` | F23, A9 |
-| 15 | Dashboard: owner copy on cards, one card per loop with its draft, lead panel collapsed before qualification, lot name on lot-low loops, "what leaked" tile, Undo button on held cards | `public/` | W14, F16 |
-| 16 | Fixes from Vince's probes that touch the demo: AR-03 (null balance), AR-07 (draft invoices), AR-08a (cash-up without bag size) | `src/books.mjs`, `src/stall.mjs` | F4, F6, E2 |
+1. Baseline: the four checks in §2, then one trace line.
+2. Checkpoint §3. Halt and ask on anything missing.
+3. Three one-call checks, each traced: `/chat/completions` with `response_format: {type: "json_object"}` (if rejected, switch `providers.model()` to `json_schema` in `src/providers.mjs`); the same call with an `image_url`; `/v1/asr/transcribe` with a short WAV.
+4. Start the app and compose a brief from the page with `DEMO_AGE_DAYS=3`. Expect cards only once `voice.md` is signed.
+5. `/eval` (S3). The judge grades `app/evals.md` from `app/logs/actions.jsonl`, Books, the test inbox and the page. Expect `app/eval-results.html` and `app/eval-runs.json`.
+6. Failures go to S4, one surgical fix at a time, each committed and traced.
+7. Rehearsal, §7.
 
-Rows 1 to 8 and 15 are the 4 Nov cut; 9 to 14 and 16 follow in the same order if time allows. Each commit: tests for the row (extend the matching `checks/*.test.mjs`), `node checks/syntax.mjs`, the full suite green, `node scripts/trace.mjs S2.CODER "<feature> landed" "<why>"`, then commit.
+Not built, by decision: Lapsed and referral (W8, W9), Monday plan (W10), delivery-note photos (W3), shipped-without-invoice (W12). They are Core (after 4 Nov) rows and need either Books order history or the vision path; add them after S3 if time allows, one commit each.
 
 ## 5. Rules that do not bend
 
-- No real person's data in any checked-in file: synthetic counterparts only, `@example.test`, test numbers. The owner's own signature is the one exception.
+- No real person's data in any checked-in file: synthetic counterparts only, `@example.test`, test numbers. GK's own signature is the one exception.
 - Nothing sends, writes to Books or reaches a non-test recipient without `SYNTHETIC_DATA_APPROVED=true` and an owner approval; `APP_LIVE` stays `false`.
-- Keys only in `app/.env`. Never ask for a value in chat.
-- Tech stack as in `app/app-spec.json`: no new runtime package, no CDN asset, without a one-way defence in the trace first.
-- A feature that serves no spec line or eval row is an invention; stop and ask.
-- Don't merge `main`, `codex/followthrough-v0`, albattani or blissful-hamilton. Files from them are already copied here.
+- Keys only in `app/.env` or the environment. Never ask for a value in chat.
+- No new runtime package or CDN asset without a one-way defence committed first, on its own.
+- A change that serves no spec line or eval row is an invention; stop and ask.
+- Do not merge `main`, `codex/followthrough-v0`, albattani or blissful-hamilton.
+- Trace lines only through `node scripts/trace.mjs <session> "<event>" "<why>"`.
 
-## 6. When the owner is in the room
+## 6. Open decisions for GK
 
-Ask these at the start, in this order, and record the answers in `docs/decisions.md`: the two sign-off lines; lapsed days; deposit 30 or 50%; cold-send cap; retention; hosting vendor; whether Zoho Mail is wired for the demo or email is shown in the log only. `docs/setup-interview.md` has the full interview if the setup owner is present too.
+Record answers in `docs/decisions.md`: lapsed days (45 café, 90 roaster until set); deposit 30% or 50%; cold-send cap 20 or 30; retention 12, 24 or 36 months; hosting vendor and the public HTTPS webhook URL; whether Zoho Mail is wired for the demo or email is shown in the log only; which price column a quote uses by default (list or suggested in `terms.md`).
 
 ## 7. Demo rehearsal (3 Nov)
 
-With the demo clock on and `DEMO_SEND_DELAY_MINUTES=0`: compose the brief from the page, tap approve on the warm-lead card and watch the test inbox, send "yeah go ahead" on the invoice card, send the cash-up voice note and watch Books and the lot, open Where I stand, scroll `logs/actions.jsonl`. Each step maps to a row in `app/demo-scenes.md` and an eval row; anything that fails goes to `/surgical-fix`, one change at a time.
+With `DEMO_AGE_DAYS=3` and `DEMO_SEND_DELAY_MINUTES=0`:
+
+1. Compose the brief from the page: warm lead first, each loop with its draft, the what-leaked tile.
+2. Tap approve on the warm-lead card; watch `approve`, `held` with `demo_delay: 0`, then `send` in the log and the message in the test inbox from the coffee alias.
+3. Reply "yeah go ahead" on the invoice card by voice note; then "undo" on another card and confirm nothing sends.
+4. Send the cash-up voice note; confirm the ask for the bag size, then the Books sale and the lot dropping by 1.5 kg.
+5. Send a supplier balance email to the test inbox and compose again: the shortfall line and one draft per roaster.
+6. Voice note "it's tax season, what am I missing?", then "file my VAT return": the sourced list, then the plain no with a `refused` line.
+7. Open Where I stand and scroll `logs/actions.jsonl`.
+
+Each step maps to a row in `app/demo-scenes.md` and an eval row. Anything that fails goes to `/surgical-fix`, one change at a time.
