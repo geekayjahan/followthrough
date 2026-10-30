@@ -25,6 +25,7 @@ const cfg = {
   SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_SEND_DELAY_MINUTES: "0",
   WHATSAPP_TEST_NUMBERS: "+15555550002", WHATSAPP_OWNER_NUMBERS: "+15555550002",
   VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
+  CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
 };
 test("F18: a reservation beyond free kg is refused with an allocation_conflict naming the lot, and another lot or a pre-book is proposed", async () => {
   const s = new Store(":memory:"), d = new Domain(s, data());

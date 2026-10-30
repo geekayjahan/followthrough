@@ -43,6 +43,7 @@ test("F20: a blocked draft produces no card, a draft_blocked line and an ask nam
   const e = new Engine(s, d, { model: async () => ({ text, subject: "Price" }) }, {
     SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "owner@example.test", APP_URL: "http://x", DEMO_AGE_DAYS: "3",
     VOICE_FILE: new URL("./fixtures/voice-signed.md", import.meta.url).pathname,
+    CALENDAR_FILE: new URL("./fixtures/calendar-empty.json", import.meta.url).pathname,
   });
   d.loop("quote", "c", "q");
   const brief = await e.brief(new Date(), { manual: true, send: false });

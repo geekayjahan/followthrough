@@ -71,6 +71,11 @@ export function createApplication({
   installStock(e);
   installEnrichment(e);
   installIntake(e);
+  try {
+    e.syncCalendar();
+  } catch {
+    s.audit("blocked", { reason: "calendar_sync_failed" });
+  }
   for (const a of s.all("actions"))
     if (a.status === "executing") {
       a.status = "needs_reconciliation";
