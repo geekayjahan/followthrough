@@ -491,6 +491,37 @@
       "local_evidence": [
         "checks/alias.test.mjs"
       ]
+    },
+    {
+      "id": "FT-19",
+      "name": "Held sends with undo",
+      "serves": [
+        "spec Pinned: Held",
+        "spec Pinned: Touch (revoke before send)",
+        "workflow L10",
+        "eval F2",
+        "eval F16",
+        "eval T1b"
+      ],
+      "in": [
+        "Owner approval of a message by tap, reply or page",
+        "DEMO_SEND_DELAY_MINUTES (60 when unset)",
+        "An undo reply on the card or the page's Undo button",
+        "The 30-second tick"
+      ],
+      "out": [
+        "approve then held with send_at; the tick's releaseDue sends due messages with demo_delay on the send line",
+        "undo gives undone, no send, loop untouched; a later yes on that card is blocked",
+        "A counterpart touch or a closed loop during the hold revokes the held card",
+        "POST /api/actions/:id/undo; Books writes stay immediate"
+      ],
+      "done-check": "A 60-minute hold sends only when due and resets the touch at send; delay 0 gives approve, held, send within one call; undo leaves held then undone with nothing sent; a reply during the hold revokes the card; the page's undo route works end to end.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/held.test.mjs",
+        "checks/intent.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

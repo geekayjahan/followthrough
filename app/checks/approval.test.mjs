@@ -24,6 +24,7 @@ function setup(p = {}) {
     d = new Domain(s, data),
     e = new Engine(s, d, p, {
       SYNTHETIC_DATA_APPROVED: "true",
+  DEMO_SEND_DELAY_MINUTES: "0",
       OWNER_TEST_EMAILS: "owner@example.test",
     });
   const l = d.loop("quote", "o", "q");

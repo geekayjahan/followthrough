@@ -97,7 +97,7 @@ test("paid invoice preflight prevents a stale approval external send", async () 
           sends++;
         },
       },
-      { SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "o@example.test" },
+      { SYNTHETIC_DATA_APPROVED: "true", OWNER_TEST_EMAILS: "o@example.test", DEMO_SEND_DELAY_MINUTES: "0" },
     );
   const l = d.loop("invoice", "o", "i", {
       books_invoice_id: "i",

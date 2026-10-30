@@ -252,7 +252,7 @@ export function createApplication({
           return send(res, 200, { ok: true });
         }
         const action = url.pathname.match(
-          /^\/api\/actions\/([a-f0-9-]{36})\/(approve|edit|drop)$/,
+          /^\/api\/actions\/([a-f0-9-]{36})\/(approve|edit|drop|undo)$/,
         );
         if (action) return send(res, 200, await e[action[2]](action[1], input));
         const qualify = url.pathname.match(/^\/api\/qualify\/([^/]+)$/);
@@ -274,6 +274,8 @@ export function createApplication({
     if (busy) return;
     busy = true;
     try {
+      // Held customer messages leave when their hold passes, whatever the job flags say (Pinned: Held).
+      await e.releaseDue();
       e.refreshStock();
       if (c.ENABLE_POLLING === "true") {
         await e.syncBooks();
@@ -293,9 +295,9 @@ export function createApplication({
     engine: e,
     domain: d,
     startJobs() {
-      if (c.ENABLE_JOBS === "true" || c.ENABLE_POLLING === "true")
-        timer = setInterval(tick, 30000);
+      timer = setInterval(tick, 30000);
     },
+    tick,
     async close() {
       clearInterval(timer);
       await new Promise((resolve) => server.close(resolve));
