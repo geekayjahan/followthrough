@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { hash } from "./store.mjs";
 import { connected, recipient, list, safeError, ROOT } from "./config.mjs";
-import { london, warmPath, affirmative, demoNow, nextStage, weekday } from "./domain.mjs";
+import { london, warmPath, affirmative, demoNow, nextStage, weekday, cadence, dayNumber } from "./domain.mjs";
 import { loadTerms, checkDraft } from "./terms.mjs";
 // Pinned: Voice file. Signed off when the first line reads "signed-off: <date> <name>".
 export function readVoiceFile(path) {
@@ -12,6 +12,10 @@ export function readVoiceFile(path) {
   const m = first.match(/^signed-off:\s*(\d{4}-\d{2}-\d{2}|\d{1,2} \w+ \d{4})\s+(\S.*)$/);
   if (!m) return { ok: false, reason: "voice file needs a signed-off first line", text: "" };
   return { ok: true, signed_off: { date: m[1], by: m[2].trim() }, text };
+}
+// "Friday 30 October" from an ISO date, the way the owner writes closing dates.
+export function longDate(iso) {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/London" });
 }
 // A coffee counterpart: a roaster, café, stockist or supplier (market organisers are not).
 export const isCoffee = (org) => ["roaster", "cafe", "stockist", "supplier"].includes(org?.type) || org?.coffee === true;
@@ -23,6 +27,27 @@ export class Engine {
     this.c = c;
     this.voicePath = c.VOICE_FILE || resolve(ROOT, "data/voice.md");
     this.termsPath = c.TERMS_FILE || resolve(ROOT, "data/terms.md");
+    this.calendarPath = c.CALENDAR_FILE || resolve(ROOT, "data/calendar.json");
+    // Pinned: Cadence. The owner's day counts come from terms.md, not from code.
+    const t = this.terms();
+    if (t.ok && domain) domain.cadence = { ...domain.cadence, ...t.cadence };
+  }
+  // The owner's calendar export: stall days, and shipments with closing dates when present.
+  calendar() {
+    try {
+      return existsSync(this.calendarPath) ? JSON.parse(readFileSync(this.calendarPath, "utf8")) : {};
+    } catch {
+      return {};
+    }
+  }
+  // The next shipment closing date within `days` of now, named in every chase near it (terms.md).
+  closingDate(now = new Date(), days = 10) {
+    const soon = (this.calendar().shipments || [])
+      .filter((s) => /^\d{4}-\d{2}-\d{2}$/.test(s.closing_date || ""))
+      .map((s) => ({ ...s, delta: dayNumber(`${s.closing_date}T12:00:00Z`) - dayNumber(now) }))
+      .filter((s) => s.delta >= 0 && s.delta <= days)
+      .sort((a, b) => a.delta - b.delta);
+    return soon[0] || null;
   }
   terms() {
     return loadTerms(this.termsPath);
@@ -71,6 +96,9 @@ export class Engine {
     const names = path.map((id) => this.s.get("orgs", id)?.name);
     const thread = this.d.thread(loop.id, 6);
     const lastAsk = [...thread].reverse().find((m) => m.from === "counterpart")?.text || null;
+    const rule = cadence(loop, this.d.cadence);
+    const closing = this.closingDate(demoNow(this.c));
+    const closingText = closing ? longDate(closing.closing_date) : null;
     const r = await this.p.model(
       "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. Name the shared connection when supplied. Never name another buyer or roaster.",
       {
@@ -81,6 +109,8 @@ export class Engine {
         thread,
         counterpart_last_asked: lastAsk,
         path: names,
+        cadence: rule.rule,
+        shipment_closing_date: closingText ? { date: closingText, note: "Name this closing date in the message." } : null,
       },
       { maxTokens: 900, voice_file: true },
     );
@@ -99,6 +129,9 @@ export class Engine {
         !r.text.includes(String(loop.amount)))
     )
       throw Error("Model invoice draft omitted invoice number or amount");
+    // A chase near a shipment names the closing date, in the owner's own sentence when the model left it out.
+    if (closingText && !r.text.includes(closingText))
+      r.text = r.text.replace(/\n\s*(Thank you\.?|Best)\s*$|$/m, `\n\nI'm closing orders for the next shipment on ${closingText}.$&`).replace(/\n{3,}/g, "\n\n");
     // Pinned: Price list, Offer ladder. A placeholder, an off-list price or a forbidden offer never reaches a card.
     const blocked = checkDraft(r.text, this.terms());
     if (blocked) {
@@ -140,6 +173,7 @@ export class Engine {
         path,
       },
       loop.id,
+      { cadence: rule.rule, cadence_days: rule.days, closing_date: closing?.closing_date || null },
     );
   }
   validateAction(id, input) {

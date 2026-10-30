@@ -577,6 +577,31 @@
         "checks/serve-ui-fixture.mjs",
         "checks/browser-smoke.mjs"
       ]
+    },
+    {
+      "id": "FT-22",
+      "name": "Cadence from terms.md and closing dates near a shipment",
+      "serves": [
+        "spec Pinned: Cadence",
+        "workflows D3, E5",
+        "eval W6"
+      ],
+      "in": [
+        "terms.md cadence lines (7 days after an outreach email, 5 after a sample)",
+        "calendar.json shipments[].closing_date when present (CALENDAR_FILE overrides the path)",
+        "The loop's chases and replied flags"
+      ],
+      "out": [
+        "cadence(loop) picks the rule: sample 5 days, emailed lead with no reply 7 days, otherwise 3; due() and due_at use it",
+        "Every draft line carries cadence, cadence_days and closing_date",
+        "A chase within 10 days of a closing date names it, in the owner's own sentence when the model left it out"
+      ],
+      "done-check": "An emailed lead 6 days quiet is not chased and a sampled lead 6 days quiet is; a never-contacted lead is still cold at 3 days; the draft line records the rule and the closing date, and the text names the date before the sign-off.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/cadence.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

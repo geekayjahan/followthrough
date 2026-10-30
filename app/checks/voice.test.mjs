@@ -17,7 +17,7 @@ test("F17: without a signed-off voice file no customer draft is produced, the br
   let calls = 0;
   const e = new Engine(s, d, { model: async () => { calls++; return { text: "x", subject: "y" }; } }, { ...cfg, VOICE_FILE: unsigned });
   d.loop("quote", "c", "q1");
-  d.loop("sample_out", "c", "s1");
+  d.loop("order_unconfirmed", "c", "o1");
   const brief = await e.brief(new Date(), { manual: true, send: false });
   assert.equal(calls, 0);
   assert.equal(brief.actions.length, 0);
