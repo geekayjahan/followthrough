@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Store } from "../src/store.mjs";
-import { Domain, due, london, affirmative, warmPath } from "../src/domain.mjs";
+import { Domain, due, london, affirmative, warmPath, replyClass } from "../src/domain.mjs";
 const fixture = {
   orgs: [
     { id: "a", status: "lead", website: "https://a.example.test" },
@@ -104,5 +104,24 @@ test("loops carry a stage from the counterpart's sequence; completing one moves 
   d.touch(order.id, "email");
   assert.equal(s.get("loops", order.id).chases, 0);
   assert.throws(() => d.complete(order.id, "guest slot offer"), /Unknown stage/);
+  s.close();
+});
+test("E5: an out-of-office, a bounce or a read receipt is no touch, no reply and no close; it is logged auto_reply and the chase stays on schedule", () => {
+  const s = new Store(":memory:"),
+    d = new Domain(s, fixture);
+  const l = d.loop("quote", "c", "q-auto");
+  const before = s.get("loops", l.id).last_touch;
+  const a = s.action("message", { text: "chase" }, l.id);
+  d.receive("c", "Thank you for your email. I am out of the office until Monday 9 November with limited access to email.", "email", "ooo");
+  d.receive("c", "Delivery Status Notification (Failure): the address could not be delivered to.", "email", "bounce", l.id, { subject: "Undeliverable: Samples" });
+  d.receive("c", "Your message was read on 30 October.", "email", "receipt", l.id, { subject: "Read: Samples" });
+  const types = s.events().map((x) => x.type);
+  assert.equal(types.filter((t) => t === "auto_reply").length, 3);
+  assert.deepEqual(s.events().filter((x) => x.type === "auto_reply").map((x) => x.kind).reverse(), ["out_of_office", "bounce", "read_receipt"]);
+  assert.ok(!types.some((t) => ["touch", "reply", "loop_close"].includes(t)));
+  assert.equal(s.get("loops", l.id).last_touch, before);
+  assert.equal(s.get("actions", a.id).status, "pending", "the pending chase is not revoked");
+  assert.equal(replyClass("Thanks, I'm back in the office now and keen to order"), "reply");
+  assert.equal(replyClass("not now, maybe later"), "soft_no");
   s.close();
 });

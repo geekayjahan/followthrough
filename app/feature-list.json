@@ -602,6 +602,28 @@
       "local_evidence": [
         "checks/cadence.test.mjs"
       ]
+    },
+    {
+      "id": "FT-23",
+      "name": "Auto-replies are not touches",
+      "serves": [
+        "spec Pinned: Auto-reply",
+        "workflow E13",
+        "eval E5"
+      ],
+      "in": [
+        "Inbound mail subject and body, inbound WhatsApp text"
+      ],
+      "out": [
+        "autoReplyKind: out_of_office, bounce or read_receipt; replyClass returns auto_reply",
+        "receive logs auto_reply and returns: no touch, reply, close, thread append or revoke; intake classification is skipped"
+      ],
+      "done-check": "An out-of-office, a bounce and a read receipt on an open quote leave three auto_reply lines, no touch, reply or loop_close line, the last touch unchanged and the pending chase still pending; a real reply mentioning being back in the office still classes as a reply.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/domain.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

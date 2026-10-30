@@ -142,7 +142,19 @@ export function warmPath(id, orgs, edges) {
   }
   return [];
 }
+// Pinned: Auto-reply. An out-of-office, bounce, delivery or read notification: not a touch, not a reply.
+export function autoReplyKind(text) {
+  const t = String(text || "");
+  if (/\b(mailer-daemon|undeliverable|delivery (status notification|has failed|failed|failure)|could not be delivered|address (not found|rejected)|user unknown|mailbox (unavailable|full)|message blocked|returned mail)\b/i.test(t))
+    return "bounce";
+  if (/\b(out of (the )?office|automatic reply|auto-?reply|autoreply|automated response|on (annual|parental|sick) leave|away from (my|the) (desk|office)|currently (away|out of the office)|limited access to (my )?e-?mail|will be back (on|in)|back in the office on)\b/i.test(t))
+    return "out_of_office";
+  if (/\b(read receipt|your message\b.{0,40}\b(was|has been) read|^read:|message read|opened your (e-?mail|message))\b/im.test(t))
+    return "read_receipt";
+  return null;
+}
 export function replyClass(text) {
+  if (autoReplyKind(text)) return "auto_reply";
   if (
     /\b(?:don't|do not) stop (?:contacting|messaging|emailing|calling)\b/i.test(
       text,
@@ -323,14 +335,19 @@ export class Domain {
     this.revoke(id, reason);
     this.s.audit("loop_close", { loop_id: id, reason });
   }
-  receive(org_id, text, source, event_id, loop_id) {
+  receive(org_id, text, source, event_id, loop_id, { subject = "" } = {}) {
     if (!this.s.get("orgs", org_id))
       throw Error("Unknown synthetic organization");
     if (this.blocked(org_id)) {
       this.s.audit("suppressed", { org_id, source });
       return;
     }
-    const classification = replyClass(text);
+    const classification = replyClass(subject ? `${subject}\n${text}` : text);
+    if (classification === "auto_reply") {
+      // The clock keeps running and the next chase comes as scheduled.
+      this.s.audit("auto_reply", { org_id, event_id, source, kind: autoReplyKind(subject ? `${subject}\n${text}` : text), loop_id: loop_id || null });
+      return;
+    }
     if (classification === "declined") {
       this.suppress(org_id);
       return;
