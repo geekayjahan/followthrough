@@ -705,6 +705,31 @@
         "checks/fixtures/calendar-empty.json"
       ],
       "owner_ask": "Re-export calendar.json with documents and transport_confirmed per stall day and a compliance list; the current export has neither, so those clocks run only when the fields exist."
+    },
+    {
+      "id": "FT-27",
+      "name": "Ask: tax-season answer and plain refusals",
+      "serves": [
+        "spec §2 Ask",
+        "spec §4 (never move money, no filing)",
+        "workflows L11, H7, resolution rule refusals",
+        "eval F23",
+        "eval A9"
+      ],
+      "in": [
+        "Owner questions on WhatsApp",
+        "Loop store, Books snapshot, calendar loops"
+      ],
+      "out": [
+        "taxSeason(): receipts not booked, invoices unpaid, stall days not cashed up, statutory dates due, one line each with its source, ending with say 'draft them' for cards; no model call needed",
+        "refusal(): pay or move money, file with HMRC or Companies House, post publicly or edit the website, delete a Books record, create an invoice, each with the nearest in-scope step; a refused line naming the request, before any model call"
+      ],
+      "done-check": "The tax-season voice note lists every open receipt, invoice, stall day and compliance date with its source and nothing is sent or written; file my VAT return, pay the freight invoice and post on Instagram each get a plain no, a refused line and no write.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/ask.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

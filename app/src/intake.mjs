@@ -165,8 +165,43 @@ export function installIntake(e) {
       source: "configured model",
     };
   };
+  // Refusals (spec §2 Ask, §4; workflows "How the agent resolves a request"): no verb to pay or move money,
+  // create an invoice, file with HMRC or Companies House, post publicly, or delete a Books record.
+  const REFUSALS = [
+    { re: /\b(pay|settle|transfer|wire|send (?:the )?money|bank transfer|direct debit|refund)\b/i, cannot: "pay or move money", nearest: "I can tell you what is owed and when it is due, and draft a note to the supplier about timing." },
+    { re: /\b(file|submit|lodge)\b.{0,40}\b(vat|return|hmrc|companies house|confirmation statement|accounts|tax)\b|\b(vat return|tax return)\b.{0,20}\b(file|submit|do)\b/i, cannot: "file anything with HMRC or Companies House", nearest: "I can list what the accountant needs: unbooked receipts, unpaid invoices, uncashed stall days and the dates due." },
+    { re: /\b(post|publish|tweet|share)\b.{0,40}\b(instagram|facebook|linkedin|website|publicly|social)\b|\b(instagram|facebook|linkedin)\b.{0,20}\b(post|publish)\b|\b(edit|update)\b.{0,20}\b(website|site listing)\b/i, cannot: "post publicly or edit the website", nearest: "I can draft a note to warm leads and lapsed customers about the new lot, one card each." },
+    { re: /\b(delete|remove|void)\b.{0,30}\b(books|invoice|expense|record|payment)\b/i, cannot: "delete or void a Books record", nearest: "I can show you the record and its Books id so you can change it in Books." },
+    { re: /\b(create|raise|issue|make)\b.{0,20}\b(an? )?invoice\b/i, cannot: "create an invoice (Books does that)", nearest: "I can tell you which shipped orders have no invoice in Books yet." },
+  ];
+  e.refusal = (text) => {
+    const hit = REFUSALS.find((r) => r.re.test(text));
+    return hit ? { cannot: hit.cannot, nearest: hit.nearest } : null;
+  };
+  // Workflow L11: "it's tax season, what am I missing?" answered from the store and Books, one line per
+  // open item with its source; nothing is sent or written, and fixes come only from a new owner message.
+  e.taxSeason = () => {
+    const books = e.s.get("books", "snapshot");
+    const loops = e.s.all("loops").filter(live);
+    const section = (title, rows) => (rows.length ? [`${title}:`, ...rows.map((r) => `• ${r}`)] : [`${title}: none.`]);
+    const receipts = loops.filter((l) => l.type === "receipt").map((l) => `${e.why(l)} (loop store)`);
+    const invoices = books?.available
+      ? (books.invoices || []).filter((i) => Number(i.balance) > 0).map((i) => `${e.s.get("orgs", i.org_id)?.name || i.org_id}: ${i.number}, GBP ${Number(i.balance).toFixed(2)}, due ${i.due} (Zoho Books, read ${books.updated_at})`)
+      : loops.filter((l) => l.type === "invoice").map((l) => `${e.why(l)} (loop store; Books not read)`);
+    const stalls = loops.filter((l) => l.type === "stall" && london().date >= l.stall_date).map((l) => `${e.why(l)} (loop store, calendar)`);
+    const dates = loops.filter((l) => l.type === "compliance").map((l) => `${e.why(l)} (calendar)`);
+    return [
+      ...section("Receipts not booked", receipts),
+      ...section("Invoices unpaid", invoices),
+      ...section("Stall days not cashed up", stalls),
+      ...section("Statutory dates due", dates),
+      "Say 'draft them' for cards.",
+    ].join("\n");
+  };
+  e.isTaxSeason = (text) => /\b(tax (season|time|year|return)|year[- ]end|accountant|what am i missing)\b/i.test(text);
   // Ask: answer from loops, Books and stock only. Nothing is sent or written.
   e.answer = async (question) => {
+    if (e.isTaxSeason(question)) return e.taxSeason();
     const books = e.s.get("books", "snapshot");
     const context = {
       question,
@@ -301,6 +336,12 @@ export function installIntake(e) {
       const captured = await e.capture(text, id, from, { forwarded: true });
       e.s.audit("intent", { event_id: id, intent: "capture", confidence: 1, bound: false, source: "forwarded" });
       return e.respond(from, captured);
+    }
+    // A plain no, before any model call, for what the app has no verb to do (A9).
+    const refusal = !binding?.action_id && e.refusal(text);
+    if (refusal) {
+      e.s.audit("refused", { event_id: id, request: text.slice(0, 200), cannot: refusal.cannot });
+      return e.respond(from, { ask: `I can't ${refusal.cannot}. ${refusal.nearest}` });
     }
     const classified = await e.intent(text, binding && { ...binding, owner: from });
     e.s.audit("intent", {
