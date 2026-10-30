@@ -4,6 +4,7 @@ import { hash } from "./store.mjs";
 import { connected, recipient, list, safeError, ROOT } from "./config.mjs";
 import { london, warmPath, affirmative, demoNow, nextStage, weekday, cadence, dayNumber, unsentDocuments, daysUntil } from "./domain.mjs";
 import { loadTerms, checkDraft } from "./terms.mjs";
+import { collectible } from "./books.mjs";
 // Pinned: Voice file. Signed off when the first line reads "signed-off: <date> <name>".
 export function readVoiceFile(path) {
   if (!path || !existsSync(path)) return { ok: false, reason: "voice file missing", text: "" };
@@ -313,6 +314,10 @@ export class Engine {
         if (invoice.status === "paid" || Number(invoice.balance) === 0) {
           this.d.close(loop.id, "paid");
           throw Error("Loop invoice already paid");
+        }
+        if (!collectible(invoice.status)) {
+          this.d.close(loop.id, `not collectible (${invoice.status})`);
+          throw Error("Loop invoice is not collectible; a draft or void invoice is never chased");
         }
         if (Number(invoice.balance) !== loop.amount)
           throw Error(

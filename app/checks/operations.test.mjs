@@ -69,8 +69,8 @@ test("different concurrent sales cannot oversell; confirmed cash-up closes seede
   );
   installStall(e);
   installStock(e);
-  const a = (await e.cashup("test", "1", "a")).action,
-    b = (await e.cashup("test", "2", "b")).action;
+  const a = (await e.cashup("six 250g bags, 120 cash", "1", "a")).action,
+    b = (await e.cashup("six 250g bags, 120 cash", "2", "b")).action;
   const outcomes = await Promise.allSettled([
     e.approve(a.id, a),
     e.approve(b.id, b),
