@@ -1,0 +1,39 @@
+{
+  "provenance": "Kāma Coffee (Test) calendar for the Followthrough demo, 4 Nov 2026. Market names and patterns from GK's Stall Tracker; dates fitted to the demo clock; no people, emails or phone numbers.",
+  "stall_days": [
+    { "id": "s01", "date": "2026-10-17", "market": "Nailsea Farmers' Market", "status": "booked", "cadence": "3rd Saturday", "fee": "£38 with hired canopy", "time": "Trade 9 to 1", "cashed_up": true,
+      "documents": [ { "name": "Public liability certificate", "sent": true } ],
+      "transport_confirmed": true },
+    { "id": "s02", "date": "2026-10-18", "market": "Tobacco Factory Sunday Market", "status": "waitlist", "cadence": "weekly Sunday", "time": "10 to 2:30", "cashed_up": true },
+    { "id": "s03", "date": "2026-10-24", "market": "Whiteladies Road Market", "status": "booked", "cadence": "weekly Saturday", "fee": "£30, invoiced after", "time": "Open 8:30 to 1", "cashed_up": true,
+      "documents": [ { "name": "Public liability certificate", "sent": true }, { "name": "Signed application form", "sent": true }, { "name": "Food business registration proof", "sent": true } ],
+      "transport_confirmed": true },
+    { "id": "s04", "date": "2026-10-25", "market": "Tobacco Factory Sunday Market", "status": "waitlist", "cadence": "weekly Sunday", "time": "10 to 2:30", "cashed_up": true },
+    { "id": "s05", "date": "2026-10-31", "market": "Whiteladies Road Market", "status": "cancelled", "cadence": "weekly Saturday", "fee": "£60 + VAT", "cashed_up": true },
+    { "id": "s06", "date": "2026-11-01", "market": "Clevedon Sunday Market", "status": "booked", "cadence": "1st Sunday", "fee": "£16 suitcase pitch", "time": "10 to 2", "cashed_up": true,
+      "documents": [ { "name": "Public liability certificate", "sent": true } ],
+      "transport_confirmed": true },
+    { "id": "s07", "date": "2026-11-07", "market": "Midsomer Norton Farmers' Market", "status": "possible", "cadence": "1st Saturday", "fee": "£28 in advance", "time": "Trade 9 to 1", "cashed_up": false },
+    { "id": "s08", "date": "2026-11-08", "market": "Tobacco Factory Sunday Market", "status": "booked", "cadence": "weekly Sunday", "fee": "Pitch fee set at booking", "time": "10 to 2:30", "cashed_up": false,
+      "documents": [ { "name": "Public liability certificate", "sent": true }, { "name": "Signed application form", "sent": false } ],
+      "transport_confirmed": false },
+    { "id": "s09", "date": "2026-11-14", "market": "Keynsham Farmers' Market", "status": "cancelled", "cadence": "2nd Saturday", "fee": "£28, or £38 with hired canopy", "time": "Trade 9 to 1", "cashed_up": false },
+    { "id": "s10", "date": "2026-11-15", "market": "Tobacco Factory Sunday Market", "status": "waitlist", "cadence": "weekly Sunday", "time": "10 to 2:30", "cashed_up": false },
+    { "id": "s11", "date": "2026-11-21", "market": "Nailsea Farmers' Market", "status": "possible", "cadence": "3rd Saturday", "fee": "£38 with hired canopy", "time": "Trade 9 to 1", "cashed_up": false },
+    { "id": "s12", "date": "2026-11-22", "market": "Tobacco Factory Sunday Market", "status": "waitlist", "cadence": "weekly Sunday", "time": "10 to 2:30", "cashed_up": false },
+    { "id": "s13", "date": "2026-11-28", "end": "2026-11-29", "market": "Chew Valley Animal Park Christmas Market", "status": "cancelled", "cadence": "one weekend", "fee": "£20 inside", "cashed_up": false },
+    { "id": "s14", "date": "2026-12-05", "market": "Whiteladies Road Market", "status": "cancelled", "cadence": "weekly Saturday", "fee": "£30", "time": "Open 8:30 to 1", "cashed_up": false },
+    { "id": "s15", "date": "2026-12-06", "market": "Clevedon Sunday Market", "status": "booked", "cadence": "1st Sunday", "fee": "£16 suitcase pitch", "time": "10 to 2", "cashed_up": false,
+      "documents": [ { "name": "Public liability certificate", "sent": true } ],
+      "transport_confirmed": true },
+    { "id": "s16", "date": "2026-12-19", "market": "Whiteladies Road Market", "status": "cancelled", "cadence": "weekly Saturday", "fee": "£30", "time": "Open 8:30 to 1", "cashed_up": false }
+  ],
+  "compliance": [
+    { "id": "c01", "what": "Public and product liability insurance renewal", "due": "2026-11-30", "done": false },
+    { "id": "c02", "what": "Food business registration", "due": "2026-10-20", "done": true },
+    { "id": "c03", "what": "Companies House confirmation statement", "due": "2026-12-15", "done": false }
+  ],
+  "shipments": [
+    { "name": "Next estate shipment", "closing_date": "2026-11-12" }
+  ]
+}

@@ -1,0 +1,528 @@
+import { randomUUID } from "node:crypto";
+export function london(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    weekday: "short",
+  }).formatToParts(date);
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  return {
+    date: `${p.year}-${p.month}-${p.day}`,
+    time: `${p.hour}:${p.minute}`,
+    weekday: p.weekday,
+  };
+}
+// Pinned: Brief. Briefs go Monday to Friday, London time; weekends roll to Monday 08:00.
+export function weekday(date = new Date()) {
+  return !["Sat", "Sun"].includes(london(date).weekday);
+}
+// Demo clock: DEMO_AGE_DAYS shifts the clock used for cold/due checks only.
+// Timestamps written to loops, actions and the audit log stay real.
+export function demoNow(c = {}, now = new Date()) {
+  const days = Number(c.DEMO_AGE_DAYS);
+  return Number.isFinite(days) && days > 0
+    ? new Date(now.getTime() + days * 86400000)
+    : now;
+}
+export function dayNumber(t) {
+  return Date.parse(london(new Date(t)).date) / 86400000;
+}
+export function calendarDue(timestamp, days = 3, time = "00:00") {
+  const date = new Date((dayNumber(timestamp) + days) * 86400000)
+    .toISOString()
+    .slice(0, 10);
+  const target = Date.parse(`${date}T${time}:00Z`);
+  // London offset is 0 or +1 hour. Test both rather than assuming DST dates.
+  for (const value of [target, target - 3600000]) {
+    const local = london(new Date(value));
+    if (local.date === date && local.time === time)
+      return new Date(value).toISOString();
+  }
+  return new Date(target).toISOString();
+}
+// Pinned: Cadence. The owner's rules from terms.md: 7 days after an outreach email with no reply,
+// 5 days after a sample is sent; after a reply the thread sets the next move (3 days, Pinned: Cold).
+export const DEFAULT_CADENCE = { email: 7, sample: 5, cold: 3 };
+export function cadence(loop, rules = DEFAULT_CADENCE) {
+  if (loop.type === "sample_out") return { rule: "5 days after a sample is sent", days: rules.sample ?? 5 };
+  // Only once an outreach email has gone out (a chase) with no reply since; an untouched new lead is cold at 3 days (F1).
+  if (loop.type === "lead" && (loop.chases || 0) >= 1 && !loop.replied)
+    return { rule: "7 days after an outreach email with no reply", days: rules.email ?? 7 };
+  return { rule: "3 days since the last touch", days: rules.cold ?? 3 };
+}
+// Pinned: Parked. Three approved sends with no counterpart touch between them park a loop.
+export const PARK_AFTER = 3;
+// A loop the owner still owns: open, or parked (no drafts, but a reply still reaches it).
+export const live = (loop) => ["open", "parked"].includes(loop?.status);
+// Own clocks (spec Pinned: Cold): a receipt is cold 7 days after it arrives unbooked; a compliance date 30
+// days before it falls due; a stall day 3 days before with a document unsent, 2 days before with transport
+// unconfirmed, and uncashed from 21:00 on the day.
+export const CLOCKS = { receipt_days: 7, compliance_days: 30, stall_document_days: 3, stall_transport_days: 2 };
+export const unsentDocuments = (loop) => (loop.documents || []).filter((d) => d && d.sent === false).map((d) => d.name);
+export const daysUntil = (date, now) => dayNumber(`${date}T12:00:00Z`) - dayNumber(now);
+export function due(loop, now = new Date(), rules = DEFAULT_CADENCE) {
+  if (loop.status !== "open") return false;
+  if (loop.type === "invoice") return london(now).date > loop.invoice_due;
+  if (loop.type === "lot_low") return true;
+  if (loop.shortfall) return true;
+  if (loop.type === "receipt") return dayNumber(now) - dayNumber(loop.last_touch) >= CLOCKS.receipt_days;
+  if (loop.type === "compliance") return daysUntil(loop.due_date, now) <= CLOCKS.compliance_days;
+  if (loop.type === "stall") {
+    const until = daysUntil(loop.stall_date, now);
+    return (
+      london(now).date > loop.stall_date ||
+      (london(now).date === loop.stall_date && london(now).time >= "21:00") ||
+      (until >= 0 && until <= CLOCKS.stall_document_days && unsentDocuments(loop).length > 0) ||
+      (until >= 0 && until <= CLOCKS.stall_transport_days && loop.transport_confirmed === false)
+    );
+  }
+  return dayNumber(now) - dayNumber(loop.last_touch) >= cadence(loop, rules).days;
+}
+// Pinned: Stage. One sequence per counterpart type; the next move is the stage after the last completed one.
+export const SEQUENCES = {
+  roaster: [
+    "Researched",
+    "Queued",
+    "Sent",
+    "Replied",
+    "Price aligned",
+    "Sample sent",
+    "Sample delivered",
+    "Feedback",
+    "Booked",
+    "Deposit paid",
+    "Delivered",
+    "Paid",
+    "Repeat",
+  ],
+  cafe: ["intro", "sample", "guest slot offer", "first order", "second slot"],
+  stockist: ["intro", "retail samples", "wholesale list", "first case", "reorder"],
+};
+// Where a loop of this type starts in its counterpart's sequence.
+const ENTRY = {
+  roaster: { lead: "Researched", sample_out: "Sample sent", quote: "Price aligned", order_unconfirmed: "Booked", order_to_ship: "Deposit paid" },
+  cafe: { lead: "intro", sample_out: "sample", quote: "guest slot offer", order_unconfirmed: "first order", order_to_ship: "first order" },
+  stockist: { lead: "intro", sample_out: "retail samples", quote: "wholesale list", order_unconfirmed: "first case", order_to_ship: "first case" },
+};
+export function sequenceFor(orgType, sequences = SEQUENCES) {
+  return sequences[orgType] || null;
+}
+export function entryStage(loopType, orgType) {
+  return ENTRY[orgType]?.[loopType] || null;
+}
+export function nextStage(stage, orgType, sequences = SEQUENCES) {
+  const seq = sequenceFor(orgType, sequences);
+  if (!seq || !stage) return null;
+  const i = seq.indexOf(stage);
+  return i < 0 ? null : seq[i + 1] || null;
+}
+export function domain(org) {
+  try {
+    const h = new URL(org.website).hostname
+      .toLowerCase()
+      .replace(/^www\./, "")
+      .replace(/\.$/, "");
+    return [
+      "gmail.com",
+      "outlook.com",
+      "hotmail.com",
+      "yahoo.com",
+      "example.test",
+    ].includes(h)
+      ? null
+      : h;
+  } catch {
+    return null;
+  }
+}
+export function warmPath(id, orgs, edges) {
+  let queue = [[id]];
+  while (queue.length) {
+    const path = queue.shift();
+    const last = path.at(-1);
+    const o = orgs.find((x) => x.id === last);
+    if (
+      path.length > 1 &&
+      (o?.status === "customer" || ["supplier", "stockist"].includes(o?.type))
+    )
+      return path;
+    if (path.length === 3) continue;
+    for (const e of edges) {
+      const next = e.from === last ? e.to : e.to === last ? e.from : null;
+      if (next && !path.includes(next)) queue.push([...path, next]);
+    }
+  }
+  return [];
+}
+// Pinned: Auto-reply. An out-of-office, bounce, delivery or read notification: not a touch, not a reply.
+export function autoReplyKind(text) {
+  const t = String(text || "");
+  if (/\b(mailer-daemon|undeliverable|delivery (status notification|has failed|failed|failure)|could not be delivered|address (not found|rejected)|user unknown|mailbox (unavailable|full)|message blocked|returned mail)\b/i.test(t))
+    return "bounce";
+  if (/\b(out of (the )?office|automatic reply|auto-?reply|autoreply|automated response|on (annual|parental|sick) leave|away from (my|the) (desk|office)|currently (away|out of the office)|limited access to (my )?e-?mail|will be back (on|in)|back in the office on)\b/i.test(t))
+    return "out_of_office";
+  if (/\b(read receipt|your message\b.{0,40}\b(was|has been) read|^read:|message read|opened your (e-?mail|message))\b/im.test(t))
+    return "read_receipt";
+  return null;
+}
+export function replyClass(text) {
+  if (autoReplyKind(text)) return "auto_reply";
+  if (
+    /\b(?:don't|do not) stop (?:contacting|messaging|emailing|calling)\b/i.test(
+      text,
+    )
+  )
+    return "reply";
+  if (
+    /^\s*stop[.!]?\s*$/i.test(text) ||
+    /\b(unsubscribe|never (?:buy|order)|stop (?:contacting|messaging|emailing|calling|sending)|do not (?:contact|message|email|call)|don't (?:contact|message|email|call)|remove me (?:from|off))\b/i.test(
+      text,
+    )
+  )
+    return "declined";
+  if (
+    /\b(not now|maybe later|maybe next (?:week|month|quarter|year)|(?:no|not interested|can't|cannot|unable)\b.{0,60}\b(?:for now|later|next (?:week|month|quarter|year))|not\b.{0,30}\buntil)\b/i.test(
+      text,
+    )
+  )
+    return "soft_no";
+  return "reply";
+}
+export function affirmative(text) {
+  return /^(yes|yes[, ]+send it|yes[, ]+please send)[.!\s]*$/i.test(
+    text.trim(),
+  );
+}
+export class Domain {
+  constructor(store, data) {
+    this.s = store;
+    this.data = data;
+    this.cadence = { ...DEFAULT_CADENCE, ...(data.cadence || {}) };
+    if (!store.get("meta", "initialized")) {
+      for (const o of data.orgs) store.put("orgs", o.id, o);
+      for (const l of data.lots) store.put("lots", l.id, l);
+      for (const o of data.orgs)
+        if (o.status === "lead")
+          this.loop("lead", o.id, `lead:${o.id}`, {
+            next_move: "Qualify before drafting",
+          });
+      for (const o of data.orders)
+        if (o.status !== "shipped")
+          this.loop(
+            o.status === "unconfirmed" ? "order_unconfirmed" : "order_to_ship",
+            o.org,
+            `order:${o.id}`,
+            { order_id: o.id },
+          );
+      for (const day of data.stall_days)
+        if (!day.cashed_up)
+          this.loop("stall", null, `stall:${day.date}`, {
+            stall_date: day.date,
+          });
+      store.put("meta", "initialized", { at: new Date().toISOString() });
+    }
+    for (const o of this.orgs())
+      if (o.status === "declined") this.suppress(o.id);
+  }
+  orgs() {
+    return this.s.all("orgs");
+  }
+  loop(type, org_id, key, extra = {}) {
+    const existing = this.s.all("loops").find((l) => l.key === key);
+    if (existing) return existing;
+    const now = new Date().toISOString();
+    const org = org_id ? this.s.get("orgs", org_id) : null;
+    const l = {
+      id: randomUUID(),
+      key,
+      type,
+      org_id,
+      status: "open",
+      last_touch: now,
+      due_at: calendarDue(now, cadence({ type }, this.cadence).days),
+      next_move: "Review next move",
+      stage: entryStage(type, org?.type),
+      chases: 0,
+      ...(type.startsWith("order") ? { reserved_kg: 0 } : {}),
+      ...extra,
+    };
+    if (type === "invoice")
+      l.due_at = calendarDue(`${l.invoice_due}T12:00:00Z`, 1);
+    if (type === "lot_low") l.due_at = now;
+    if (type === "stall")
+      l.due_at = calendarDue(`${l.stall_date}T12:00:00Z`, 0, "21:00");
+    if (type === "receipt") l.due_at = calendarDue(now, CLOCKS.receipt_days);
+    if (type === "compliance" && l.due_date)
+      l.due_at = calendarDue(`${l.due_date}T12:00:00Z`, -CLOCKS.compliance_days);
+    this.s.put("loops", l.id, l);
+    this.s.audit("loop_open", {
+      loop_id: l.id,
+      loop_type: type,
+      org_id,
+      source: extra.source || "synthetic",
+    });
+    return l;
+  }
+  blocked(org_id) {
+    const o = this.s.get("orgs", org_id);
+    return (
+      o?.status === "declined" ||
+      (domain(o) && this.s.get("suppression", domain(o)))
+    );
+  }
+  suppress(org_id) {
+    const org = this.s.get("orgs", org_id);
+    if (!org) return;
+    const d = domain(org);
+    if (d) this.s.put("suppression", d, { domain: d, org_id });
+    for (const o of this.orgs())
+      if (o.id === org_id || (d && domain(o) === d)) {
+        o.status = "declined";
+        this.s.put("orgs", o.id, o);
+        for (const l of this.s
+          .all("loops")
+          .filter((l) => l.org_id === o.id && live(l)))
+          this.close(l.id, "declined");
+      }
+    this.s.audit("suppressed", { org_id, domain: d });
+  }
+  revoke(loop_id, reason) {
+    for (const a of this.s.all("actions"))
+      if (a.loop_id === loop_id && ["pending", "held"].includes(a.status)) {
+        a.status = "revoked";
+        a.reason = reason;
+        this.s.put("actions", a.id, a);
+        this.s.audit("revoked", { action_id: a.id, loop_id, reason });
+      }
+  }
+  // A counterpart touch resets the unanswered-chase count; an approved send adds to it.
+  touch(id, source) {
+    const l = this.s.get("loops", id);
+    if (!l) return;
+    l.last_touch = new Date().toISOString();
+    if (source !== "approved send") l.replied = true;
+    l.chases = source === "approved send" ? (l.chases || 0) + 1 : 0;
+    l.due_at = calendarDue(l.last_touch, cadence(l, this.cadence).days);
+    let reopened = false, parked = false;
+    if (source === "approved send" && l.chases >= PARK_AFTER && l.status === "open") {
+      l.status = "parked";
+      l.parked_at = l.last_touch;
+      parked = true;
+    } else if (source !== "approved send" && l.status === "parked") {
+      l.status = "open";
+      delete l.parked_at;
+      this.s.del("parked_notice", id);
+      reopened = true;
+    }
+    this.s.put("loops", id, l);
+    this.revoke(id, "new touch");
+    this.s.audit("touch", { loop_id: id, source, ...(reopened ? { reopened: true } : {}) });
+    if (parked) this.s.audit("parked", { loop_id: id, chases: l.chases });
+  }
+  // Stock words (spec §2 Stock, workflows C2, C6, C14): reserved kg sits on live order loops; free kg is what
+  // is left after them, capped by the supplier's last stated balance when one is known.
+  reservedKg(lot_id, except = null) {
+    return this.s
+      .all("loops")
+      .filter((l) => live(l) && l.lot_id === lot_id && l.id !== except && Number(l.reserved_kg) > 0)
+      .reduce((n, l) => n + Number(l.reserved_kg), 0);
+  }
+  freeKg(lot_id, except = null) {
+    const lot = this.s.get("lots", lot_id);
+    if (!lot) return 0;
+    const available = Number.isFinite(Number(lot.supplier_kg)) ? Math.min(Number(lot.left_kg), Number(lot.supplier_kg)) : Number(lot.left_kg);
+    return Math.round((available - this.reservedKg(lot_id, except)) * 1000) / 1000;
+  }
+  // Reserve kg on a lot for an order loop, never beyond free kg; a conflict proposes another lot or a pre-book.
+  reserve(loop_id, lot_id, kg) {
+    const l = this.s.get("loops", loop_id), lot = this.s.get("lots", lot_id);
+    if (!l || !lot) throw Error("Unknown loop or lot for reservation");
+    if (!Number.isFinite(kg) || kg <= 0) throw Error("Invalid reservation quantity");
+    const free = this.freeKg(lot_id, loop_id);
+    if (kg > free) {
+      const alternatives = this.s.all("lots").filter((x) => x.id !== lot_id && this.freeKg(x.id) >= kg).map((x) => ({ id: x.id, name: x.name, free_kg: this.freeKg(x.id) }));
+      this.s.audit("allocation_conflict", { loop_id, org_id: l.org_id, lot_id, lot: lot.name, requested_kg: kg, free_kg: free, alternatives: alternatives.map((a) => a.id) });
+      return { ok: false, lot, free_kg: free, alternatives, pre_book: true };
+    }
+    l.lot_id = lot_id;
+    l.kg = kg;
+    l.reserved_kg = kg;
+    this.s.put("loops", loop_id, l);
+    this.s.audit("reserve", { loop_id, org_id: l.org_id, lot_id, lot: lot.name, kg, free_kg_after: this.freeKg(lot_id) });
+    return { ok: true, lot, kg, free_kg: this.freeKg(lot_id) };
+  }
+  // A supplier's balance email: for every lot it lists less of than is reserved, name the shortfall and
+  // each counterpart reserved on it (workflow C15). Affected order loops become due for a draft.
+  supplierDiff(balances, event_id, source = "email") {
+    const diffs = [];
+    for (const b of balances || []) {
+      const lot = this.s.get("lots", b.lot_id);
+      if (!lot || !Number.isFinite(Number(b.kg))) continue;
+      lot.supplier_kg = Number(b.kg);
+      lot.supplier_kg_at = new Date().toISOString();
+      this.s.put("lots", lot.id, lot);
+      const reserved = this.reservedKg(lot.id);
+      if (reserved <= lot.supplier_kg) continue;
+      const affected = this.s.all("loops").filter((l) => live(l) && l.lot_id === lot.id && Number(l.reserved_kg) > 0);
+      const shortfall = Math.round((reserved - lot.supplier_kg) * 1000) / 1000;
+      for (const l of affected) {
+        l.shortfall = { lot_id: lot.id, lot: lot.name, supplier_kg: lot.supplier_kg, reserved_kg: reserved, shortfall_kg: shortfall, event_id };
+        l.due_at = new Date().toISOString();
+        l.next_move = `Tell ${this.s.get("orgs", l.org_id)?.name || "the counterpart"} ${lot.name} is ${shortfall} kg short`;
+        this.s.put("loops", l.id, l);
+        this.revoke(l.id, "supplier balance changed");
+      }
+      const diff = { lot_id: lot.id, lot: lot.name, supplier_kg: lot.supplier_kg, reserved_kg: reserved, shortfall_kg: shortfall, affected: affected.map((l) => ({ loop_id: l.id, org_id: l.org_id, kg: l.reserved_kg })), event_id, at: new Date().toISOString() };
+      this.s.put("shortfalls", lot.id, diff);
+      this.s.audit("supplier_diff", { ...diff, source });
+      diffs.push(diff);
+    }
+    return diffs;
+  }
+  // The thread on a loop: the last messages either way, read by drafts and capture.
+  appendThread(loop_id, message) {
+    const t = this.s.get("threads", loop_id) || { loop_id, messages: [] };
+    t.messages.push({ at: new Date().toISOString(), ...message });
+    t.messages = t.messages.slice(-10);
+    this.s.put("threads", loop_id, t);
+    return t;
+  }
+  thread(loop_id, limit = 3) {
+    return (this.s.get("threads", loop_id)?.messages || []).slice(-limit);
+  }
+  // The key intake() would give this item, so capture can tell a duplicate before opening anything.
+  loopKey(record, source, event_id) {
+    return record.reference
+      ? `business:${record.org_id}:${record.reference}`
+      : `${source}:${record.org_id}:${event_id}`;
+  }
+  // Pinned: Stage. Complete the loop's current stage (or a named one) and move to the next.
+  complete(id, stage = null, source = "owner") {
+    const l = this.s.get("loops", id);
+    if (!l) return null;
+    const org = l.org_id ? this.s.get("orgs", l.org_id) : null;
+    const seq = sequenceFor(org?.type, this.data.sequences);
+    if (!seq) return l;
+    const done = stage || l.stage;
+    if (!seq.includes(done)) throw Error(`Unknown stage ${done} for ${org.type}`);
+    const from = l.stage;
+    l.stage = nextStage(done, org.type, this.data.sequences) || done;
+    l.stage_completed = done;
+    this.s.put("loops", id, l);
+    this.s.audit("stage", { loop_id: id, from, completed: done, to: l.stage, source });
+    return l;
+  }
+  close(id, reason) {
+    const l = this.s.get("loops", id);
+    if (!l) return;
+    l.status = "closed";
+    l.reason = reason;
+    l.closed_at = new Date().toISOString();
+    this.s.put("loops", id, l);
+    this.revoke(id, reason);
+    this.s.audit("loop_close", { loop_id: id, reason });
+  }
+  receive(org_id, text, source, event_id, loop_id, { subject = "" } = {}) {
+    if (!this.s.get("orgs", org_id))
+      throw Error("Unknown synthetic organization");
+    if (this.blocked(org_id)) {
+      this.s.audit("suppressed", { org_id, source });
+      return;
+    }
+    const classification = replyClass(subject ? `${subject}\n${text}` : text);
+    if (classification === "auto_reply") {
+      // The clock keeps running and the next chase comes as scheduled.
+      this.s.audit("auto_reply", { org_id, event_id, source, kind: autoReplyKind(subject ? `${subject}\n${text}` : text), loop_id: loop_id || null });
+      return;
+    }
+    if (classification === "declined") {
+      this.suppress(org_id);
+      return;
+    }
+    const loops = this.s
+      .all("loops")
+      .filter((loop) => loop.org_id === org_id && live(loop));
+    const selected = loop_id
+      ? loops.find((loop) => loop.id === loop_id)
+      : loops.length === 1
+        ? loops[0]
+        : null;
+    if (!selected) {
+      this.s.audit("ask", { org_id, event_id, reason: "ambiguous_reply_loop" });
+      // Hold drafts for the org until the reply can be linked, but never close unrelated loops.
+      for (const loop of loops)
+        this.revoke(loop.id, "unresolved inbound reply");
+      this.s.put("reply_holds", org_id, {
+        event_id,
+        at: new Date().toISOString(),
+      });
+      return;
+    }
+    this.s.del("reply_holds", org_id);
+    this.appendThread(selected.id, { from: "counterpart", source, text: String(text).slice(0, 4000) });
+    if (classification === "soft_no") this.close(selected.id, "human reply");
+    else this.touch(selected.id, source);
+    this.s.audit("reply", {
+      org_id,
+      loop_id: selected.id,
+      source,
+      event_id,
+      classification,
+    });
+  }
+  intake(record, source, event_id) {
+    const types = [
+      "lead",
+      "sample_out",
+      "quote",
+      "order_unconfirmed",
+      "order_to_ship",
+    ];
+    if (!types.includes(record.type) || !this.s.get("orgs", record.org_id))
+      throw Error("Invalid classified loop");
+    if (this.blocked(record.org_id)) return null;
+    const key = this.loopKey(record, source, event_id);
+    const existing = this.s.all("loops").find((loop) => loop.key === key);
+    if (existing && live(existing)) {
+      if (
+        record.type === "order_to_ship" &&
+        existing.type === "order_unconfirmed"
+      )
+        existing.type = "order_to_ship";
+      existing.channel = source;
+      this.s.put("loops", existing.id, existing);
+      this.touch(existing.id, source);
+      return this.s.get("loops", existing.id);
+    }
+    return this.loop(record.type, record.org_id, key, {
+      source,
+      channel: source,
+      next_move: record.next_move || "Review next move",
+    });
+  }
+  ship(loop_id) {
+    const l = this.s.get("loops", loop_id);
+    if (l?.type !== "order_to_ship")
+      throw Error("Loop is not awaiting shipment");
+    this.close(loop_id, "shipped");
+  }
+  cold(now = new Date()) {
+    const orgs = this.orgs();
+    return this.s
+      .all("loops")
+      .filter((l) => due(l, now, this.cadence) && !this.blocked(l.org_id))
+      .sort((a, b) => {
+        const ap = warmPath(a.org_id, orgs, this.data.edges),
+          bp = warmPath(b.org_id, orgs, this.data.edges);
+        return (
+          (ap.length || 99) - (bp.length || 99) ||
+          a.last_touch.localeCompare(b.last_touch)
+        );
+      });
+  }
+}
