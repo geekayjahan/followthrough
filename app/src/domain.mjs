@@ -337,6 +337,7 @@ export class Domain {
       return;
     }
     this.s.del("reply_holds", org_id);
+    this.appendThread(selected.id, { from: "counterpart", source, text: String(text).slice(0, 4000) });
     if (classification === "soft_no") this.close(selected.id, "human reply");
     else this.touch(selected.id, source);
     this.s.audit("reply", {

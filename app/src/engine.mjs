@@ -1,12 +1,27 @@
+import { readFileSync, existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { hash } from "./store.mjs";
-import { connected, recipient, list, safeError } from "./config.mjs";
-import { london, warmPath, affirmative, demoNow } from "./domain.mjs";
+import { connected, recipient, list, safeError, ROOT } from "./config.mjs";
+import { london, warmPath, affirmative, demoNow, nextStage } from "./domain.mjs";
+// Pinned: Voice file. Signed off when the first line reads "signed-off: <date> <name>".
+export function readVoiceFile(path) {
+  if (!path || !existsSync(path)) return { ok: false, reason: "voice file missing", text: "" };
+  const text = readFileSync(path, "utf8");
+  const first = text.split(/\r?\n/)[0].trim();
+  const m = first.match(/^signed-off:\s*(\d{4}-\d{2}-\d{2}|\d{1,2} \w+ \d{4})\s+(\S.*)$/);
+  if (!m) return { ok: false, reason: "voice file needs a signed-off first line", text: "" };
+  return { ok: true, signed_off: { date: m[1], by: m[2].trim() }, text };
+}
 export class Engine {
   constructor(store, domain, providers, c) {
     this.s = store;
     this.d = domain;
     this.p = providers;
     this.c = c;
+    this.voicePath = c.VOICE_FILE || resolve(ROOT, "data/voice.md");
+  }
+  voice() {
+    return readVoiceFile(this.voicePath);
   }
   async draft(loop) {
     const pending = this.s
@@ -30,11 +45,27 @@ export class Engine {
       else return null;
     }
     if (this.s.get("loops", loop.id)?.status !== "open") return null;
+    const voice = this.voice();
+    if (!voice.ok) {
+      this.s.audit("draft_blocked", { loop_id: loop.id, reason: "voice_file_unsigned", detail: voice.reason });
+      return null;
+    }
     const path = warmPath(org.id, this.d.orgs(), this.d.data.edges);
     const names = path.map((id) => this.s.get("orgs", id)?.name);
+    const thread = this.d.thread(loop.id, 6);
+    const lastAsk = [...thread].reverse().find((m) => m.from === "counterpart")?.text || null;
     const r = await this.p.model(
-      "Draft a short factual follow-up. JSON {text:string,subject:string}. Use only loop facts. Name the shared connection when supplied. Do not invent promises.",
-      { loop, organization: org.name, path: names },
+      "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. Name the shared connection when supplied. Never name another buyer or roaster.",
+      {
+        voice_file: voice.text,
+        loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases },
+        organization: org.name,
+        counterpart_name: person.name || null,
+        thread,
+        counterpart_last_asked: lastAsk,
+        path: names,
+      },
+      { maxTokens: 900, voice_file: true },
     );
     if (
       typeof r.text !== "string" ||
@@ -242,8 +273,10 @@ export class Engine {
           receipt_id: receipt.id,
         });
       });
-      if (a.kind === "message" && a.loop_id)
+      if (a.kind === "message" && a.loop_id) {
         this.s.put("message_bindings", receipt.id, { loop_id: a.loop_id });
+        this.d.appendThread(a.loop_id, { from: "owner", source: a.payload.channel, text: a.payload.text });
+      }
       this.s.audit(
         a.kind === "message"
           ? "send"
@@ -372,6 +405,9 @@ export class Engine {
       } catch {
         warnings.push("Mail could not be read; replies may be missing.");
       }
+    const voice = this.voice();
+    if (!voice.ok)
+      warnings.push(`No customer drafts: app/data/voice.md needs a signed-off first line (${voice.reason}). Loops are listed below.`);
     const cold = this.d.cold(demoNow(this.c, now)),
       actions = [];
     for (const loop of cold) {

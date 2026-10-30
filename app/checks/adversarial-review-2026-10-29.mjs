@@ -23,6 +23,8 @@ const cfg = {
   WHATSAPP_TEST_NUMBERS: "+15555550001,+15555550002",
   WHATSAPP_OWNER_NUMBERS: "+15555550002",
   ENABLE_JOBS: "true",
+  // Drafts need a signed-off voice file (spec Pinned: Voice file); the probes use the test fixture.
+  VOICE_FILE: fileURLToPath(new URL("./fixtures/voice-signed.md", import.meta.url)),
 };
 const fixture = () => ({
   orgs: [{ id: "o", name: "Synthetic Customer", status: "customer",
