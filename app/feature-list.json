@@ -382,6 +382,35 @@
       "local_evidence": [
         "checks/domain.test.mjs"
       ]
+    },
+    {
+      "id": "FT-15",
+      "name": "Capture: one owner message into many items",
+      "serves": [
+        "spec §2 Capture",
+        "spec Pinned: Capture",
+        "workflows A1, A2, A3, A10",
+        "eval W1",
+        "eval W2",
+        "eval W15"
+      ],
+      "in": [
+        "Owner text or transcript classified as capture",
+        "Forwarded WhatsApp messages (context.forwarded)",
+        "Organisations and lots in the store"
+      ],
+      "out": [
+        "capture line listing every item with type, loop id, duplicate flag and missing fields",
+        "one read-back message; at most one ask naming the fields an order or receipt needs",
+        "order, sample, lead, chase, stall and receipt loops; thread_append on the matching loop for forwarded messages",
+        "a stub lead org for a counterpart the data does not hold"
+      ],
+      "done-check": "Four items in one voice note give one capture line with four items, one read-back naming all four and one ask for the lot; the same order twice is one loop with duplicate: true on the second capture; a forwarded message appends to the matching loop or opens one and nothing is drafted to the forwarded party.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/capture.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [
