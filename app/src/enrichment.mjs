@@ -263,7 +263,7 @@ export function installEnrichment(e, website = fetchWebsite) {
     if (q.tier === "below bar") {
       for (const l of e.s
         .all("loops")
-        .filter((l) => l.org_id === id && l.status === "open"))
+        .filter((l) => l.org_id === id && ["open", "parked"].includes(l.status)))
         e.d.close(l.id, "below bar");
       q.complete = true;
     }
