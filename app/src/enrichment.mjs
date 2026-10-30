@@ -197,6 +197,7 @@ export function installEnrichment(e, website = fetchWebsite) {
     if (e.d.blocked(id)) throw Error("Qualification suppressed");
     let cached = e.s.get("enrichment_sources", id);
     if (!cached) {
+      e.s.audit("host", { host: new URL(org.website).hostname, method: "GET" });
       cached = {
         pages: [await website(org.website, list(e.c.ENRICHMENT_ALLOWED_HOSTS))],
       };
@@ -222,6 +223,7 @@ export function installEnrichment(e, website = fetchWebsite) {
         "fields",
         `business_discovery.username(${username}){username,biography,website,media.limit(10){caption,permalink}}`,
       );
+      e.s.audit("host", { host: u.hostname, method: "GET" });
       const response = await e.p.fetch(u, {
         headers: { Authorization: `Bearer ${e.c.INSTAGRAM_ACCESS_TOKEN}` },
         signal: AbortSignal.timeout(15000),

@@ -331,6 +331,32 @@
       "local_evidence": [
         "checks/intent.test.mjs"
       ]
+    },
+    {
+      "id": "FT-13",
+      "name": "Event vocabulary: host and revoked lines",
+      "serves": [
+        "evals.md event vocabulary",
+        "eval A8",
+        "eval T7b",
+        "spec §6 T9"
+      ],
+      "in": [
+        "Every provider request",
+        "Every revoked pending action"
+      ],
+      "out": [
+        "host line per outbound request (host, method only)",
+        "revoked line per action with loop id and reason",
+        "app-spec.json event list matching evals.md"
+      ],
+      "done-check": "A Books read leaves host lines for the OAuth and API hosts with no token; a touch that revokes a card leaves a revoked line naming action, loop and reason.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/provider-contracts.test.mjs",
+        "checks/domain.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

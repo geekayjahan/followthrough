@@ -143,3 +143,24 @@ test("below-bar closure does not depend on an unsupported Indian-coffee absence 
   assert.equal(facts.tier, "below bar");
   assert.equal(facts.sells_indian, null);
 });
+test("every outbound provider request leaves a host line naming only the host and method", async () => {
+  const events = [];
+  const p = new Providers(cfg, async (url) => ({
+    ok: true,
+    json: async () =>
+      String(url).includes("oauth")
+        ? { access_token: "test" }
+        : { invoice: { invoice_id: "i", balance: 5 } },
+  }));
+  p.audit = (type, fields) => events.push({ type, ...fields });
+  await p.invoice("i");
+  const hosts = events.filter((x) => x.type === "host");
+  assert.deepEqual(
+    hosts.map((h) => [h.host, h.method]),
+    [
+      ["accounts.zoho.eu", "POST"],
+      ["www.zohoapis.eu", "GET"],
+    ],
+  );
+  assert.ok(!JSON.stringify(hosts).includes("test-token"));
+});

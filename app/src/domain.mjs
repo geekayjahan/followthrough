@@ -205,6 +205,7 @@ export class Domain {
         a.status = "revoked";
         a.reason = reason;
         this.s.put("actions", a.id, a);
+        this.s.audit("revoked", { action_id: a.id, loop_id, reason });
       }
   }
   touch(id, source) {
