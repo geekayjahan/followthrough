@@ -621,8 +621,13 @@ export class Engine {
       (l) =>
         this.s.get("loops", l.id)?.status === "open" && !this.d.blocked(l.org_id),
     );
-    const live = new Set(loops.map((l) => l.id));
-    const kept = actions.filter((a) => !a.loop_id || live.has(a.loop_id));
+    const liveIds = new Set(loops.map((l) => l.id));
+    const kept = actions.filter((a) => !a.loop_id || liveIds.has(a.loop_id));
+    // Pinned: Parked. Say it once, then nothing more until a counterpart touch.
+    const parked = this.s
+      .all("loops")
+      .filter((l) => l.status === "parked" && !this.s.get("parked_notice", l.id) && !this.d.blocked(l.org_id));
+    for (const l of parked) this.s.put("parked_notice", l.id, { loop_id: l.id, slot, at: now.toISOString() });
     const cards = kept.slice(0, 5);
     const counts = new Map();
     for (const l of loops) {
@@ -650,6 +655,7 @@ export class Engine {
       `Followthrough ${label}`,
       line,
       ...loops.map((l) => `• ${this.why(l)}`),
+      ...parked.map((l) => `• ${this.title(l)}: parked, ${l.chases} chases unanswered`),
       cards.length
         ? `\n${cards.length} to approve below${kept.length > cards.length ? `, ${kept.length - cards.length} more in Where I stand` : ""}.`
         : "",
@@ -662,6 +668,7 @@ export class Engine {
       slot,
       text,
       loops,
+      parked,
       actions: kept,
       cards: cards.map((a) => ({ id: a.id, text: this.card(a) })),
       warnings,
@@ -760,6 +767,7 @@ export class Engine {
         manual,
         sent: send,
         loop_ids: brief.loops.map((l) => l.id),
+        parked_ids: brief.parked.map((l) => l.id),
         action_ids: brief.actions.map((a) => a.id),
       });
       return { ...brief, key, sent: send };

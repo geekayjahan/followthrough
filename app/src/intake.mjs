@@ -1,5 +1,5 @@
 import { list } from "./config.mjs";
-import { affirmative, london, replyClass } from "./domain.mjs";
+import { affirmative, london, replyClass, live } from "./domain.mjs";
 export function newReplyContent(html) {
   return html
     .replace(/<blockquote\b[^>]*>[\s\S]*?<\/blockquote>/gi, " ")
@@ -150,7 +150,7 @@ export function installIntake(e) {
       today: london().date,
       open_loops: e.s
         .all("loops")
-        .filter((l) => l.status === "open")
+        .filter(live)
         .map((l) => e.why(l)),
       books: books?.available
         ? {
@@ -210,7 +210,7 @@ export function installIntake(e) {
         const org_id = item.org_id || e.captureOrg(name, item, id);
         const type = { order: "order_unconfirmed", sample: "sample_out", lead: "lead", chase: "sample_out", thread: "lead" }[item.type];
         const record = { type, org_id, reference: item.reference, next_move: item.type === "chase" ? `Chase ${name}: ${item.text}` : undefined };
-        const open = e.s.all("loops").filter((l) => l.org_id === org_id && l.status === "open");
+        const open = e.s.all("loops").filter((l) => l.org_id === org_id && live(l));
         let loop = open.find((l) => l.key === e.d.loopKey(record, "capture", id));
         if (!loop && item.type === "order")
           loop = open.find((l) => l.type === "order_unconfirmed" && (l.kg ?? null) === (item.kg ?? null) && (l.lot_id ?? null) === (item.lot_id ?? null));

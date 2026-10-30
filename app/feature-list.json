@@ -624,6 +624,29 @@
       "local_evidence": [
         "checks/domain.test.mjs"
       ]
+    },
+    {
+      "id": "FT-24",
+      "name": "Parked after three unanswered chases",
+      "serves": [
+        "spec Pinned: Parked",
+        "workflows E7, L5",
+        "eval T10"
+      ],
+      "in": [
+        "The loop's chases count (approved sends since the last counterpart touch)"
+      ],
+      "out": [
+        "Status parked after the third send with a parked line; due() is false so no draft follows",
+        "One brief line per parked loop, once, recorded in parked_notice and the brief line's parked_ids",
+        "Any counterpart touch sets it back to open with chases 0 and a touch line marked reopened; replies, intake and capture still reach a parked loop"
+      ],
+      "done-check": "Three drafted and approved sends park the quote; the next brief carries no draft and exactly one parked line; the following brief carries none; a reply reopens it with chases 0.",
+      "status": "done",
+      "external_verification": "pending",
+      "local_evidence": [
+        "checks/parked.test.mjs"
+      ]
     }
   ],
   "required_external_proof": [

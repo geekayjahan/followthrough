@@ -55,6 +55,10 @@ export function cadence(loop, rules = DEFAULT_CADENCE) {
     return { rule: "7 days after an outreach email with no reply", days: rules.email ?? 7 };
   return { rule: "3 days since the last touch", days: rules.cold ?? 3 };
 }
+// Pinned: Parked. Three approved sends with no counterpart touch between them park a loop.
+export const PARK_AFTER = 3;
+// A loop the owner still owns: open, or parked (no drafts, but a reply still reaches it).
+export const live = (loop) => ["open", "parked"].includes(loop?.status);
 export function due(loop, now = new Date(), rules = DEFAULT_CADENCE) {
   if (loop.status !== "open") return false;
   if (loop.type === "invoice") return london(now).date > loop.invoice_due;
@@ -266,7 +270,7 @@ export class Domain {
         this.s.put("orgs", o.id, o);
         for (const l of this.s
           .all("loops")
-          .filter((l) => l.org_id === o.id && l.status === "open"))
+          .filter((l) => l.org_id === o.id && live(l)))
           this.close(l.id, "declined");
       }
     this.s.audit("suppressed", { org_id, domain: d });
@@ -288,9 +292,21 @@ export class Domain {
     if (source !== "approved send") l.replied = true;
     l.chases = source === "approved send" ? (l.chases || 0) + 1 : 0;
     l.due_at = calendarDue(l.last_touch, cadence(l, this.cadence).days);
+    let reopened = false, parked = false;
+    if (source === "approved send" && l.chases >= PARK_AFTER && l.status === "open") {
+      l.status = "parked";
+      l.parked_at = l.last_touch;
+      parked = true;
+    } else if (source !== "approved send" && l.status === "parked") {
+      l.status = "open";
+      delete l.parked_at;
+      this.s.del("parked_notice", id);
+      reopened = true;
+    }
     this.s.put("loops", id, l);
     this.revoke(id, "new touch");
-    this.s.audit("touch", { loop_id: id, source });
+    this.s.audit("touch", { loop_id: id, source, ...(reopened ? { reopened: true } : {}) });
+    if (parked) this.s.audit("parked", { loop_id: id, chases: l.chases });
   }
   // The thread on a loop: the last messages either way, read by drafts and capture.
   appendThread(loop_id, message) {
@@ -354,7 +370,7 @@ export class Domain {
     }
     const loops = this.s
       .all("loops")
-      .filter((loop) => loop.org_id === org_id && loop.status === "open");
+      .filter((loop) => loop.org_id === org_id && live(loop));
     const selected = loop_id
       ? loops.find((loop) => loop.id === loop_id)
       : loops.length === 1
@@ -396,7 +412,7 @@ export class Domain {
     if (this.blocked(record.org_id)) return null;
     const key = this.loopKey(record, source, event_id);
     const existing = this.s.all("loops").find((loop) => loop.key === key);
-    if (existing && existing.status === "open") {
+    if (existing && live(existing)) {
       if (
         record.type === "order_to_ship" &&
         existing.type === "order_unconfirmed"
