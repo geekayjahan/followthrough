@@ -272,6 +272,9 @@ export function installIntake(e) {
         let loop = open.find((l) => l.key === e.d.loopKey(record, "capture", id));
         if (!loop && item.type === "order")
           loop = open.find((l) => l.type === "order_unconfirmed" && (l.kg ?? null) === (item.kg ?? null) && (l.lot_id ?? null) === (item.lot_id ?? null));
+        // W2: a reference the owner names matches the loop that already carries it at any stage (a pack order is keyed order:<id>).
+        if (!loop && item.reference)
+          loop = open.find((l) => l.reference === item.reference || l.order_id === item.reference || (l.key || "").endsWith(`:${item.reference}`));
         if (!loop && item.type !== "order") loop = open.find((l) => item.type === "thread" ? open.length === 1 || l.type === type : l.type === type);
         if (loop && item.type !== "thread") entry.duplicate = true;
         if (!loop) loop = e.d.intake(record, "capture", id);
@@ -284,7 +287,16 @@ export function installIntake(e) {
         } else if (item.type === "chase") {
           if (!entry.duplicate) lines.push(`${name}: chase noted, new ${loop.type.replace(/_/g, " ")} loop.`);
           else { loop.due_at = new Date().toISOString(); loop.next_move = record.next_move; e.s.put("loops", loop.id, loop); lines.push(`${name}: chase due in the next brief.`); }
-        } else if (entry.duplicate) lines.push(`${name}: already have that${item.reference ? ` (${item.reference})` : ""}.`);
+        } else if (entry.duplicate) {
+          const stage = loop.type.replace(/_/g, " ");
+          const held = loop.kg ?? (loop.order_id ? e.d.data.orders.find((o) => o.id === loop.order_id)?.kg : null) ?? null;
+          if (item.type === "order" && Number.isFinite(item.kg) && Number.isFinite(held) && held !== item.kg) {
+            // GK, 5 Nov: a repeated order with a different kg is a question, never a silent keep or a second reservation.
+            const ask = `${name}: already have ${item.reference || "that order"} at ${stage} for ${held} kg; you said ${item.kg} kg. Which is right?`;
+            e.s.audit("ask", { loop_id: loop.id, event_id: id, reason: "kg_mismatch", ask });
+            lines.push(ask);
+          } else lines.push(`${name}: already have that${item.reference ? ` (${item.reference})` : ""}, at ${stage}.`);
+        }
         else {
           if (item.type === "order" && (item.kg || item.lot_id)) { loop.kg = item.kg || null; loop.lot_id = item.lot_id || null; e.s.put("loops", loop.id, loop); }
           lines.push(`${name}: ${item.type === "order" ? `order${item.kg ? ` for ${item.kg} kg` : ""}${item.lot_id ? ` of ${e.s.get("lots", item.lot_id).name}` : ""}` : item.type === "sample" ? "sample loop" : "new lead"} opened.`);
