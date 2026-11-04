@@ -103,3 +103,23 @@ test("HTTP owner guard, same-origin login, CSRF, exact approval, replay and fres
     await app.close();
   }
 });
+
+test("a WhatsApp delivery status is logged with Meta's error, never the recipient", async () => {
+  const { createHmac } = await import("node:crypto");
+  const s = new Store(":memory:"),
+    c = { APP_URL: "http://127.0.0.1", WHATSAPP_APP_SECRET: "status-secret", SYNTHETIC_DATA_APPROVED: "true" };
+  const app = createApplication({ c, data, store: s, providers: {}, testLabel: "TEST FIXTURE ONLY" });
+  await new Promise((r) => app.server.listen(0, "127.0.0.1", r));
+  try {
+    const body = JSON.stringify({ entry: [{ changes: [{ value: { statuses: [{ id: "wamid.T", status: "failed", recipient_id: "15550001111", errors: [{ code: 131030, title: "Recipient phone number not in allowed list" }] }] } }] }] });
+    const sig = "sha256=" + createHmac("sha256", c.WHATSAPP_APP_SECRET).update(body).digest("hex");
+    const r = await fetch(`http://127.0.0.1:${app.server.address().port}/webhooks/whatsapp`, { method: "POST", headers: { "x-hub-signature-256": sig }, body });
+    assert.equal(r.status, 200);
+    const logged = s.events().find((x) => x.type === "whatsapp_status");
+    assert.equal(logged.status, "failed");
+    assert.equal(logged.error_code, 131030);
+    assert.ok(!JSON.stringify(s.events()).includes("15550001111"));
+  } finally {
+    await app.close();
+  }
+});
