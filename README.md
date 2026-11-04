@@ -33,7 +33,7 @@ Every model call logs the model id and token usage.
 
 ## Safe by design
 
-Nothing reaches a customer or the books without the owner's approval, and each approval binds to one exact draft: edit it and the old yes can no longer send it. Approved messages wait in an undo window. It never moves money. A write whose outcome is uncertain is held for review, never retried blind. Every brief, approval, send and Books write is logged to `app/logs/actions.jsonl`.
+Nothing reaches a customer or the books without the owner's approval, and each approval binds to one exact draft: edit it and the old yes can no longer send it. It never moves money, and a write whose outcome is uncertain is held for review, never retried blind. Every safeguard, the known open findings and the reasoning behind each decision are in [docs/decisions-and-safeguards.md](docs/decisions-and-safeguards.md).
 
 The demo runs on a test copy of Kāma Coffee: the brand, lots and prices are real, and every customer, person, invoice and message is fictional. Emails use `example.test`, WhatsApp goes only to test numbers, and Books is a fresh test organisation. No real customer appears anywhere.
 
@@ -69,7 +69,7 @@ When hosted, values live only in Railway Variables (service `followthrough`). Th
 
 ## How it was built
 
-By spec engineering with Claude Code, using the Product Builder Kit below. The spec came first, then a build split into 28 features, each tied to a spec line and the checks that prove it. 86 automated checks pass.
+By spec engineering with Claude Code, using the Product Builder Kit below. The spec came first, then a build split into 28 features, each tied to a spec line and the checks that prove it. 91 automated checks pass.
 
 | Read this | For |
 |---|---|
