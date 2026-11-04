@@ -65,6 +65,7 @@ test("Books write contracts use exact sales receipt ID and verified totals, and 
   assert.equal(sale.line_items[0].quantity, 6);
   assert.equal(sale.line_items[0].rate, 20);
   assert.equal(sale.can_send_in_mail, false);
+  assert.equal(sale.deposit_to_account_id, "cash");
   assert.equal(
     (
       await p.expense({
@@ -77,6 +78,21 @@ test("Books write contracts use exact sales receipt ID and verified totals, and 
     "expense-1",
   );
   await assert.rejects(p.booksSnapshot(), /cash_balance_missing/);
+});
+test("T6: a stall sale reads back the receipt in the shape the live EU Books API returns", async () => {
+  const p = new Providers(cfg, async (url, options) => {
+    const u = String(url);
+    let data = {};
+    if (u.includes("oauth")) data = { access_token: "test" };
+    else if (u.endsWith("/salesreceipts?organization_id=org") && options.method === "POST")
+      data = { sales_receipt: { sales_receipt_id: "sale-2" } };
+    else if (u.includes("/salesreceipts/sale-2"))
+      data = { sales_receipt_details: { sales_receipt_id: "sale-2", total: 80 } };
+    return { ok: true, json: async () => data };
+  });
+  const r = await p.sale({ date: "2026-11-07", books_item_id: "item", count: 4, amount: 80, reference: "live-shape" });
+  assert.equal(r.id, "sale-2");
+  assert.equal(r.record.total, 80);
 });
 test("approved template rendering is exact and later template changes invalidate authority", async () => {
   let body = "Follow-up: {{1}}";
