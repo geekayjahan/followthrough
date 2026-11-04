@@ -4,7 +4,7 @@ Source of truth for which account, org and ID the app uses. Update this file whe
 
 No passwords, tokens, secrets or phone numbers in this file. Secrets live only in Railway Variables (project "followthrough", service "followthrough") and `app/.env`. IDs below are not secrets.
 
-Last updated: 4 Nov 2026, 21:35 UK. Railway column checked against the service's variable names (names only) by the master session at 21:30.
+Last updated: 4 Nov 2026, 22:55 UK. Railway column checked against the service's variable names (names only) by the master session at 21:30.
 
 ## Who logs in where
 | What | Platform | Login | Owner | Status | Notes |
@@ -38,7 +38,7 @@ The three env values come only from the seed script output (setup-keys.md §5). 
 | Step | Status | Result |
 |---|---|---|
 | 1. Region | Done | `eu` (books.zoho.eu) |
-| 2. Books org | Done | "Kāma Coffee (Test)", ID 20121062531 |
+| 2. Books org | Redone 4 Nov evening | Vince recreated the org because the UK edition has no sales receipts; the ID 20121062531 above is the first org and is superseded. New ID: Vince to add here. |
 | 3. Mailbox and coffee alias | Done | Vince's teamvince.com mailbox and its coffee alias. Sending from the alias via API unverified. |
 | 4. OAuth Self Client (api-console.zoho.eu) | Done by Vince | `ZOHO_CLIENT_ID` and `ZOHO_CLIENT_SECRET` are on Railway |
 | 5. Refresh token | Done by Vince | `ZOHO_REFRESH_TOKEN` is on Railway |
@@ -49,32 +49,32 @@ The three env values come only from the seed script output (setup-keys.md §5). 
 ## Railway Variables (names only)
 | Variable | Source | Set? |
 |---|---|---|
-| WHATSAPP_PHONE_NUMBER_ID | Meta WhatsApp dashboard | Yes (21:40) |
-| WHATSAPP_WABA_ID | Meta WhatsApp dashboard | No (21:30) |
-| WHATSAPP_TEST_NUMBERS | Owner phones only | No (21:30) |
-| WHATSAPP_OWNER_NUMBERS | Owner phones only | No (21:30) |
-| WHATSAPP_TOKEN | Meta | No (21:30) |
-| WHATSAPP_APP_SECRET | Meta app settings | No (21:30) |
-| WHATSAPP_VERIFY_TOKEN | Chosen by us, matches webhook config | No (21:30) |
-| GRAPH_API_VERSION | Meta | Yes (21:40) |
-| ZOHO_REGION | eu | Yes (21:30) |
-| ZOHO_CLIENT_ID | Self Client, step 4 | Yes (21:30) |
-| ZOHO_CLIENT_SECRET | Self Client, step 4 | Yes (21:30) |
-| ZOHO_REFRESH_TOKEN | Token exchange, step 5 | Yes (21:30) |
-| ZOHO_BOOKS_ORG_ID | 20121062531 | Yes (21:30); Vince to confirm the value matches this ID |
-| ZOHO_MAIL_ACCOUNT_ID | Step 6 | Yes (21:30) |
-| ZOHO_MAIL_INBOX_ID | Step 6 | Yes (21:30) |
-| ZOHO_MAIL_FROM | Vince's teamvince.com mailbox | Yes (21:30) |
-| MAIL_FROM_COFFEE | the coffee alias on teamvince.com | Yes (21:30) |
-| OWNER_TEST_EMAILS | Owner addresses only | No |
-| CASH_ACCOUNT_ID | Seed script (Vince); candidate Petty Cash 1362847000000000349 | No |
-| EXPENSE_ACCOUNT_ID | Seed script (Vince); candidate Other Expenses 1362847000000000448 | No |
-| STALL_CUSTOMER_ID | Seed script (Vince); customer not yet created | No |
+| WHATSAPP_PHONE_NUMBER_ID | Meta WhatsApp dashboard | Yes (22:55) |
+| WHATSAPP_WABA_ID | Meta WhatsApp dashboard | Yes (22:55) |
+| WHATSAPP_TEST_NUMBERS | Owner phones only | Yes (22:55) |
+| WHATSAPP_OWNER_NUMBERS | Owner phones only | Yes (22:55) |
+| WHATSAPP_TOKEN | Meta | Yes (22:55) |
+| WHATSAPP_APP_SECRET | Meta app settings | Yes (22:55) |
+| WHATSAPP_VERIFY_TOKEN | Chosen by us, matches webhook config | Yes (22:55) |
+| GRAPH_API_VERSION | Meta | Yes (22:55) |
+| ZOHO_REGION | eu | Yes (22:55) |
+| ZOHO_CLIENT_ID | Self Client, step 4 | Yes (22:55) |
+| ZOHO_CLIENT_SECRET | Self Client, step 4 | Yes (22:55) |
+| ZOHO_REFRESH_TOKEN | Token exchange, step 5 | Yes (22:55) |
+| ZOHO_BOOKS_ORG_ID | the recreated org (see note) | Yes (22:55) |
+| ZOHO_MAIL_ACCOUNT_ID | Step 6 | Yes (22:55) |
+| ZOHO_MAIL_INBOX_ID | Step 6 | Yes (22:55) |
+| ZOHO_MAIL_FROM | Vince's teamvince.com mailbox | Yes (22:55) |
+| MAIL_FROM_COFFEE | the coffee alias on teamvince.com | Yes (22:55) |
+| OWNER_TEST_EMAILS | Owner addresses only | Yes (22:55) |
+| CASH_ACCOUNT_ID | Seed script (Vince); candidate Petty Cash 1362847000000000349 | Yes (22:55), from the seed run |
+| EXPENSE_ACCOUNT_ID | Seed script (Vince); candidate Other Expenses 1362847000000000448 | Yes (22:55), from the seed run |
+| STALL_CUSTOMER_ID | Seed script (Vince); customer not yet created | Yes (22:55), from the seed run |
 
 ## Open to-dos
 - Vince sets `SYNTHETIC_DATA_APPROVED=true` on Railway (GK approved 4 Nov 20:45).
-- Fix WhatsApp test number (not working as of 4 Nov).
-- Finish Zoho step 8: `OWNER_TEST_EMAILS` and the three seed IDs.
+- WhatsApp done 4 Nov evening; all eight variables on Railway.
+- Zoho step 8 done at 22:55 apart from `SYNTHETIC_DATA_APPROVED` and `ENRICHMENT_ALLOWED_HOSTS` on Railway.
 - Vince runs `scripts/seed-books.mjs` (setup-keys.md §5) to create the stall customer and FT-INV-1001 to 1006.
 - Add Vince to the team on Cerebral Valley.
 - Submit by 02:00 UK, 5 Nov.
@@ -86,6 +86,6 @@ The three env values come only from the seed script output (setup-keys.md §5). 
 - The app only ever uses Vince's teamvince.com Zoho account. Its addresses live in Railway Variables, not in this file: `checks/privacy.test.mjs` fails the suite on any non-allowlisted email.
 
 ## Also on Railway (names only, 21:30)
-Set: `APP_URL`, `APP_LIVE`, `OWNER_PASSWORD`, `DEMO_AGE_DAYS`, `DEMO_SEND_DELAY_MINUTES`, `ENABLE_JOBS`, `ENABLE_POLLING`, `MODEL_BASE_URL`, `MODEL_NAME`, `MODEL_API_KEY`, `VOICE_TRANSCRIBE_KEY`. Not set: `SYNTHETIC_DATA_APPROVED`, `ENRICHMENT_ALLOWED_HOSTS`, `OWNER_TEST_EMAILS`.
+Set (22:55): all WhatsApp, Zoho and seed variables, `OWNER_TEST_EMAILS`, `APP_URL`, `APP_LIVE`, `OWNER_PASSWORD`, `DEMO_AGE_DAYS`, `DEMO_SEND_DELAY_MINUTES`, `ENABLE_JOBS`, `ENABLE_POLLING`, `MODEL_BASE_URL`, `MODEL_NAME`, `MODEL_API_KEY`, `VOICE_TRANSCRIBE_KEY`. Not set at 22:55: `SYNTHETIC_DATA_APPROVED` (needed on Railway for Books writes and sends, not only in Vince's local .env) and `ENRICHMENT_ALLOWED_HOSTS` (needed for the lead shop pages).
 
 Railway project `67c99ace-0c00-4bd2-a1e8-3eae47864036`, service `followthrough` `ce2bc3f8-4de9-448f-b181-a254c1d66066`, environment `production`, volume `followthrough-data` at `/data`, region europe-west4. Builds from `geekayjahan/followthrough` `main`, root `/app`, Dockerfile; only pushes that touch `app/` redeploy.
