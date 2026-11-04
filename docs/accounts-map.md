@@ -14,7 +14,7 @@ Last updated: 4 Nov 2026, 22:55 UK. Railway column checked against the service's
 | Spark Open (open weights) | Baseten | GitHub (geekayjahan) | GK | Claimed | $100 credits. Model meta-models/muse-spark-open-1026. |
 | WhatsApp test number | developers.facebook.com | a teamvince.com mailbox | GK sets up; Vince's mailbox | **Not working (4 Nov)** | Portfolio "Followthrough Demo". Cause not yet diagnosed. Meta sign-in codes go to this inbox. |
 | Zoho test account (app's Books + Mail) | Zoho, EU data centre | Vince's teamvince.com login (the address is `ZOHO_MAIL_FROM`) | Vince | Active | Separate Zoho account from Kāma. Mail user ID 20121059056 (admin console). Coffee alias on teamvince.com added 4 Nov (the address is `MAIL_FROM_COFFEE`). API Mail account ID and Inbox ID still to fetch. |
-| Zoho Books test org | books.zoho.eu | Vince's teamvince.com login | Vince | Verified empty | "Kāma Coffee (Test)", ID 20121062531, Premium Trial created 4 Nov 2026, GBP, Europe/London. 0 invoices, 0 customers, 0 items (rechecked 4 Nov 21:25). Only org on this login. Confirm trial lasts past 9 Nov. |
+| Zoho Books test org | books.zoho.eu | Vince's teamvince.com login | Vince | Verified empty | "Kāma Coffee (Test)", recreated 4 Nov evening as org 20121065432 (first org 20121062531 superseded), Premium Trial created 4 Nov 2026, GBP, Europe/London. 0 invoices, 0 customers, 0 items (rechecked 4 Nov 21:25). Only org on this login. Confirm trial lasts past 9 Nov. |
 | Zoho CRM (demo backdrop only) | crm.zoho.eu | Vince's teamvince.com login | Vince | Activated, empty | CRM org ID 20121062804. Not connected to the app; no OAuth scope. |
 | Real Kāma Books | books.zoho.eu | info@flywheelbygk.com | GK | Do not use | Never connected to the app. Claude's Zoho connectors are signed in here: read-only use only. |
 | Kāma Instagram / Facebook | Instagram, Facebook | gk@kamacoffee.co.uk | GK | Do not use | Real business account. Keep it away from the hackathon setup. |
@@ -38,7 +38,7 @@ The three env values come only from the seed script output (setup-keys.md §5). 
 | Step | Status | Result |
 |---|---|---|
 | 1. Region | Done | `eu` (books.zoho.eu) |
-| 2. Books org | Redone 4 Nov evening | Vince recreated the org because the UK edition has no sales receipts; the ID 20121062531 above is the first org and is superseded. New ID: Vince to add here. |
+| 2. Books org | Redone 4 Nov evening | Vince recreated the org because the UK edition has no sales receipts. New org ID 20121065432 (read from the Organisations page 4 Nov 23:15). The first org, 20121062531, is superseded. |
 | 3. Mailbox and coffee alias | Done | Vince's teamvince.com mailbox and its coffee alias. Sending from the alias via API unverified. |
 | 4. OAuth Self Client (api-console.zoho.eu) | Done by Vince | `ZOHO_CLIENT_ID` and `ZOHO_CLIENT_SECRET` are on Railway |
 | 5. Refresh token | Done by Vince | `ZOHO_REFRESH_TOKEN` is on Railway |
@@ -61,7 +61,7 @@ The three env values come only from the seed script output (setup-keys.md §5). 
 | ZOHO_CLIENT_ID | Self Client, step 4 | Yes (22:55) |
 | ZOHO_CLIENT_SECRET | Self Client, step 4 | Yes (22:55) |
 | ZOHO_REFRESH_TOKEN | Token exchange, step 5 | Yes (22:55) |
-| ZOHO_BOOKS_ORG_ID | the recreated org (see note) | Yes (22:55) |
+| ZOHO_BOOKS_ORG_ID | 20121065432 | Yes (22:55); Vince to confirm the value is this new ID, not 20121062531 |
 | ZOHO_MAIL_ACCOUNT_ID | Step 6 | Yes (22:55) |
 | ZOHO_MAIL_INBOX_ID | Step 6 | Yes (22:55) |
 | ZOHO_MAIL_FROM | Vince's teamvince.com mailbox | Yes (22:55) |
