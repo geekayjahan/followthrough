@@ -220,6 +220,8 @@ export class Providers {
       payment_mode: "cash",
       reference_number: payload.reference,
       can_send_in_mail: false,
+      // Without it Books files the takings in Undeposited Funds and the cash figure never moves.
+      ...(this.c.CASH_ACCOUNT_ID ? { deposit_to_account_id: this.c.CASH_ACCOUNT_ID } : {}),
       line_items: [
         {
           item_id: payload.books_item_id,
@@ -228,22 +230,20 @@ export class Providers {
         },
       ],
     };
+    // The live EU API answers a read with sales_receipt_details, not the documented salesreceipt.
+    const receipt = (x) => x?.salesreceipt || x?.sales_receipt || x?.sales_receipt_details;
     const r = await this.zoho("/books/v3/salesreceipts", {
       method: "POST",
       body,
     });
-    const id = r.salesreceipt?.sales_receipt_id;
+    const id = receipt(r)?.sales_receipt_id;
     if (!id) throw new ProviderError("sale_id_missing", true);
     try {
-      const verified = await this.zoho(
-        `/books/v3/salesreceipts/${encodeURIComponent(id)}`,
+      const verified = receipt(
+        await this.zoho(`/books/v3/salesreceipts/${encodeURIComponent(id)}`),
       );
-      if (
-        !verified.salesreceipt ||
-        Number(verified.salesreceipt.total) !== payload.amount
-      )
-        throw Error();
-      return { id, record: verified.salesreceipt };
+      if (!verified || Number(verified.total) !== payload.amount) throw Error();
+      return { id, record: verified };
     } catch {
       throw new ProviderError("sale_readback", true);
     }
