@@ -59,8 +59,8 @@
       "outbound_gate": "ENABLE_JOBS=false and ENABLE_POLLING=false by default. Viewing UI or starting the process does not enable scheduled sends or background ingestion. Only the owner enables each flag after configuring and approving recipients/provider accounts."
     },
     "hosting": {
-      "choice": "Local Node process initially; no hosted app deployment selected",
-      "pending": "Public HTTPS webhook URL and an always-on host with a persistent disk require owner configuration/authorization. Local runtime alone cannot receive Cloud API webhooks or prove 24-hour scheduling."
+      "choice": "Railway, one Docker service from app/Dockerfile, one replica, volume mounted at /data with DATA_DIR=/data/run, TRUST_PROXY=true, health check /health (decided 3 Nov, Vince account)",
+      "pending": "Public URL into APP_URL and the WhatsApp callback after the first deploy. Local runtime alone cannot receive Cloud API webhooks or prove 24-hour scheduling."
     },
     "ai": {
       "text": "Muse Spark Open on Baseten at MODEL_BASE_URL (OpenAI-compatible) with MODEL_NAME and MODEL_API_KEY; optional VISION_MODEL_* for receipt photos if image input fails",
@@ -256,8 +256,8 @@
     },
     {
       "row": "T5",
-      "question": "Always-on HTTPS app hosting/webhook URL and connected deployment authority",
-      "owner": "partner"
+      "question": "Railway URL into APP_URL and the WhatsApp callback after first deploy (vendor decided 3 Nov)",
+      "owner": "Vince"
     },
     {
       "row": "T6",

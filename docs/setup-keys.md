@@ -65,7 +65,7 @@ Clear those commands from your shell history afterwards; they carry the secret a
 | Key | Value |
 |---|---|
 | `OWNER_PASSWORD` | Choose one |
-| `APP_URL` | The deployed HTTPS URL (locally `http://127.0.0.1:4310`) |
+| `APP_URL` | The Railway HTTPS URL from §6 (locally `http://127.0.0.1:4310`) |
 | `OWNER_TEST_EMAILS` | The owners' inboxes; no email leaves for anyone else |
 | `SYNTHETIC_DATA_APPROVED` | `true` only after GK approves the data pack. Until then nothing writes to Books or sends |
 | `DEMO_AGE_DAYS` | `3` |
@@ -106,3 +106,66 @@ The app fingerprints its dataset on first boot and refuses a changed one afterwa
    ```bash
    npm start
    ```
+
+## 6. Deploy on Railway
+
+The app runs as one Docker service on Vince's Railway account. `app/Dockerfile` builds it, `app/railway.json` sets one replica and the `/health` check, and `app/.railwayignore` keeps `app/.env` on your machine. The SQLite file and action log live on a volume (`DATA_DIR=/data/run`); the committed `data/` folder ships inside the image.
+
+Run every command from `app/` in the main checkout (`Project_Codespaces/followthrough/app`), because that is where `data/synthetic.json` gets promoted.
+
+### First deploy (gets the URL WhatsApp needs)
+
+1. Install the CLI and sign in. The login opens a browser.
+
+   ```bash
+   npm install -g @railway/cli
+   ```
+
+   ```bash
+   railway login
+   ```
+
+2. Create the project and push the code. Name the project `followthrough`; if `up` asks for a service, create one with the same name.
+
+   ```bash
+   railway init
+   ```
+
+   ```bash
+   railway up
+   ```
+
+3. In the Railway dashboard, on the service:
+   - **Volume.** Add a volume to the service with mount path `/data`.
+   - **Domain.** Settings, Networking, Generate Domain. Copy the `https://….up.railway.app` address.
+   - **Variables.** Open the Raw Editor and paste your `app/.env`, then before saving: delete the `HOST` and `PORT` lines (the image binds `0.0.0.0` and Railway supplies the port; a pasted `HOST=127.0.0.1` makes the app unreachable), set `APP_URL` to the Railway address with no trailing slash (login refuses any other origin), and make sure `OWNER_PASSWORD` is set. Leave `ENABLE_JOBS` and `ENABLE_POLLING` at `false`. Save; Railway redeploys.
+
+4. Check it. `<APP_URL>/health` returns `{"ok":true}`, `<APP_URL>` shows the login page and your password gets in, and the deploy log reads `Followthrough listening at https://…`.
+
+   ```bash
+   railway logs -n 50
+   ```
+
+5. Register the webhook: §2 step 7 with `<APP_URL>/webhooks/whatsapp`.
+
+### Final deploy (after §5, when the data is promoted)
+
+The app fingerprints its dataset on first boot and refuses a changed one, so the database from the first deploy has to step aside before the promoted pack boots.
+
+1. Add any keys that arrived since (`CASH_ACCOUNT_ID`, `EXPENSE_ACCOUNT_ID`, `STALL_CUSTOMER_ID`, Zoho, WhatsApp, `SYNTHETIC_DATA_APPROVED=true` once GK approves) in Variables.
+2. Move the first database aside. In the dashboard, right-click the service, Copy SSH Command, run it, then:
+
+   ```bash
+   mv /data/run /data/run-rehearsal && exit
+   ```
+
+   If SSH is unavailable, set `DATA_DIR=/data/run2` in Variables instead; the next boot starts clean there.
+3. Push the promoted data.
+
+   ```bash
+   railway up
+   ```
+
+4. Check `/health`, log in, and confirm the dashboard shows the candidate pack's loops before recording.
+
+Keys never go into the image or the repo: they live in `app/.env` locally and in Railway Variables when hosted.

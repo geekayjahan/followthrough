@@ -41,9 +41,14 @@ export function createApplication({
 } = {}) {
   const s =
     store ||
+    // DATA_DIR puts the runtime database and log on a mounted volume; the committed data/ stays in the image.
     new Store(
-      join(ROOT, "data/followthrough.sqlite"),
-      join(ROOT, "logs/actions.jsonl"),
+      c.DATA_DIR
+        ? join(c.DATA_DIR, "followthrough.sqlite")
+        : join(ROOT, "data/followthrough.sqlite"),
+      c.DATA_DIR
+        ? join(c.DATA_DIR, "logs/actions.jsonl")
+        : join(ROOT, "logs/actions.jsonl"),
     );
   try {
     validateData(data, c);
@@ -155,7 +160,12 @@ export function createApplication({
         if (!c.APP_URL || req.headers.origin !== new URL(c.APP_URL).origin)
           return send(res, 403, { error: "Origin rejected" });
         const input = JSON.parse(await body(req, 4096));
-        const result = auth.login(input.password, req.socket.remoteAddress);
+        // Behind a host's proxy every socket shares one address; the last X-Forwarded-For hop is the one the proxy saw.
+        const ip =
+          c.TRUST_PROXY === "true" && req.headers["x-forwarded-for"]
+            ? req.headers["x-forwarded-for"].split(",").pop().trim()
+            : req.socket.remoteAddress;
+        const result = auth.login(input.password, ip);
         res.setHeader("Set-Cookie", auth.cookie(result.token));
         return send(res, 200, { ok: true });
       }

@@ -55,7 +55,7 @@
     "Receipts are cold 7 days unbooked; compliance dates 30 days before due; stall days 3 days before with a document unsent, 2 days before with transport unconfirmed"
   ],
   "open_questions": [
-    "T5 hosting vendor",
+    "T5: Railway URL into APP_URL and the WhatsApp callback after first deploy",
     "T6: Baseten slug, JSON mode (json_object vs json_schema), image input, Voice Transcribe key coverage and price",
     "T1: dummy Zoho Mail account and fresh Books organisation; WhatsApp test numbers and owner test addresses",
     "Owner decisions: lapsed days, deposit 30 or 50%, FX clause, cold-send cap 20 or 30, retention 12/24/36 months"
