@@ -10,7 +10,7 @@ Working notes for the build. Facts first, then judgement, then the open calls.
 | `origin/codex/followthrough-v0` (Vince) | S2 build: 13 commits, 7,121 lines, FT-01 to FT-10, 33 tests, Playwright smoke, adversarial review | Never merged, no PR open |
 | `claude/amazing-mayer-0gknmk` (this session) | Branched from `main` | Nothing yet |
 
-Vince's branch is based on `849b870`, one commit behind `main` (the context-doc update). Merging is trivial; nothing conflicts.
+Vince's branch is based on `3dac3e5`, one commit behind `main` (the context-doc update). Merging is trivial; nothing conflicts.
 
 ## 2. The product in one breath
 

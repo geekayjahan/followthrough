@@ -1,6 +1,6 @@
 # Hand-off to the next session
 
-For a fresh Claude Code session on `main`. Written 30 Oct 2026 after the S2 build patched the app to spec revision 8 (build commits `0f070ac` to `ab53483`, merged into main on 30 Oct). Main is the only branch; the session creates none and merges none. The previous hand-off (29 Oct, `893f654`) is in git history.
+For a fresh Claude Code session on `main`. Written 30 Oct 2026 after the S2 build patched the app to spec revision 8 (build commits `3cc25c6` to `dacf12b`, merged into main on 30 Oct). Main is the only branch; the session creates none and merges none. The previous hand-off (29 Oct, `766571e`) is in git history.
 
 ## Paste this as the first message
 
@@ -12,34 +12,34 @@ For a fresh Claude Code session on `main`. Written 30 Oct 2026 after the S2 buil
 2. `app/spec.html` revision 8: §2, Pinned words, §3, Open Questions.
 3. `app/evals.md`: every row. S3 grades these.
 4. `app/feature-list.json` rows FT-13 to FT-28: what the build added, the evals each row serves, and its tests.
-5. `app/claude-progress.txt` from the line "baseline recorded before any change" to the end, and `git log --oneline 893f654..HEAD`.
+5. `app/claude-progress.txt` from the line "baseline recorded before any change" to the end, and `git log --oneline 766571e..HEAD`.
 6. `app/data/voice.md`, `app/data/terms.md`, `app/data/calendar.json`, `app/data/synthetic.json`: check the state in §3.
 7. `app/demo-scenes.md` and §7 of this file for the rehearsal.
 
 Skip `docs/kama-workflow-map.md`, `docs/market-research.md`, `docs/build-review.md` and `docs/handoff-spec-audit.md`: they fed the build and are not inputs to S3.
 
-## 2. What exists at `ab53483`
+## 2. What exists at `dacf12b`
 
 Sixteen features, one commit each, on top of Vince's v0 and the 29 Oct additions. `node --test checks/*.test.mjs` passes 81 tests; `node checks/syntax.mjs` and `node checks/secret-scan.mjs` are clean. `node checks/adversarial-review-2026-10-29.mjs` reads AR-01, AR-03, AR-07, AR-08a, AR-09 and LIMIT-01a as `reproduced: false` (LIMIT-01a because a brief now survives a Books read failure with a warning); the rest still reproduce and are not demo-path. Run all four before touching anything and record the result in the trace.
 
 | Commit | Feature | Evals | Tests |
 |---|---|---|---|
-| `72f25ff` | Event vocabulary: `host` on every outbound request, `revoked` on every revoked card; `loop_open` lines carry `loop_type` | A8, T7b | provider-contracts, domain |
-| `22d74e1` | Loop model: `stage` from the roaster, café or stockist sequence, `chases`, `reserved_kg`; `domain.complete` logs `stage` | W5 | domain |
-| `a1373c1` | Capture: `capture` intent splits one owner message into items, one read-back, one ask; dedup by counterpart and reference; forwarded messages `thread_append` | W1, W2, W15 | capture |
-| `06092a8` | Voice file gate: no customer draft without `signed-off:` on `voice.md`; drafts carry the file, the thread and the last question; `model_call` has `voice_file` | F17, T5, T3 | voice |
-| `30357b8` | Price list guard and offer ladder from `terms.md` (`src/terms.mjs`); `draft_blocked` plus an ask | F20, W7, T4 | terms |
-| `b7211f7` | Coffee alias: `MAIL_FROM_COFFEE` at draft and again at send, `alias_fixed`; the key is now required | F21 | alias |
-| `5ee4dbb` | Held sends: approve holds a message for `DEMO_SEND_DELAY_MINUTES` (60 when unset); the tick releases; `undo` by reply or page; a touch during the hold revokes | F2, F16, T1b | held |
-| `6d456a5` | Weekday-only scheduled briefs | E3, E6 | brief |
-| `b2fdf7f` | Where I stand: one card per loop with its draft, owner copy, lot names, collapsed lead panel, what-leaked tile, Undo button | W14, F16 | dashboard, browser fixture |
-| `991106b` | Cadence from `terms.md`: 5 days after a sample, 7 after an outreach send with no reply, else 3; chases within 10 days of a calendar shipment closing date name it | W6 | cadence |
-| `cc23b62` | Auto-replies (out of office, bounce, read receipt) logged `auto_reply`, never a touch | E5 | domain |
-| `5ea39ef` | Parked after three unanswered chases, one brief line, a touch reopens | T10 | parked |
-| `017de7f` | Reservations never beyond free kg (`allocation_conflict`); supplier balance email gives `supplier_diff` and one draft per affected counterpart; an accepted quote reserves and asks for delivery details | F18, F19, W11 | stock.reservations |
-| `c3adfc2` | Own clocks: receipt 7 days, compliance 30 days before, stall 3 days before with a document unsent and 2 days with transport unconfirmed; `engine.syncCalendar` reads `calendar.json` | E7, F22, W4 | clocks |
-| `47e17db` | Ask: tax-season answer from the store with a source per line; plain refusals with a `refused` line | F23, A9 | ask |
-| `ab53483` | AR-03 null balance rejected, AR-07 draft invoices never chased, AR-08a bag size must be spoken | F4, F6, E2 | books, stall |
+| `f6503e4` | Event vocabulary: `host` on every outbound request, `revoked` on every revoked card; `loop_open` lines carry `loop_type` | A8, T7b | provider-contracts, domain |
+| `378391b` | Loop model: `stage` from the roaster, café or stockist sequence, `chases`, `reserved_kg`; `domain.complete` logs `stage` | W5 | domain |
+| `67152df` | Capture: `capture` intent splits one owner message into items, one read-back, one ask; dedup by counterpart and reference; forwarded messages `thread_append` | W1, W2, W15 | capture |
+| `1b1575f` | Voice file gate: no customer draft without `signed-off:` on `voice.md`; drafts carry the file, the thread and the last question; `model_call` has `voice_file` | F17, T5, T3 | voice |
+| `2b0cbfe` | Price list guard and offer ladder from `terms.md` (`src/terms.mjs`); `draft_blocked` plus an ask | F20, W7, T4 | terms |
+| `2d2c7f2` | Coffee alias: `MAIL_FROM_COFFEE` at draft and again at send, `alias_fixed`; the key is now required | F21 | alias |
+| `895867a` | Held sends: approve holds a message for `DEMO_SEND_DELAY_MINUTES` (60 when unset); the tick releases; `undo` by reply or page; a touch during the hold revokes | F2, F16, T1b | held |
+| `72d662d` | Weekday-only scheduled briefs | E3, E6 | brief |
+| `833c0c3` | Where I stand: one card per loop with its draft, owner copy, lot names, collapsed lead panel, what-leaked tile, Undo button | W14, F16 | dashboard, browser fixture |
+| `e3d68b4` | Cadence from `terms.md`: 5 days after a sample, 7 after an outreach send with no reply, else 3; chases within 10 days of a calendar shipment closing date name it | W6 | cadence |
+| `08fe1b0` | Auto-replies (out of office, bounce, read receipt) logged `auto_reply`, never a touch | E5 | domain |
+| `85cc522` | Parked after three unanswered chases, one brief line, a touch reopens | T10 | parked |
+| `fc7a289` | Reservations never beyond free kg (`allocation_conflict`); supplier balance email gives `supplier_diff` and one draft per affected counterpart; an accepted quote reserves and asks for delivery details | F18, F19, W11 | stock.reservations |
+| `092c46e` | Own clocks: receipt 7 days, compliance 30 days before, stall 3 days before with a document unsent and 2 days with transport unconfirmed; `engine.syncCalendar` reads `calendar.json` | E7, F22, W4 | clocks |
+| `d9bbbfb` | Ask: tax-season answer from the store with a source per line; plain refusals with a `refused` line | F23, A9 | ask |
+| `dacf12b` | AR-03 null balance rejected, AR-07 draft invoices never chased, AR-08a bag size must be spoken | F4, F6, E2 | books, stall |
 
 Judgement calls the build made where the spec left room, each in the trace:
 

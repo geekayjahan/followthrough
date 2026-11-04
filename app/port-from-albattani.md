@@ -1,6 +1,6 @@
 # Port pack: albattani to amazing-mayer
 
-Source: `claude/practical-albattani-ns1yrj`, commits `3ff4f69` (spec rev 2) and `13cc63e` (spec rev 3). Checked against `claude/amazing-mayer-0gknmk` at `40df38a` (spec rev 7). Only additions mayer lacks are listed. Eval IDs are left as F?, E? and A? for the porter to assign after mayer's F17, E6 and A8.
+Source: `claude/practical-albattani-ns1yrj`, commits `3ff4f69` (spec rev 2) and `13cc63e` (spec rev 3). Checked against `claude/amazing-mayer-0gknmk` at `6c8cb05` (spec rev 7). Only additions mayer lacks are listed. Eval IDs are left as F?, E? and A? for the porter to assign after mayer's F17, E6 and A8.
 
 Vocabulary: albattani's pinned word "Held" meant kg promised from a lot. Mayer's Held is the 60-minute send hold, so everything below uses mayer's own stock words, reserve and free kg (workflows C2, C6).
 
@@ -124,4 +124,4 @@ Mayer's file catalogues rows. GK asked that the app show it can handle any reque
 
 ## P8. docs/use-cases.md
 
-`main` (`ec47fb0`) added `docs/kama-workflow-map.md` and `docs/use-cases.md` from a Cowork scan of GK's mail, Books and Drive. Mayer branched before that commit. GK decided on 29 Oct in the albattani session that `use-cases.md` goes, because its content is folded into P1 to P7, and that `kama-workflow-map.md` stays as evidence the build does not read. When mayer merges `main`, delete `docs/use-cases.md`. Where the map and GK's 16 Oct ops notes disagree, the ops notes win.
+`main` (`2bd7ded`) added `docs/kama-workflow-map.md` and `docs/use-cases.md` from a Cowork scan of GK's mail, Books and Drive. Mayer branched before that commit. GK decided on 29 Oct in the albattani session that `use-cases.md` goes, because its content is folded into P1 to P7, and that `kama-workflow-map.md` stays as evidence the build does not read. When mayer merges `main`, delete `docs/use-cases.md`. Where the map and GK's 16 Oct ops notes disagree, the ops notes win.

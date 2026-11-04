@@ -32,7 +32,7 @@ Last updated: 4 Nov 2026, 22:55 UK. Railway column checked against the service's
 | Stall walk-up customer | None | Not created | `scripts/seed-books.mjs` creates it (STALL_CUSTOMER_ID). |
 | Invoices | None | | FT-INV-1001 to 1006 do not exist yet. |
 
-The three env values come only from the seed script output (setup-keys.md §5). GK approved the data pack (candidate-v1 at 54ae2cc) on 4 Nov 20:45, so `SYNTHETIC_DATA_APPROVED=true` may be set and the seed run. Decision 4 Nov 21:10: keep the seed as is; do not point it at the existing accounts.
+The three env values come only from the seed script output (setup-keys.md §5). GK approved the data pack (candidate-v1 at a148464) on 4 Nov 20:45, so `SYNTHETIC_DATA_APPROVED=true` may be set and the seed run. Decision 4 Nov 21:10: keep the seed as is; do not point it at the existing accounts.
 
 ## Zoho setup progress (setup-keys.md §3)
 | Step | Status | Result |

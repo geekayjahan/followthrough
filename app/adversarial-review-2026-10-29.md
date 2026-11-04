@@ -2,7 +2,7 @@
 
 Date: 29 October 2026
 
-Reviewed revision: `19bd69af9a514ab162af617951754b968e940ed3`
+Reviewed revision: `e98f8c8a46f98f196cab4de3dc9cdefbac999f73`
 
 Branch: `codex/followthrough-v0`
 
@@ -37,7 +37,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Parse once, handle invalid request targets safely, and ensure the error-reporting path cannot throw an unhandled rejection.
 
-[Source: server.mjs:254](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/server.mjs#L254)
+[Source: server.mjs:254](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/server.mjs#L254)
 
 ## AR-02 — P1: Uncertain sends can be sent again before reconciliation
 
@@ -47,7 +47,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Block replacement actions and approvals for a loop or business operation while an executing or unresolved action exists. Reconcile the existing provider outcome first.
 
-[Source: engine.mjs:10](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/engine.mjs#L10) and [engine.mjs:284](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/engine.mjs#L284)
+[Source: engine.mjs:10](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/engine.mjs#L10) and [engine.mjs:284](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/engine.mjs#L284)
 
 ## AR-03 — P1: A null invoice balance falsely marks an unpaid invoice as paid
 
@@ -57,7 +57,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Validate raw balances before numeric conversion or lifecycle mutation. Define recovery for corrected balances and payment reversals instead of reusing a closed loop unchanged.
 
-[Source: books.mjs:20](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/books.mjs#L20)
+[Source: books.mjs:20](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/books.mjs#L20)
 
 ## AR-04 — P1: Books verification can accept the wrong currency
 
@@ -67,7 +67,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Validate account/customer currency before writing, then compare currency and all material approved fields during readback. Keep contradictory outcomes unresolved.
 
-[Source: providers.mjs:236](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/providers.mjs#L236) and [providers.mjs:200](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/providers.mjs#L200). The [official Zoho sales-receipt contract](https://www.zoho.com/books/api/v3/sales-receipt/) exposes currency, customer, date and line-item fields for verification.
+[Source: providers.mjs:236](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/providers.mjs#L236) and [providers.mjs:200](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/providers.mjs#L200). The [official Zoho sales-receipt contract](https://www.zoho.com/books/api/v3/sales-receipt/) exposes currency, customer, date and line-item fields for verification.
 
 ## AR-05 — P2: A customer's first order can become blocked immediately
 
@@ -77,7 +77,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Distinguish new intake with no matching open loop from a reply ambiguous between multiple existing loops. Clear or explicitly resolve the hold when intake establishes the correct business item.
 
-[Source: domain.mjs:241](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/domain.mjs#L241)
+[Source: domain.mjs:241](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/domain.mjs#L241)
 
 ## AR-06 — P2: Quote-to-order progression loses the new state
 
@@ -87,7 +87,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Define and implement supported commercial lifecycle transitions, preserving reference identity and updating the next move when a stage advances.
 
-[Source: domain.mjs:278](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/domain.mjs#L278)
+[Source: domain.mjs:278](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/domain.mjs#L278)
 
 ## AR-07 — P2: Draft invoices generate payment chases
 
@@ -97,7 +97,7 @@ P1 denotes a defect that should block connected operation because it can termina
 
 **Fix direction.** Filter collectible invoice statuses during sync, revoke stale chases when status changes, and enforce the same rule immediately before sending.
 
-[Source: books.mjs:31](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/books.mjs#L31)
+[Source: books.mjs:31](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/books.mjs#L31)
 
 ## AR-08 — P2: Model outputs can contradict their source and still pass validation
 
@@ -105,9 +105,9 @@ Three injected model responses demonstrated incomplete source validation:
 
 | Probe | Source | Accepted result | Code |
 | --- | --- | --- | --- |
-| AR-08a | Six bags, lot 2, GBP 120; no bag size | An approvable sale using 250g bags, with no clarification | [stall.mjs:13](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/stall.mjs#L13) |
-| AR-08b | Receipt for USD 24 dated 2026-10-29 | A pending GBP 24 expense dated 2030-01-01 | [receipts.mjs:19](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/receipts.mjs#L19) |
-| AR-08c | 250g costs GBP 6; 1kg costs GBP 11; "We do not sell Indian coffee" | GBP 11 per 250g, mid-shelf tier and `sells_indian: true` | [enrichment.mjs:119](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/enrichment.mjs#L119) |
+| AR-08a | Six bags, lot 2, GBP 120; no bag size | An approvable sale using 250g bags, with no clarification | [stall.mjs:13](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/stall.mjs#L13) |
+| AR-08b | Receipt for USD 24 dated 2026-10-29 | A pending GBP 24 expense dated 2030-01-01 | [receipts.mjs:19](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/receipts.mjs#L19) |
+| AR-08c | 250g costs GBP 6; 1kg costs GBP 11; "We do not sell Indian coffee" | GBP 11 per 250g, mid-shelf tier and `sells_indian: true` | [enrichment.mjs:119](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/enrichment.mjs#L119) |
 
 **Impact.** Schema-valid facts can be materially false. Owner approval remains required for writes, but the owner is offered invented financial facts, and qualification can admit a below-bar lead. These are validation weaknesses, not observations of live-model behavior.
 
@@ -121,7 +121,7 @@ Three injected model responses demonstrated incomplete source validation:
 
 **Fix direction.** Rebuild or filter the eligible loop list after qualification and use that same list for the message, count and audit record.
 
-[Source: engine.mjs:330](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/engine.mjs#L330)
+[Source: engine.mjs:330](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/engine.mjs#L330)
 
 ## LIMIT-01 — Documented manual recovery is operationally fragile
 
@@ -132,7 +132,7 @@ Two probes confirmed the documented no-replay policy:
 
 The failures remain visible, but recovery requires operator inspection and direct repair; there is no recovery UI. This materially weakens unattended follow-through even when an external write never began. A future recovery design should distinguish safely retryable read/classification failures from uncertain external writes, preserving the reconciliation protection for the latter.
 
-[Source: engine.mjs:319](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/engine.mjs#L319), [intake.mjs:34](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/src/intake.mjs#L34) and [documented operating policy](https://github.com/geekayjahan/followthrough/blob/19bd69af9a514ab162af617951754b968e940ed3/app/README.md#L31).
+[Source: engine.mjs:319](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/engine.mjs#L319), [intake.mjs:34](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/src/intake.mjs#L34) and [documented operating policy](https://github.com/geekayjahan/followthrough/blob/e98f8c8a46f98f196cab4de3dc9cdefbac999f73/app/README.md#L31).
 
 ## Remaining acceptance boundary
 

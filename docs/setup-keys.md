@@ -67,7 +67,7 @@ Clear those commands from your shell history afterwards; they carry the secret a
 | `OWNER_PASSWORD` | Choose one |
 | `APP_URL` | The Railway HTTPS URL from §6 (locally `http://127.0.0.1:4310`) |
 | `OWNER_TEST_EMAILS` | The owners' inboxes; no email leaves for anyone else |
-| `SYNTHETIC_DATA_APPROVED` | `true` only after GK approves the data pack. GK approved candidate-v1 at 54ae2cc on 4 Nov 20:45, so Vince may set it. Until it is set nothing writes to Books or sends |
+| `SYNTHETIC_DATA_APPROVED` | `true` only after GK approves the data pack. GK approved candidate-v1 at a148464 on 4 Nov 20:45, so Vince may set it. Until it is set nothing writes to Books or sends |
 | `DEMO_AGE_DAYS` | `3` |
 | `DEMO_SEND_DELAY_MINUTES` | `0` |
 | `ENABLE_JOBS` / `ENABLE_POLLING` | `false` for the demo; the brief is composed from the page |

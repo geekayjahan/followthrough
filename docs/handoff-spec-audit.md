@@ -6,7 +6,7 @@ Written 29 Oct 2026, 19:30 UTC, by the spec-audit session on branch `claude/blis
 
 | Branch | Spec | Code | Owner / state |
 |---|---|---|---|
-| `origin/main` (ec47fb0) | rev 1 + Cowork's `docs/kama-workflow-map.md` (36 workflows mined from mail, Books, Drive) and `docs/use-cases.md` (40 use cases, 12 loop types, 8 demo beats) | none | GK |
+| `origin/main` (2bd7ded) | rev 1 + Cowork's `docs/kama-workflow-map.md` (36 workflows mined from mail, Books, Drive) and `docs/use-cases.md` (40 use cases, 12 loop types, 8 demo beats) | none | GK |
 | `origin/codex/followthrough-v0` | rev 2 (Codex closed stack rows T2 to T8 itself) | Vince's build: Node 24, `node:sqlite`, vanilla UI, one dependency, FT-01 to FT-10, 33 tests, 13 adversarial probes, 4 P1 open | Vince, unmerged |
 | `origin/claude/amazing-mayer-0gknmk` | **rev 6**: 9 new pinned words, `app/workflows.md` (118 rows, 20 Core), evals 28 to 62 rows, rebuild brief in `docs/build-review.md` §7 | v0 merged, AR-01 and AR-09 fixed, FT-11 demo clock, FT-12 intent classifier, 43 tests | GK's chosen single spec line |
 | `origin/claude/practical-albattani-ns1yrj` (13cc63e) | rev 3 off main: its own lean `workflows.md` (verbs, hero scenes), evals F13 to F19, E5, A7, pinned Ask, Held (kg), Price list, Coffee alias | none | Business session; now producing the merged `workflows.md` against mayer's base |
@@ -28,7 +28,7 @@ Is the Codex build clean? Structurally yes, operationally unproven (section C).
 - Tiering for 4 Nov is set from the merged `workflows.md` once the Business session lands it, with the demo-first cut below as the starting hypothesis.
 - All spec files frozen until GK names the build location and builder. The spec change set in section F waits for her go.
 
-### C. Audit of the Codex v0 build (static read at mayer tip 1f08d99; nothing executed in this session)
+### C. Audit of the Codex v0 build (static read at mayer tip 2e0c2c5; nothing executed in this session)
 
 **Structure (verified).** 14 source modules under `app/src`, 4,400 lines on mayer. `domain.mjs` imports nothing (pure core: loops, cold, warm-path BFS, reply classification, suppression). `server.mjs` imports all 12 others (the hub). `providers.mjs` (618 lines) mixes Zoho OAuth, Mail, Books, WhatsApp text, buttons, templates, model and voice in one file. `engine.mjs` grew 443 to 570 and `intake.mjs` 198 to 330 on mayer. Exports are narrow (most files export 1 or 2 names; `config.mjs` 11, `domain.mjs` 9). One runtime dependency (`ffmpeg-static` 5.3.0). 13 test files, 43 `test()` calls. `engines` says Node 24; this container has 22.22.0 and the previous session reports 43/43 pass there with an experimental-SQLite warning.
 
