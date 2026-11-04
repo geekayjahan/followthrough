@@ -72,4 +72,4 @@ Sells Indian coffee +3 · blends or Italian range +2 · small owner-run +2 · ma
 
 Best
 GK
-Kāma Coffee | 07700 900000
+Kāma Coffee | beans@kamacoffee.co.uk

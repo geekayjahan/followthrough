@@ -35,7 +35,7 @@ Every model call logs the model id and token usage.
 
 Nothing reaches a customer or the books without the owner's approval, and each approval binds to one exact draft: edit it and the old yes can no longer send it. Approved messages wait in an undo window. It never moves money. A write whose outcome is uncertain is held for review, never retried blind. Every brief, approval, send and Books write is logged to `app/logs/actions.jsonl`.
 
-The demo runs on a synthetic company, Monsoon & Ghats Green Coffee (Synthetic Test Co.). Emails use `example.test`, WhatsApp goes only to test numbers, and Books is a fresh test organisation. No real customer appears anywhere.
+The demo runs on a test copy of Kāma Coffee: the brand, lots and prices are real, and every customer, person, invoice and message is fictional. Emails use `example.test`, WhatsApp goes only to test numbers, and Books is a fresh test organisation. No real customer appears anywhere.
 
 ## Run it
 

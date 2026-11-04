@@ -1,12 +1,12 @@
 {
-  "provenance": "Proposed seed specification for a fresh, dedicated synthetic Zoho Books test organisation (Monsoon & Ghats Green Coffee — Synthetic Test Co.). Contains no real Zoho IDs or customer data. Do NOT apply to any production Zoho organisation.",
+  "provenance": "Proposed seed specification for a fresh, dedicated synthetic Zoho Books test organisation (Kāma Coffee (Test)). Contains no real Zoho IDs or customer data. Do NOT apply to any production Zoho organisation.",
   "reference_clock": {
     "iso_utc": "2026-10-29T18:00:00Z",
     "timezone": "Europe/London",
     "local_wall_time": "2026-10-29 18:00 (GMT, UTC+0)"
   },
   "organization_profile": {
-    "display_name": "Monsoon & Ghats Green Coffee (Synthetic Test Co.)",
+    "display_name": "Kāma Coffee (Test)",
     "base_currency": "GBP",
     "time_zone": "Europe/London",
     "fiscal_year_start_month": "April",

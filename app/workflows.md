@@ -53,14 +53,14 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 
 | id | Trigger | App | Needs | Evidence | Source | Tier |
 |---|---|---|---|---|---|---|
-| A1 | One voice note at 22:40: "Loaf wants two more kilos Friday, the stall was dead, I paid the courier 38 quid cash, and remind me to chase the Society sample" | Splits into four items: an order loop, a stall day record, a receipt, a sample chase; reads back the four in one message; asks only for what is missing (which lot for the order) | voice, WhatsApp | `transcript`, `capture` with 4 items, `ask` naming the missing field | GK notes | Core (4 Nov) |
+| A1 | One voice note at 22:40: "The Bath café wants two more kilos Friday, the stall was dead, I paid the courier 38 quid cash, and remind me to chase the Bristol roaster sample" | Splits into four items: an order loop, a stall day record, a receipt, a sample chase; reads back the four in one message; asks only for what is missing (which lot for the order) | voice, WhatsApp | `transcript`, `capture` with 4 items, `ask` naming the missing field | GK notes | Core (4 Nov) |
 | A2 | A text with one problem, incomplete ("someone from a café in Bath asked about samples") | Opens a lead loop with counterpart "unknown café, Bath"; asks for a name or handle when it next matters, not immediately | WhatsApp | `loop_open` type lead, `ask` deferred to next brief | GK notes | Core (4 Nov) |
 | A3 | Forwarded customer WhatsApp message | Attaches it as the thread on the matching loop (by counterpart and reference); opens a loop if none; no reply is drafted to a forwarded third party | WhatsApp | `thread_append` with loop id | GK notes; map 13 | Core (4 Nov) |
 | A4 | Screenshot of an email or chat | Vision reads sender, date, gist; same as A3; asks the owner to confirm who it is from if unsure | photo | `capture` source screenshot, `ask` if counterpart unclear | GK notes | Next |
 | A5 | Photo of a delivery note or packing slip | Reads customer, lots, kg, date; marks the order shipped after approval | photo | `capture`, `approve`, `loop_close` shipped | GK notes | Core (after 4 Nov) |
 | A6 | Photo of a stock shelf or bag count ("that's what's left of the Pichia") | Reads a count; proposes a stock correction; approval moves the lot's kg | photo | `ask` with readback, `stock_move` reason "count" | GK notes (merges C8) | Next |
 | A7 | Photo of a label or lot card | Records lot facts (name, process, notes, score) on the lot | photo | `fact` on lot | GK notes | Next |
-| A8 | Calendar event "Stall, Harbourside, Sat" | Opens a stall day loop for that date; cash-up due 21:00 | calendar | `loop_open` stall | GK notes; map 22 | Core (after 4 Nov) |
+| A8 | Calendar event "Stall, Saturday market" | Opens a stall day loop for that date; cash-up due 21:00 | calendar | `loop_open` stall | GK notes; map 22 | Core (after 4 Nov) |
 | A9 | "Forget that" or "that's done" with no card quoted | Asks which item; closes it on confirmation | WhatsApp | `ask`, `loop_close` owner | GK notes | Core (after 4 Nov) |
 | A10 | Owner says the same thing twice in two messages | Deduplicates by counterpart and reference; says "already have that" | WhatsApp | `capture` dedup | GK notes | Core (after 4 Nov) |
 
@@ -91,7 +91,7 @@ Engine rules every row inherits (pinned in `spec.html`): capture splits one mess
 | C1 | A lot's kg falls under 20% of start | Opens a lot_low loop; brief says "Reorder or let it run out" | lots | `loop_open` lot_low | GK notes; map 9 | Core (4 Nov) |
 | C2 | "What's left of lot 2?" | Answers kg left, kg committed to open orders, free kg | lots, orders | `answer` | GK notes; map 9 | Core (4 Nov) |
 | C3 | Roasted stock: bags on hand per lot (**assumed** she holds roasted bags for stall and retail) | Tracks roasted bags separately from green kg; stall sales draw from bags | lots | `stock_move` kind roasted | assumption 3, confirmed; map 10 | Next |
-| C4 | Roast batch sent to the roaster ("sent 30 kg of Pichia to Triple Co") | Moves green kg to "at roaster"; expects bags back at a yield the owner sets | WhatsApp | `stock_move` reason roast | GK notes; map 10 | Next |
+| C4 | Roast batch sent to the roaster ("sent 30 kg of Pichia to the roasting partner") | Moves green kg to "at roaster"; expects bags back at a yield the owner sets | WhatsApp | `stock_move` reason roast | GK notes; map 10 | Next |
 | C5 | Bags return from the roaster | Adds roasted bags; closes the roast loop | WhatsApp | `stock_move` | GK notes; map 10 | Next |
 | C6 | Order confirmed for X kg | Reserves X kg on the lot, never beyond free kg (a reservation past free kg is refused, C14); free kg shown separately | orders | `reserve` | GK notes; map 9, map 17 | Core (after 4 Nov) |
 | C7 | Sample bags running low (**assumed** separate sample stock) | Flags when under 3 per lot | lots | `loop_open` sample_low | assumed | Later |

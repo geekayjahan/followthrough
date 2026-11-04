@@ -32,10 +32,10 @@ Two traps:
 
 ## 3. Zoho Books and Zoho Mail
 
-Use a fresh Books organisation for the synthetic company. The seed script refuses an org that already holds invoices it does not own, because the app would then show Books as unavailable.
+Use a fresh Books organisation for the test copy of Kāma Coffee, never the real one. The seed script refuses an org that already holds invoices it does not own, because the app would then show Books as unavailable.
 
 1. **Region.** The domain you sign in on decides it: `books.zoho.eu` is `eu`, `books.zoho.com` is `com`. Put it in `ZOHO_REGION`.
-2. **Books org.** Create the organisation "Monsoon & Ghats Green Coffee (Synthetic Test Co.)", currency GBP, time zone Europe/London. Its organisation ID (Settings, Organization Profile) goes into `ZOHO_BOOKS_ORG_ID`.
+2. **Books org.** Create the organisation "Kāma Coffee (Test)", currency GBP, time zone Europe/London. Its organisation ID (Settings, Organization Profile) goes into `ZOHO_BOOKS_ORG_ID`.
 3. **Mail.** A Zoho Mail mailbox for the owner side. Its address goes into `ZOHO_MAIL_FROM`. Add a verified email alias for coffee mail (Settings, Mail Accounts, Email Address, add alias) and put that in `MAIL_FROM_COFFEE`.
 4. **OAuth Self Client.** At `api-console.zoho.<region>`, add a Self Client. Copy Client ID and Client Secret into `ZOHO_CLIENT_ID` and `ZOHO_CLIENT_SECRET`. Under Generate Code, enter these scopes and a 10-minute duration (**verify** the scope names on screen):
 

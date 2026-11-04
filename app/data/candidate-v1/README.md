@@ -8,7 +8,7 @@ Prepared on **29 October 2026** for **GK** (commercial realism review & owner si
 
 ## 1. Fictional Business Story
 
-**Monsoon & Ghats Green Coffee (Synthetic Test Co.)** is a fictional solo-operated UK specialty green-coffee importer and market stall based in London/Bristol. The business imports three traceable Indian green-coffee lots — **Coorg washed** (`lot-1`), **Chikmagalur natural** (`lot-2`), and **Shevaroy Hills honey** (`lot-3`) — selling wholesale sacks/boxes to independent UK specialty roasters and stockists via email and WhatsApp, while selling roasted 250g retail bags for cash at a Thursday/Sunday market stall.
+**Kāma Coffee (Test)** is a test copy of Kāma Coffee, GK's real solo-operated UK specialty green-coffee importer. The brand is real; every customer, person, invoice, receipt and message below is fictional. The test business is and market stall based in London/Bristol. The business imports three traceable Indian green-coffee lots — **Coorg washed** (`lot-1`), **Chikmagalur natural** (`lot-2`), and **Shevaroy Hills honey** (`lot-3`) — selling wholesale sacks/boxes to independent UK specialty roasters and stockists via email and WhatsApp, while selling roasted 250g retail bags for cash at a Thursday/Sunday market stall.
 
 This candidate pack expands the 4-organisation starter in `codex/followthrough-v0` (`app/data/synthetic.json`) while preserving starter IDs (`org-1`..`org-4`, `person-1`..`person-4`, `lot-1`..`lot-2`, `order-1`) so existing isolated UI smoke checks remain compatible upon promotion.
 

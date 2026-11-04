@@ -1,5 +1,5 @@
 {
-  "provenance": "Fictional synthetic candidate dataset v1.0.0 for Followthrough connected-v0 verification (Monsoon & Ghats Green Coffee — Synthetic Test Co.). Contains no real people, businesses, phone numbers, financial transactions, or provider IDs. Owner review and fresh Zoho/WhatsApp test-account mapping are required before setting SYNTHETIC_DATA_APPROVED=true.",
+  "provenance": "Fictional synthetic candidate dataset v1.0.0 for Followthrough connected-v0 verification (Kāma Coffee (Test)). Contains no real people, businesses, phone numbers, financial transactions, or provider IDs. Owner review and fresh Zoho/WhatsApp test-account mapping are required before setting SYNTHETIC_DATA_APPROVED=true.",
   "orgs": [
     {
       "id": "org-1",

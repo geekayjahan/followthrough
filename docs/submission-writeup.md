@@ -63,7 +63,7 @@ It was built by spec engineering with Claude Code. The spec (`app/spec.html`) ca
 
 ## Data
 
-The demo runs on a synthetic company, Monsoon & Ghats Green Coffee (Synthetic Test Co.): twelve organisations, fourteen people, three coffee lots, a fresh Zoho Books organisation seeded by script, emails under `example.test`, and WhatsApp messages only to the Cloud API test numbers. No real customer appears anywhere. The app refuses to write or send until the data pack is approved, and every send goes to the test lists until a live switch is set by hand.
+The demo runs on a test copy of Kāma Coffee. The brand is real; every customer, person, invoice and message is fictional: twelve organisations, fourteen people, three coffee lots, a fresh Zoho Books organisation seeded by script, emails under `example.test`, and WhatsApp messages only to the Cloud API test numbers. No real customer appears anywhere. The app refuses to write or send until the data pack is approved, and every send goes to the test lists until a live switch is set by hand.
 
 ## What is new
 

@@ -174,4 +174,4 @@ British English. Polite: use "please", "thank you", "could you" and "would you";
 
 Best
 GK
-Kāma Coffee | [phone from terms.md]
+Kāma Coffee | beans@kamacoffee.co.uk

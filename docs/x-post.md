@@ -38,7 +38,7 @@ Attach a 30 to 45 second cut to the first post, uploaded natively rather than as
 
 **5/**
 
-> Built on Muse Spark Open (open weights, on @baseten), Meta Voice Transcribe and the WhatsApp Cloud API. Demo runs on a synthetic company: no real customers.
+> Built on Muse Spark Open (open weights, on @baseten), Meta Voice Transcribe and the WhatsApp Cloud API. Demo runs on a test copy of the business: no real customers.
 >
 > 3-minute demo and repo: [link]
 >

@@ -7,13 +7,13 @@ import { installIntake } from "../src/intake.mjs";
 import { installReceipts } from "../src/receipts.mjs";
 const data = () => ({
   orgs: [
-    { id: "loaf", name: "Loaf Bakery", type: "cafe", status: "customer", website: "https://loaf.example.test" },
-    { id: "society", name: "Society Roasters", type: "roaster", status: "lead", website: "https://society.example.test" },
+    { id: "crumb", name: "Crumb Bakery", type: "cafe", status: "customer", website: "https://crumb.example.test" },
+    { id: "northgate", name: "Northgate Roasters", type: "roaster", status: "lead", website: "https://northgate.example.test" },
     { id: "courier", name: "Fast Courier", type: "supplier", status: "customer", website: "https://courier.example.test" },
   ],
   people: [
-    { id: "p1", org: "loaf", email: "loaf@example.test", whatsapp: "+15555550001" },
-    { id: "p2", org: "society", email: "society@example.test", whatsapp: null },
+    { id: "p1", org: "crumb", email: "crumb@example.test", whatsapp: "+15555550001" },
+    { id: "p2", org: "northgate", email: "northgate@example.test", whatsapp: null },
   ],
   edges: [], invoices: [], orders: [], stall_days: [],
   lots: [{ id: "lot-2", name: "Chikmagalur", start_kg: 50, left_kg: 20, books_item_id: "item-2" }],
@@ -27,10 +27,10 @@ const cfg = {
 };
 const fourItems = {
   items: [
-    { type: "order", org_id: "loaf", reference: null, lot_id: null, kg: 2, date: null, text: "Loaf wants two more kilos Friday", missing: ["lot"] },
+    { type: "order", org_id: "crumb", reference: null, lot_id: null, kg: 2, date: null, text: "Crumb wants two more kilos Friday", missing: ["lot"] },
     { type: "stall", org_id: null, date: null, text: "the stall was dead", missing: [] },
     { type: "receipt", org_id: "courier", amount: 38, text: "I paid the courier 38 quid cash", missing: [] },
-    { type: "chase", org_id: "society", text: "remind me to chase the Society sample", missing: [] },
+    { type: "chase", org_id: "northgate", text: "remind me to chase the Northgate sample", missing: [] },
   ],
 };
 function setup(split) {
@@ -55,31 +55,31 @@ function setup(split) {
 }
 test("W1: one message with four items gives one capture line, one read-back naming all four, and one ask for the missing lot", async () => {
   const { s, e, replies, msg } = setup(() => fourItems);
-  await e.inbound(msg("v1", "Loaf wants two more kilos Friday, the stall was dead, I paid the courier 38 quid cash, and remind me to chase the Society sample"));
+  await e.inbound(msg("v1", "Crumb wants two more kilos Friday, the stall was dead, I paid the courier 38 quid cash, and remind me to chase the Northgate sample"));
   const captures = s.events().filter((x) => x.type === "capture");
   assert.equal(captures.length, 1);
   assert.deepEqual(captures[0].items.map((i) => i.type), ["order", "stall", "receipt", "chase"]);
   assert.equal(replies.length, 1, "one read-back");
-  for (const name of ["Loaf Bakery", "Stall", "Fast Courier", "Society Roasters"]) assert.ok(replies[0].text.includes(name), name);
+  for (const name of ["Crumb Bakery", "Stall", "Fast Courier", "Northgate Roasters"]) assert.ok(replies[0].text.includes(name), name);
   const asks = s.events().filter((x) => x.type === "ask");
   assert.equal(asks.length, 1);
   assert.match(asks[0].ask, /lot/);
   assert.ok(replies[0].text.includes("which lot"));
   const loops = s.all("loops").filter((l) => l.status === "open");
-  assert.ok(loops.some((l) => l.type === "order_unconfirmed" && l.org_id === "loaf" && l.kg === 2));
+  assert.ok(loops.some((l) => l.type === "order_unconfirmed" && l.org_id === "crumb" && l.kg === 2));
   assert.ok(loops.some((l) => l.type === "stall"));
   assert.ok(loops.some((l) => l.type === "receipt" && l.org_id === "courier"));
-  assert.ok(loops.some((l) => l.type === "sample_out" && l.org_id === "society"));
+  assert.ok(loops.some((l) => l.type === "sample_out" && l.org_id === "northgate"));
   s.close();
 });
 test("W2: the same order twice is one loop; the second capture is marked duplicate with no new loop_open", async () => {
-  const { s, e, msg } = setup(() => ({ items: [{ type: "order", org_id: "loaf", reference: "PO-7", kg: 10, lot_id: "lot-2", text: "Loaf confirmed PO-7, 10 kg of lot 2", missing: [] }] }));
-  await e.inbound(msg("o1", "Loaf confirmed PO-7, 10 kg of lot 2"));
+  const { s, e, msg } = setup(() => ({ items: [{ type: "order", org_id: "crumb", reference: "PO-7", kg: 10, lot_id: "lot-2", text: "Crumb confirmed PO-7, 10 kg of lot 2", missing: [] }] }));
+  await e.inbound(msg("o1", "Crumb confirmed PO-7, 10 kg of lot 2"));
   const opens = () => s.events().filter((x) => x.type === "loop_open").length;
   const before = opens();
-  await e.inbound(msg("o2", "Loaf confirmed PO-7, 10 kg of lot 2"));
+  await e.inbound(msg("o2", "Crumb confirmed PO-7, 10 kg of lot 2"));
   assert.equal(opens(), before);
-  assert.equal(s.all("loops").filter((l) => l.org_id === "loaf" && l.status === "open").length, 1);
+  assert.equal(s.all("loops").filter((l) => l.org_id === "crumb" && l.status === "open").length, 1);
   const second = s.events().filter((x) => x.type === "capture")[0];
   assert.equal(second.event_id, "o2");
   assert.equal(second.items[0].duplicate, true);
@@ -87,10 +87,10 @@ test("W2: the same order twice is one loop; the second capture is marked duplica
 });
 test("W15: a forwarded customer message attaches to the matching loop as thread_append, or opens a loop; nothing is drafted to the third party", async () => {
   const { s, d, e, replies, sent, msg } = setup((input) => ({
-    items: [{ type: "thread", org_id: input.message.includes("Loaf") ? "loaf" : null, counterpart: input.message.includes("Loaf") ? null : "Marco from the deli", reference: null, text: input.message, missing: [] }],
+    items: [{ type: "thread", org_id: input.message.includes("Crumb") ? "crumb" : null, counterpart: input.message.includes("Crumb") ? null : "Marco from the deli", reference: null, text: input.message, missing: [] }],
   }));
-  const existing = d.loop("quote", "loaf", "quote:loaf");
-  await e.inbound(msg("f1", "Fwd from Loaf: can you do 5 kg next week?", { forwarded: true }));
+  const existing = d.loop("quote", "crumb", "quote:crumb");
+  await e.inbound(msg("f1", "Fwd from Crumb: can you do 5 kg next week?", { forwarded: true }));
   const append = s.events().find((x) => x.type === "thread_append");
   assert.equal(append.loop_id, existing.id);
   assert.deepEqual(d.thread(existing.id).map((m) => m.from), ["counterpart"]);

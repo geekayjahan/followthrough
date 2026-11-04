@@ -11,6 +11,8 @@ This project follows spec engineering. `app/spec.html` is the canonical input; t
 - The eval's checks come from the spec, never from the code.
 - The build never imports a tech-stack choice the spec does not list. An open stack row blocks the feature that needs it; it does not get a silent default.
 - No real person's data, ever. Fixtures and demo data come only from the synthetic file the spec names; test sends go only to the test lists the spec names.
+- No phone number in any checked-in file, the owner's included, and no real customer, supplier or counterpart (person or business) in any file, example or fixture: UK GDPR. Phone numbers live only in the environment's `WHATSAPP_*` variables. The owner's contact line is `beans@kamacoffee.co.uk`. `checks/privacy.test.mjs` enforces this.
+- One brand: Kāma Coffee. The demo is a test copy of it; every counterpart, invoice and message is fictional.
 - Keys live in `app/.env` only. Never in chat, a spec, a log, a commit or a fixture.
 - **Scope.** Deliver what the spec asks for, at the scope it intends. If the ask looks wrong, say so in a sentence and keep building as asked; never quietly narrow, widen or transform it.
 - **Communication.** Lead with the outcome. Write summaries for a PM who stepped away, in complete sentences, no arrow chains, no labels invented mid-session.

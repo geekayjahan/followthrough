@@ -89,7 +89,7 @@ Not built, by decision: Lapsed and referral (W8, W9), Monday plan (W10), deliver
 
 ## 5. Rules that do not bend
 
-- No real person's data in any checked-in file: synthetic counterparts only, `@example.test`, test numbers. GK's own signature is the one exception.
+- No real person's data in any checked-in file: synthetic counterparts only, `@example.test`, test numbers. No phone number anywhere, GK's included; her contact line is `beans@kamacoffee.co.uk`. No real customer, supplier or counterpart name in any example or fixture (UK GDPR). `checks/privacy.test.mjs` fails the suite otherwise.
 - Nothing sends, writes to Books or reaches a non-test recipient without `SYNTHETIC_DATA_APPROVED=true` and an owner approval; `APP_LIVE` stays `false`.
 - Keys only in `app/.env` or the environment. Never ask for a value in chat.
 - No new runtime package or CDN asset without a one-way defence committed first, on its own.
