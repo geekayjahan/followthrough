@@ -4,6 +4,8 @@ import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { hash } from "./store.mjs";
+// Tokens added to every model call's answer budget for the model's reasoning.
+export const REASONING_HEADROOM = 3000;
 export class ProviderError extends Error {
   constructor(code, uncertain = false) {
     super(`Provider operation failed (${code})`);
@@ -468,7 +470,9 @@ export class Providers {
         body: JSON.stringify({
           model: this.c.MODEL_NAME,
           temperature: 0,
-          max_tokens: maxTokens,
+          // Spark Open reasons before it answers; the headroom keeps the reasoning from eating the answer budget.
+          max_tokens: maxTokens + REASONING_HEADROOM,
+          reasoning_effort: "low",
           response_format: { type: "json_object" },
           messages: [
             {
@@ -491,11 +495,19 @@ export class Providers {
         image: Boolean(image),
         voice_file: Boolean(voice_file),
       });
+    // An empty or cut-off answer is a failure, never a null result.
+    const choice = r.choices?.[0];
+    const text = choice?.message?.content;
+    if (choice?.finish_reason === "length" || typeof text !== "string" || !text.trim())
+      throw new ProviderError("model_incomplete");
+    let parsed;
     try {
-      return JSON.parse(r.choices[0].message.content);
+      parsed = JSON.parse(text);
     } catch {
       throw new ProviderError("model_schema");
     }
+    if (!parsed || typeof parsed !== "object") throw new ProviderError("model_schema");
+    return parsed;
   }
   async media(id) {
     connected(this.c);

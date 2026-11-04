@@ -164,3 +164,21 @@ test("every outbound provider request leaves a host line naming only the host an
   );
   assert.ok(!JSON.stringify(hosts).includes("test-token"));
 });
+
+test("T6: a model call asks for low reasoning with headroom, and an empty or cut-off answer is an error, never null", async () => {
+  const { REASONING_HEADROOM } = await import("../src/providers.mjs");
+  const reply = (choice) => async (url, options) => {
+    reply.body = JSON.parse(options.body);
+    return { ok: true, json: async () => ({ model: "m", usage: { prompt_tokens: 1, completion_tokens: 600 }, choices: [choice] }) };
+  };
+  const model = (choice) => new Providers({ SYNTHETIC_DATA_APPROVED: "true", MODEL_BASE_URL: "https://model.example.test/v1", MODEL_NAME: "m" }, reply(choice));
+  assert.deepEqual(await model({ finish_reason: "stop", message: { content: "{\"kg\":1.5}" } }).model("Cash-up", {}, { maxTokens: 400 }), { kg: 1.5 });
+  assert.equal(reply.body.reasoning_effort, "low");
+  assert.equal(reply.body.max_tokens, 400 + REASONING_HEADROOM);
+  // Reasoning used the whole budget: no answer at all.
+  await assert.rejects(model({ finish_reason: "length", message: { content: null, reasoning_content: "We need to..." } }).model("Cash-up", {}), { code: "model_incomplete" });
+  // Cut off part way through the answer.
+  await assert.rejects(model({ finish_reason: "length", message: { content: "{\"kg\":" } }).model("Cash-up", {}), { code: "model_incomplete" });
+  await assert.rejects(model({ finish_reason: "stop", message: { content: "  " } }).model("Cash-up", {}), { code: "model_incomplete" });
+  await assert.rejects(model({ finish_reason: "stop", message: { content: "null" } }).model("Cash-up", {}), { code: "model_schema" });
+});
