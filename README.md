@@ -55,6 +55,18 @@ npm --prefix app start
 
 Full setup, from keys to the Books seed: [docs/setup-keys.md](docs/setup-keys.md). App details and recovery: [app/README.md](app/README.md).
 
+### Where each key comes from
+
+When hosted, values live only in Railway Variables (service `followthrough`). This table lists names and sources, never values.
+
+| Service | Variables | Source |
+|---|---|---|
+| Meta Model API (Muse Spark, Voice Transcribe) | `MODEL_BASE_URL`, `MODEL_NAME`, `MODEL_API_KEY`, `VOICE_TRANSCRIBE_KEY` | dev.meta.ai, the team's Model API account |
+| WhatsApp Cloud API (test number) | `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `WHATSAPP_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `GRAPH_API_VERSION`, `WHATSAPP_TEST_NUMBERS`, `WHATSAPP_OWNER_NUMBERS` | developers.facebook.com, a separate test app and business portfolio. The verify token is chosen by us. Recipients are owner phones only. |
+| Zoho Books and Mail (test organisation) | `ZOHO_REGION`, `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, `ZOHO_BOOKS_ORG_ID`, `ZOHO_MAIL_ACCOUNT_ID`, `ZOHO_MAIL_INBOX_ID`, `ZOHO_MAIL_FROM`, `MAIL_FROM_COFFEE`, `OWNER_TEST_EMAILS` | A Zoho account that holds only the test organisation, never the real books or inbox |
+| Books seed | `CASH_ACCOUNT_ID`, `EXPENSE_ACCOUNT_ID`, `STALL_CUSTOMER_ID` | Seed script, [docs/setup-keys.md](docs/setup-keys.md) §5 |
+| App | `OWNER_PASSWORD` | Chosen by the owner |
+
 ## How it was built
 
 By spec engineering with Claude Code, using the Product Builder Kit below. The spec came first, then a build split into 28 features, each tied to a spec line and the checks that prove it. 86 automated checks pass.
