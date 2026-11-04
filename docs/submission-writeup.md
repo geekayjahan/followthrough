@@ -95,7 +95,7 @@ The hard part was making "yes" safe. A voice note saying "yes, send it" has to m
 
 ## Before pasting
 
-1. "Every model call goes to Spark Open except transcription" holds only if the Baseten endpoint takes image input. If receipts fall back to hosted Muse Spark 1.3 (the spec allows it), change that sentence to name both.
+1. Settled 3 Nov: Spark Open on Baseten read the synthetic receipt image correctly, every field matching the pack, so "every model call goes to Spark Open except transcription" holds and no Muse Spark 1.3 fallback is needed.
 2. The video's title card says "Built 26 Oct to 4 Nov" and the close says "ten days". The first `app/` commit is 28 Oct. GK should pick one framing and use it in both places.
 3. The repo's root `README.md` is still the Product Builder Kit's workshop README, so a judge opening the repo lands on the workshop, not Followthrough. It needs a Followthrough section on top: what it is, the Meta models, how to run, team, video link.
 4. Vince must be on the CV team before the form will list him.
