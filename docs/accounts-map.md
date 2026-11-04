@@ -16,7 +16,7 @@ Last updated: 4 Nov 2026, 21:35 UK. Railway column checked against the service's
 | Zoho test account (app's Books + Mail) | Zoho, EU data centre | Vince's teamvince.com login (the address is `ZOHO_MAIL_FROM`) | Vince | Active | Separate Zoho account from Kāma. Mail user ID 20121059056 (admin console). Coffee alias on teamvince.com added 4 Nov (the address is `MAIL_FROM_COFFEE`). API Mail account ID and Inbox ID still to fetch. |
 | Zoho Books test org | books.zoho.eu | Vince's teamvince.com login | Vince | Verified empty | "Kāma Coffee (Test)", ID 20121062531, Premium Trial created 4 Nov 2026, GBP, Europe/London. 0 invoices, 0 customers, 0 items (rechecked 4 Nov 21:25). Only org on this login. Confirm trial lasts past 9 Nov. |
 | Zoho CRM (demo backdrop only) | crm.zoho.eu | Vince's teamvince.com login | Vince | Activated, empty | CRM org ID 20121062804. Not connected to the app; no OAuth scope. |
-| Real Kāma Books | books.zoho.eu | info@flywheelbygk.com | GK | Do not use | Org "JM Valor Ltd", ID 20108595691. Claude's Zoho connectors are signed in here: read-only use only. Never connected to the app. |
+| Real Kāma Books | books.zoho.eu | info@flywheelbygk.com | GK | Do not use | Never connected to the app. Claude's Zoho connectors are signed in here: read-only use only. |
 | Kāma Instagram / Facebook | Instagram, Facebook | gk@kamacoffee.co.uk | GK | Do not use | Real business account. Keep it away from the hackathon setup. |
 | Real email inbox | Zoho Mail | info@flywheelbygk.com (aliases gk@kamacoffee.co.uk, beans@kamacoffee.co.uk) | GK | Do not use | Never connected to the app. |
 | Hosting | Railway, project "followthrough" | Vince's Railway account | Vince | Live | https://followthrough-production.up.railway.app (see setup-keys.md §6) |
@@ -43,7 +43,7 @@ The three env values come only from the seed script output (setup-keys.md §5). 
 | 4. OAuth Self Client (api-console.zoho.eu) | Done by Vince | `ZOHO_CLIENT_ID` and `ZOHO_CLIENT_SECRET` are on Railway |
 | 5. Refresh token | Done by Vince | `ZOHO_REFRESH_TOKEN` is on Railway |
 | 6. Mail account ID, Inbox ID | Done by Vince | Both on Railway |
-| 7. Isolation check | Partly done | Org ID differs from JM Valor Ltd and org is empty |
+| 7. Isolation check | Partly done | Test org ID differs from the real Kāma org and the test org is empty |
 | 8. Railway Variables | Zoho done; WhatsApp, seed IDs, `OWNER_TEST_EMAILS`, `ENRICHMENT_ALLOWED_HOSTS`, `SYNTHETIC_DATA_APPROVED` still missing | Checked 21:30 |
 
 ## Railway Variables (names only)
