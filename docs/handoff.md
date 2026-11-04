@@ -73,7 +73,7 @@ Owner data, all still outstanding on 30 Oct:
 | `app/data/synthetic.json` | four-org starter, no Books ids, no invoices, no orders of note | v1 per `docs/build-review.md` §5: every org with a `type` (roaster, cafe, stockist, supplier, market), people on `@example.test` and the test numbers, `books_contact_id` and lot `books_item_id` mapped, lead websites on the allowlisted hosts, a few invoices and orders so the invoice and reservation scenes have content. Supply it before the first real run: the app refuses a changed dataset once the database exists. |
 | `app/data/calendar.json` | stall days only | re-export with `documents: [{name, sent}]` and `transport_confirmed` per stall day, a `compliance: [{id, what, due, done}]` list, and `shipments: [{name, closing_date}]` if a closing date should be named |
 
-Who supplies what: the sign-off lines and voice samples are GK's own words and figures; the ids and keys come from whoever holds the Zoho and Meta accounts.
+Who supplies what: the sign-off lines and voice samples are GK's own words and figures; the ids and keys come from whoever holds the Zoho and Meta accounts. Which account holds which service, and what is already on Railway, is in `docs/accounts-map.md`.
 
 ## 4. What the next session does, in order
 

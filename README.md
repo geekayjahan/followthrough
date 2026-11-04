@@ -57,7 +57,7 @@ Full setup, from keys to the Books seed: [docs/setup-keys.md](docs/setup-keys.md
 
 ### Where each key comes from
 
-When hosted, values live only in Railway Variables (service `followthrough`). This table lists names and sources, never values.
+When hosted, values live only in Railway Variables (service `followthrough`). This table lists names and sources, never values. Whose account each service lives on, the non-secret IDs and what is already set: [docs/accounts-map.md](docs/accounts-map.md).
 
 | Service | Variables | Source |
 |---|---|---|
