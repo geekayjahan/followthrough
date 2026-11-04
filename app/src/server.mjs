@@ -137,9 +137,22 @@ export function createApplication({
           return send(res, 403, { error: "Webhook signature rejected" });
         const payload = JSON.parse(raw);
         for (const entry of payload.entry || [])
-          for (const change of entry.changes || [])
+          for (const change of entry.changes || []) {
+            // Delivery outcomes arrive only here; log status and Meta's error, never the recipient.
+            for (const st of change.value?.statuses || [])
+              s.audit("whatsapp_status", {
+                provider_id: String(st.id || "").slice(0, 256),
+                status: String(st.status || "").slice(0, 32),
+                ...(st.errors?.[0]
+                  ? {
+                      error_code: st.errors[0].code,
+                      error_title: String(st.errors[0].title || "").slice(0, 200),
+                    }
+                  : {}),
+              });
             for (const message of change.value?.messages || [])
               await e.inbound(message);
+          }
         return send(res, 200, { received: true });
       }
       if (
