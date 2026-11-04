@@ -1,9 +1,0 @@
-.env
-.env.*
-node_modules
-data/*.sqlite*
-data/candidate-run
-logs
-output
-.playwright-cli
-checks

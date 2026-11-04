@@ -109,63 +109,38 @@ The app fingerprints its dataset on first boot and refuses a changed one afterwa
 
 ## 6. Deploy on Railway
 
-The app runs as one Docker service on Vince's Railway account. `app/Dockerfile` builds it, `app/railway.json` sets one replica and the `/health` check, and `app/.railwayignore` keeps `app/.env` on your machine. The SQLite file and action log live on a volume (`DATA_DIR=/data/run`); the committed `data/` folder ships inside the image.
+The app is live at **https://followthrough-production.up.railway.app**: project `followthrough` on Vince's Railway account, one service, region EU West (Amsterdam). Set up 3 Nov.
 
-Run every command from `app/` in the main checkout (`Project_Codespaces/followthrough/app`), because that is where `data/synthetic.json` gets promoted.
+### How it is wired
 
-### First deploy (gets the URL WhatsApp needs)
+- **Source.** Railway builds from `VJDiPaola/followthrough` (private), branch `main`, root `/app`, with `app/Dockerfile`. That repo is a mirror of `geekayjahan/followthrough`: Railway reads repos through its GitHub App, which only the owner of an account can install, so it cannot see GK's repo from Vince's account. A push to the mirror that touches `app/` redeploys; other pushes do not.
+- **Service settings** live on the service, not in a file: health check `/health` (60 s), restart on failure (5 retries), one replica, never sleeps.
+- **Volume** `followthrough-data`, mounted at `/data`. The image sets `DATA_DIR=/data/run`, so the SQLite file and `logs/actions.jsonl` live there; the committed `data/` folder ships inside the image. The image also sets `HOST=0.0.0.0` and `TRUST_PROXY=true`, and Railway supplies `PORT`.
+- **Variables already set:** `APP_URL` (the address above), `APP_LIVE=false`, `ENABLE_JOBS=false`, `ENABLE_POLLING=false`, `DEMO_AGE_DAYS=3`, `DEMO_SEND_DELAY_MINUTES=0`, `MODEL_BASE_URL`, `MODEL_NAME`.
 
-1. Install the CLI and sign in. The login opens a browser.
+### Shipping a change
 
-   ```bash
-   npm install -g @railway/cli
-   ```
+Two remotes in the main checkout: `origin` is GK's repo, `mirror` is the deploy repo. Push both, or the live app falls behind:
 
-   ```bash
-   railway login
-   ```
+```bash
+git push origin main && git push mirror main
+```
 
-2. Create the project and push the code. Name the project `followthrough`; if `up` asks for a service, create one with the same name.
+If GK pushes to her repo, pull and push to `mirror` before the change goes live.
 
-   ```bash
-   railway init
-   ```
+### Still to do by hand
 
-   ```bash
-   railway up
-   ```
-
-3. In the Railway dashboard, on the service:
-   - **Volume.** Add a volume to the service with mount path `/data`.
-   - **Domain.** Settings, Networking, Generate Domain. Copy the `https://….up.railway.app` address.
-   - **Variables.** Open the Raw Editor and paste your `app/.env`, then before saving: delete the `HOST` and `PORT` lines (the image binds `0.0.0.0` and Railway supplies the port; a pasted `HOST=127.0.0.1` makes the app unreachable), set `APP_URL` to the Railway address with no trailing slash (login refuses any other origin), and make sure `OWNER_PASSWORD` is set. Leave `ENABLE_JOBS` and `ENABLE_POLLING` at `false`. Save; Railway redeploys.
-
-4. Check it. `<APP_URL>/health` returns `{"ok":true}`, `<APP_URL>` shows the login page and your password gets in, and the deploy log reads `Followthrough listening at https://…`.
-
-   ```bash
-   railway logs -n 50
-   ```
-
-5. Register the webhook: §2 step 7 with `<APP_URL>/webhooks/whatsapp`.
+1. **Secret keys.** Railway, service `followthrough`, Variables: add `OWNER_PASSWORD` and `MODEL_API_KEY`, then each WhatsApp, Zoho and voice key from §1 to §4 as it arrives. Never `HOST`, `PORT` or `APP_URL`; those are set. Saving redeploys. Until `OWNER_PASSWORD` is in, login refuses everyone with "owner setup incomplete".
+2. **WhatsApp webhook.** §2 step 7 with callback `https://followthrough-production.up.railway.app/webhooks/whatsapp` and the same verify token as `WHATSAPP_VERIFY_TOKEN`. A GET without the token returns 403, which is correct.
+3. **Check.** `/health` returns `{"ok":true}`, the address shows "Owner sign in", and your password gets in.
 
 ### Final deploy (after §5, when the data is promoted)
 
-The app fingerprints its dataset on first boot and refuses a changed one, so the database from the first deploy has to step aside before the promoted pack boots.
+The first boot fingerprinted the starter dataset into `/data/run`, and the app refuses a changed dataset, so the promoted pack needs a clean folder. Order matters:
 
-1. Add any keys that arrived since (`CASH_ACCOUNT_ID`, `EXPENSE_ACCOUNT_ID`, `STALL_CUSTOMER_ID`, Zoho, WhatsApp, `SYNTHETIC_DATA_APPROVED=true` once GK approves) in Variables.
-2. Move the first database aside. In the dashboard, right-click the service, Copy SSH Command, run it, then:
-
-   ```bash
-   mv /data/run /data/run-rehearsal && exit
-   ```
-
-   If SSH is unavailable, set `DATA_DIR=/data/run2` in Variables instead; the next boot starts clean there.
-3. Push the promoted data.
-
-   ```bash
-   railway up
-   ```
-
+1. In Variables, add any keys that arrived since (`CASH_ACCOUNT_ID`, `EXPENSE_ACCOUNT_ID`, `STALL_CUSTOMER_ID`, Zoho, WhatsApp, and `SYNTHETIC_DATA_APPROVED=true` once GK approves the pack).
+2. Set `DATA_DIR=/data/run2` **without deploying** (Railway stages the change; do not click Deploy, or Claude sets it with deploys skipped). A deploy at this point would fingerprint the old pack into the new folder.
+3. Commit the promoted `data/synthetic.json` and push both remotes. The deploy that push triggers boots the new pack on a clean database; `/data/run` stays on the volume as the rehearsal record.
 4. Check `/health`, log in, and confirm the dashboard shows the candidate pack's loops before recording.
 
-Keys never go into the image or the repo: they live in `app/.env` locally and in Railway Variables when hosted.
+Keys never go into the image or either repo: they live in `app/.env` locally and in Railway Variables when hosted. `app/.dockerignore` keeps `.env` out of the image.
