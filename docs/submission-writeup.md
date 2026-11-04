@@ -34,7 +34,7 @@ Followthrough holds the whole commercial picture and does three jobs.
 
 **Ask.** "It's tax season, what am I missing?" gets a list built from her books and loops, with a source on every line. "Just file my VAT return" gets a plain refusal and the nearest thing it can do.
 
-Around those jobs: a voice note at the end of a stall day ("sold six 250g bags of lot 2, £120 cash") is read back, and on her yes the sale lands in Zoho Books and the lot drops 1.5 kg. A missing bag size gets a question, never a guess. Receipt photos become expenses after review. One page shows cash, owed, stock per lot, what is due today and what leaked.
+Around those jobs: a voice note at the end of a stall day ("sold six 250g bags of lot 2, £60 cash") is read back, and on her yes the sale lands in Zoho Books and the lot drops 1.5 kg. A missing bag size gets a question, never a guess. Receipt photos become expenses after review. One page shows cash, owed, stock per lot, what is due today and what leaked.
 
 ## How it uses Meta models
 

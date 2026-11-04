@@ -95,7 +95,7 @@ The app fingerprints its dataset on first boot and refuses a changed one afterwa
    node scripts/seed-books.mjs
    ```
 
-   It ends by reading back cash and owed: expect £3,335.00 and £1,245.00. If cash is £160 short, the stall sale landed in Undeposited Funds; the script names the receipt to fix in Books.
+   It ends by reading back cash and owed: expect £2,875.00 and £622.50. If cash is £80 short, the stall sale landed in Undeposited Funds; the script names the receipt to fix in Books.
 3. Point each lead's `website` in `data/candidate-run/synthetic.json` at its hosted shop page (pack README §6 step 5).
 4. Promote the run copy, then boot.
 

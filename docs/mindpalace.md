@@ -86,7 +86,7 @@ Unknowns to close with dev.meta.ai open: does the hosted key cover voice; does S
 1. 08:00 WhatsApp brief arrives: 4 loops cold. A warm lead first ("Bean & Bloom stock Harbour Roasters, who buy lot 2"), an overdue invoice with number and amount, a low lot, a stall day uncashed.
 2. GK taps Approve on the warm-lead draft. Email lands in the test inbox. Loop touch resets.
 3. GK sends a voice note: "yes send it" for the invoice chase. Transcript shown, send logged.
-4. GK sends a voice note: "sold six 250g bags of lot 2, 120 pounds cash". Read-back, approve, Books sale appears, lot drops 1.5 kg.
+4. GK sends a voice note: "sold six 250g bags of lot 2, 60 pounds cash". Read-back, approve, Books sale appears, lot drops 1.5 kg.
 5. Where I stand: cash, owed, stock, network map, lead panel with price £11 and the source quote.
 6. Close on `actions.jsonl` scrolling: every brief, approval, send, Books write, with timestamps. "Nothing leaves without a tap."
 

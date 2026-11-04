@@ -15,8 +15,8 @@ $format = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(
 $samples = @(
     @{ File = "voice-01-approve-yes-send-it.wav"; Text = "Yes, send it." },
     @{ File = "voice-02-refuse-no-hold-it.wav"; Text = "No, hold it." },
-    @{ File = "voice-03-cashup-lot2-120gbp.wav"; Text = "Sold six 250 gram bags of lot 2, 120 pounds cash." },
-    @{ File = "voice-04-cashup-missing-size.wav"; Text = "Sold six bags of lot 2, 120 pounds cash." }
+    @{ File = "voice-03-cashup-lot2-60gbp.wav"; Text = "Sold six 250 gram bags of lot 2, 60 pounds cash." },
+    @{ File = "voice-04-cashup-missing-size.wav"; Text = "Sold six bags of lot 2, 60 pounds cash." }
 )
 
 foreach ($sample in $samples) {

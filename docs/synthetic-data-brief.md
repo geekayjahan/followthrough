@@ -53,7 +53,7 @@ For each scenario, provide a stable scenario ID, relevant eval IDs, starting rec
 | Voice approval | Actual audio saying “yes send it” and “no, hold it,” each tied to one pending action. Only affirmative, unambiguous approval permits a send. | F3 |
 | Invoice collection | An invoice one day overdue produces a chase naming its number and amount. Recording a matching payment closes the loop and prevents later chases. | F4, E2 |
 | Receipt | A readable fictional supplier receipt with line items, GBP total, and date. Expected extraction must match the image; Books expense creation waits for approval. | F5 |
-| Stall cash-up | “Sold six 250g bags of lot 2, 120 pounds cash” means a GBP 120 sale and exactly 1.5 kg stock reduction. Include a version missing bag size; it must ask and must not write. | F6 |
+| Stall cash-up | “Sold six 250g bags of lot 2, 60 pounds cash” means a GBP 60 sale and exactly 1.5 kg stock reduction. Include a version missing bag size; it must ask and must not write. | F6 |
 | Stock threshold | Exactly 20% remaining is not low; below 20% opens a low-stock loop. | F7 |
 | Qualification | Shop evidence for GBP 6, 8, 11, 12, and above 12 per 250g. Below 8 closes as “below bar”; 8–12 is mid-shelf; above 12 is premium. Include explicit yes/no evidence about Indian coffee and one unknown case. | F8, E4 |
 | Warm introduction | One-edge, two-edge, and no-path prospects. Warm prospects rank first; drafts name the actual fictional connection. Introducer outreach needs its own approval. | F9, F10 |

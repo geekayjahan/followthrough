@@ -47,7 +47,7 @@
         "edges_count": 10,
         "lots": ["lot-1", "lot-2", "lot-3"],
         "invoices": ["inv-1", "inv-2", "inv-3", "inv-4", "inv-5", "inv-6"],
-        "orders": ["order-1", "order-2", "order-3", "order-4", "order-5"],
+        "orders": ["ORD-48201", "ORD-48202", "ORD-48203", "ORD-48204", "ORD-48205"],
         "stall_days": ["2026-10-22", "2026-10-25", "2026-10-29"]
       },
       "input": {
@@ -67,8 +67,8 @@
         "books_writes": 0
       },
       "expected_totals": {
-        "cash_gbp": 3335,
-        "owed_gbp": 1245,
+        "cash_gbp": 2875,
+        "owed_gbp": 622.5,
         "stock_total_kg": 58.5,
         "lots_left_kg": {
           "lot-1": 42,
@@ -269,8 +269,8 @@
         "introducer_messages_sent_without_own_approval": 0
       },
       "expected_totals": {
-        "cash_gbp": 3335,
-        "owed_gbp": 1245,
+        "cash_gbp": 2875,
+        "owed_gbp": 622.5,
         "stock_total_kg": 58.5
       }
     },
@@ -282,7 +282,7 @@
       "starting_records": {
         "seeded_loops": [
           { "key": "lead:org-2", "type": "lead", "org_id": "org-2", "last_touch": "2026-10-26T08:00:00Z" },
-          { "key": "order:order-2", "type": "order_unconfirmed", "org_id": "org-5", "last_touch": "2026-10-26T09:00:00Z" }
+          { "key": "order:ORD-48202", "type": "order_unconfirmed", "org_id": "org-5", "last_touch": "2026-10-26T09:00:00Z" }
         ],
         "intake_loops_opened_on_2026_10_26": [
           {
@@ -304,7 +304,7 @@
       "input": {
         "steps": [
           "1. At 2026-10-29T18:00:00Z brief, generate pending drafts for all four 3-day-cold chase loops (lead, sample_out, quote, order_unconfirmed).",
-          "2. Leave order:order-2 unapproved (Eval A1).",
+          "2. Leave order:ORD-48202 unapproved (Eval A1).",
           "3. Edit lead:org-2 draft text to: 'Hello Samira, we supply Harbour Roasters in Bristol and saw Bean & Bloom stocks their espresso in Bath. Would you like a 250g sample of our Coorg washed lot?'",
           "4. Attempt approval of lead:org-2 with stale version 1 hash (must reject).",
           "5. Approve lead:org-2 with current version 2 and revised hash via owner tap.",
@@ -330,8 +330,8 @@
         "sends_for_unapproved_order_2": 0
       },
       "expected_totals": {
-        "cash_gbp": 3335,
-        "owed_gbp": 1245,
+        "cash_gbp": 2875,
+        "owed_gbp": 622.5,
         "stock_total_kg": 58.5
       }
     },
@@ -370,8 +370,8 @@
         "audit_events": ["transcript", "approve", "send", "touch", "transcript", "blocked"]
       },
       "expected_totals": {
-        "cash_gbp": 3335,
-        "owed_gbp": 1245,
+        "cash_gbp": 2875,
+        "owed_gbp": 622.5,
         "stock_total_kg": 58.5
       }
     },
@@ -386,26 +386,26 @@
           "books_invoice_number": "FT-INV-1001",
           "org_id": "org-1",
           "due": "2026-10-28",
-          "amount": 480,
-          "balance": 480
+          "amount": 240,
+          "balance": 240
         },
         "due_today_control_invoice": {
           "synthetic_id": "inv-2",
           "books_invoice_number": "FT-INV-1002",
           "org_id": "org-5",
           "due": "2026-10-29",
-          "amount": 240,
-          "balance": 240
+          "amount": 120,
+          "balance": 120
         }
       },
       "input": {
-        "step_1_at_18_00": "Sync Books and run 18:00 brief: FT-INV-1001 (due 2026-10-28) is 1 day past due and produces a chase draft naming FT-INV-1001 and 480; FT-INV-1002 (due 2026-10-29) is NOT cold.",
-        "step_2_at_19_15": "Record customer payment FT-PAY-2003 of GBP 480.00 against FT-INV-1001 in Zoho Books (balance -> 0, status -> paid), then run syncBooks() / next brief cycle at 2026-10-30T08:00:00Z."
+        "step_1_at_18_00": "Sync Books and run 18:00 brief: FT-INV-1001 (due 2026-10-28) is 1 day past due and produces a chase draft naming FT-INV-1001 and 240; FT-INV-1002 (due 2026-10-29) is NOT cold.",
+        "step_2_at_19_15": "Record customer payment FT-PAY-2003 of GBP 240.00 against FT-INV-1001 in Zoho Books (balance -> 0, status -> paid), then run syncBooks() / next brief cycle at 2026-10-30T08:00:00Z."
       },
       "expected_state_changes": {
         "step_1_ft_inv_1001_due": true,
         "step_1_ft_inv_1002_due": false,
-        "step_1_draft_mentions": ["FT-INV-1001", "480"],
+        "step_1_draft_mentions": ["FT-INV-1001", "240"],
         "step_2_pending_chase_status": "revoked",
         "step_2_invoice_loop_status": "closed",
         "step_2_invoice_loop_reason": "paid",
@@ -416,10 +416,10 @@
         "preflight_guard": "Even if owner attempts to approve stale FT-INV-1001 chase before syncBooks(), preflight() re-reads the invoice, sees balance 0 / status paid, closes the loop, and blocks sending."
       },
       "expected_totals": {
-        "owed_before_payment_gbp": 1245,
-        "owed_after_payment_gbp": 765,
-        "cash_before_payment_gbp": 3335,
-        "cash_after_payment_gbp": 3815,
+        "owed_before_payment_gbp": 622.5,
+        "owed_after_payment_gbp": 382.5,
+        "cash_before_payment_gbp": 2875,
+        "cash_after_payment_gbp": 3115,
         "stock_total_kg": 58.5
       }
     },
@@ -466,7 +466,7 @@
     },
     {
       "id": "SCEN-09-STALL-CASHUP",
-      "title": "Stall voice cash-up: missing bag size asks without writing; six 250g bags of lot 2 records GBP 120 sale and -1.5 kg stock move",
+      "title": "Stall voice cash-up: missing bag size asks without writing; six 250g bags of lot 2 records GBP 60 sale and -1.5 kg stock move",
       "eval_ids": ["F6", "F7"],
       "event_time": "2026-10-29T17:30:00Z",
       "starting_records": {
@@ -475,9 +475,9 @@
       },
       "input": {
         "step_1_missing_size_voice": "assets/voice/voice-04-cashup-missing-size.wav",
-        "step_1_transcript": "Sold six bags of lot 2, 120 pounds cash.",
-        "step_2_complete_voice": "assets/voice/voice-03-cashup-lot2-120gbp.wav",
-        "step_2_transcript": "Sold six 250g bags of lot 2, 120 pounds cash.",
+        "step_1_transcript": "Sold six bags of lot 2, 60 pounds cash.",
+        "step_2_complete_voice": "assets/voice/voice-03-cashup-lot2-60gbp.wav",
+        "step_2_transcript": "Sold six 250g bags of lot 2, 60 pounds cash.",
         "step_3": "Owner approves the pending sale action."
       },
       "expected_state_changes": {
@@ -492,7 +492,7 @@
             "bag_grams": 250,
             "lot_id": "lot-2",
             "kg": 1.5,
-            "amount": 120,
+            "amount": 60,
             "currency": "GBP"
           },
           "lot_2_left_kg": 10
@@ -513,7 +513,7 @@
         "audit_events": ["ask", "draft", "approve", "books_write", "stock_move", "loop_open", "loop_close"]
       },
       "expected_totals": {
-        "sale_recorded_gbp": 120,
+        "sale_recorded_gbp": 60,
         "lot_2_left_kg_after": 8.5,
         "stock_total_kg_after": 57,
         "open_lot_low_loops_after": 2
@@ -653,13 +653,13 @@
       "eval_ids": ["F12"],
       "event_time": "2026-10-29T18:25:00Z",
       "starting_records": {
-        "order": { "id": "order-1", "org": "org-1", "lot": "lot-1", "kg": 6, "taken_via": "email", "status": "to_ship" },
-        "loop_key": "order:order-1",
+        "order": { "id": "ORD-48201", "org": "org-1", "lot": "lot-1", "kg": 6, "taken_via": "email", "status": "to_ship" },
+        "loop_key": "order:ORD-48201",
         "loop_type": "order_to_ship"
       },
       "input": {
         "steps": [
-          "1. Brief generates pending shipment action for order:order-1 (Harbour Roasters, 6 kg Coorg washed).",
+          "1. Brief generates pending shipment action for order:ORD-48201 (Harbour Roasters, 6 kg Coorg washed).",
           "2. Owner approves shipment confirmation in dashboard or WhatsApp.",
           "3. Reload state / reopen SQLite store."
         ]

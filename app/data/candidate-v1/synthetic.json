@@ -336,7 +336,7 @@
     {
       "id": "inv-1",
       "org": "org-1",
-      "amount": 480,
+      "amount": 240,
       "issued": "2026-10-14",
       "due": "2026-10-28",
       "paid_on": null
@@ -344,7 +344,7 @@
     {
       "id": "inv-2",
       "org": "org-5",
-      "amount": 240,
+      "amount": 120,
       "issued": "2026-10-15",
       "due": "2026-10-29",
       "paid_on": null
@@ -352,7 +352,7 @@
     {
       "id": "inv-3",
       "org": "org-5",
-      "amount": 360,
+      "amount": 180,
       "issued": "2026-10-26",
       "due": "2026-11-09",
       "paid_on": null
@@ -360,7 +360,7 @@
     {
       "id": "inv-4",
       "org": "org-6",
-      "amount": 195,
+      "amount": 97.5,
       "issued": "2026-10-07",
       "due": "2026-10-21",
       "paid_on": null
@@ -368,7 +368,7 @@
     {
       "id": "inv-5",
       "org": "org-1",
-      "amount": 600,
+      "amount": 300,
       "issued": "2026-10-01",
       "due": "2026-10-15",
       "paid_on": "2026-10-14"
@@ -376,7 +376,7 @@
     {
       "id": "inv-6",
       "org": "org-6",
-      "amount": 130,
+      "amount": 65,
       "issued": "2026-10-28",
       "due": "2026-11-11",
       "paid_on": null
@@ -407,7 +407,7 @@
   ],
   "orders": [
     {
-      "id": "order-1",
+      "id": "ORD-48201",
       "org": "org-1",
       "lot": "lot-1",
       "kg": 6,
@@ -415,7 +415,7 @@
       "status": "to_ship"
     },
     {
-      "id": "order-2",
+      "id": "ORD-48202",
       "org": "org-5",
       "lot": "lot-1",
       "kg": 12,
@@ -423,7 +423,7 @@
       "status": "unconfirmed"
     },
     {
-      "id": "order-3",
+      "id": "ORD-48203",
       "org": "org-6",
       "lot": "lot-3",
       "kg": 4,
@@ -431,7 +431,7 @@
       "status": "shipped"
     },
     {
-      "id": "order-4",
+      "id": "ORD-48204",
       "org": "org-6",
       "lot": "lot-2",
       "kg": 5,
@@ -439,7 +439,7 @@
       "status": "to_ship"
     },
     {
-      "id": "order-5",
+      "id": "ORD-48205",
       "org": "org-5",
       "lot": "lot-2",
       "kg": 10,

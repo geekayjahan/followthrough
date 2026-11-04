@@ -345,15 +345,15 @@
     },
     {
       "voice_id": "VOICE-03",
-      "local_asset": "assets/voice/voice-03-cashup-lot2-120gbp.wav",
+      "local_asset": "assets/voice/voice-03-cashup-lot2-60gbp.wav",
       "eval_ids": ["F6", "F7"],
-      "verbatim_transcript": "Sold six 250g bags of lot 2, 120 pounds cash."
+      "verbatim_transcript": "Sold six 250g bags of lot 2, 60 pounds cash."
     },
     {
       "voice_id": "VOICE-04",
       "local_asset": "assets/voice/voice-04-cashup-missing-size.wav",
       "eval_ids": ["F6"],
-      "verbatim_transcript": "Sold six bags of lot 2, 120 pounds cash."
+      "verbatim_transcript": "Sold six bags of lot 2, 60 pounds cash."
     }
   ]
 }
