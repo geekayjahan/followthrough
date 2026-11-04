@@ -103,7 +103,7 @@
       "type": "roaster",
       "website": "https://foghornroastery.example.test",
       "instagram": null,
-      "city": "Brighton",
+      "city": "Manchester",
       "price_per_250g": null,
       "sells_indian": null,
       "status": "lead",
@@ -418,7 +418,7 @@
       "id": "ORD-48202",
       "org": "org-5",
       "lot": "lot-1",
-      "kg": 12,
+      "kg": 12, "note": "Split from a 60 kg sack",
       "taken_via": "whatsapp",
       "status": "unconfirmed"
     },
@@ -442,7 +442,7 @@
       "id": "ORD-48205",
       "org": "org-5",
       "lot": "lot-2",
-      "kg": 10,
+      "kg": 10, "note": "Split from a 60 kg sack",
       "taken_via": "email",
       "status": "shipped"
     }
