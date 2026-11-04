@@ -56,7 +56,7 @@
   ],
   "open_questions": [
     "T5: Railway URL into APP_URL and the WhatsApp callback after first deploy",
-    "T6: Baseten slug, JSON mode (json_object vs json_schema), image input, Voice Transcribe key coverage and price",
+    "T6: Voice Transcribe price (slug, json_object, image input and Voice Transcribe key coverage confirmed 3 and 4 Nov)",
     "T1: dummy Zoho Mail account and fresh Books organisation; WhatsApp test numbers and owner test addresses",
     "Owner decisions: lapsed days, deposit 30 or 50%, FX clause, cold-send cap 20 or 30, retention 12/24/36 months"
   ],

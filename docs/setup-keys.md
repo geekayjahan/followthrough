@@ -113,24 +113,24 @@ The app is live at **https://followthrough-production.up.railway.app**: project 
 
 ### How it is wired
 
-- **Source.** Railway builds from `VJDiPaola/followthrough` (private), branch `main`, root `/app`, with `app/Dockerfile`. That repo is a mirror of `geekayjahan/followthrough`: Railway reads repos through its GitHub App, which only the owner of an account can install, so it cannot see GK's repo from Vince's account. A push to the mirror that touches `app/` redeploys; other pushes do not.
+- **Source.** Railway builds from `geekayjahan/followthrough`, branch `main`, root `/app`, with `app/Dockerfile`. Railway reads repos through its GitHub App, which only the account owner can install, so GK installed it on her account for this repo on 4 Nov; until then the service built from a private mirror, `VJDiPaola/followthrough`, which is kept as a fallback and no longer deploys. A push to `main` that touches `app/` redeploys; other pushes do not.
 - **Service settings** live on the service, not in a file: health check `/health` (60 s), restart on failure (5 retries), one replica, never sleeps.
 - **Volume** `followthrough-data`, mounted at `/data`. The image sets `DATA_DIR=/data/run`, so the SQLite file and `logs/actions.jsonl` live there; the committed `data/` folder ships inside the image. The image also sets `HOST=0.0.0.0` and `TRUST_PROXY=true`, and Railway supplies `PORT`.
 - **Variables already set:** `APP_URL` (the address above), `APP_LIVE=false`, `ENABLE_JOBS=false`, `ENABLE_POLLING=false`, `DEMO_AGE_DAYS=3`, `DEMO_SEND_DELAY_MINUTES=0`, `MODEL_BASE_URL`, `MODEL_NAME`.
 
 ### Shipping a change
 
-Two remotes in the main checkout: `origin` is GK's repo, `mirror` is the deploy repo. Push both, or the live app falls behind:
+Push to `main` on GK's repo; Railway builds it.
 
 ```bash
-git push origin main && git push mirror main
+git push origin main
 ```
 
-If GK pushes to her repo, pull and push to `mirror` before the change goes live.
+If the GitHub link ever breaks, point the service back at `VJDiPaola/followthrough` and push `main` there too.
 
 ### Still to do by hand
 
-1. **Secret keys.** Railway, service `followthrough`, Variables: add `OWNER_PASSWORD` and `MODEL_API_KEY`, then each WhatsApp, Zoho and voice key from §1 to §4 as it arrives. Never `HOST`, `PORT` or `APP_URL`; those are set. Saving redeploys. Until `OWNER_PASSWORD` is in, login refuses everyone with "owner setup incomplete".
+1. **Secret keys.** Railway, service `followthrough`, Variables. `OWNER_PASSWORD`, `MODEL_API_KEY` and `VOICE_TRANSCRIBE_KEY` are in (4 Nov); add each WhatsApp and Zoho key from §2 to §4 as it arrives. Never `HOST`, `PORT` or `APP_URL`; those are set. Saving redeploys. Until `OWNER_PASSWORD` is in, login refuses everyone with "owner setup incomplete".
 2. **WhatsApp webhook.** §2 step 7 with callback `https://followthrough-production.up.railway.app/webhooks/whatsapp` and the same verify token as `WHATSAPP_VERIFY_TOKEN`. A GET without the token returns 403, which is correct.
 3. **Check.** `/health` returns `{"ok":true}`, the address shows "Owner sign in", and your password gets in.
 
@@ -140,7 +140,7 @@ The first boot fingerprinted the starter dataset into `/data/run`, and the app r
 
 1. In Variables, add any keys that arrived since (`CASH_ACCOUNT_ID`, `EXPENSE_ACCOUNT_ID`, `STALL_CUSTOMER_ID`, Zoho, WhatsApp, and `SYNTHETIC_DATA_APPROVED=true` once GK approves the pack).
 2. Set `DATA_DIR=/data/run2` **without deploying** (Railway stages the change; do not click Deploy, or Claude sets it with deploys skipped). A deploy at this point would fingerprint the old pack into the new folder.
-3. Commit the promoted `data/synthetic.json` and push both remotes. The deploy that push triggers boots the new pack on a clean database; `/data/run` stays on the volume as the rehearsal record.
+3. Commit the promoted `data/synthetic.json` and push `main`. The deploy that push triggers boots the new pack on a clean database; `/data/run` stays on the volume as the rehearsal record.
 4. Check `/health`, log in, and confirm the dashboard shows the candidate pack's loops before recording.
 
-Keys never go into the image or either repo: they live in `app/.env` locally and in Railway Variables when hosted. `app/.dockerignore` keeps `.env` out of the image.
+Keys never go into the image or any repo: they live in `app/.env` locally and in Railway Variables when hosted. `app/.dockerignore` keeps `.env` out of the image.
