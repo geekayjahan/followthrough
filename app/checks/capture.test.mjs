@@ -85,6 +85,23 @@ test("W2: the same order twice is one loop; the second capture is marked duplica
   assert.equal(second.items[0].duplicate, true);
   s.close();
 });
+test("W2: an order the pack already holds at a later stage is a duplicate; a different kg asks instead of reserving again", async () => {
+  const { s, d, e, replies, msg } = setup(() => ({ items: [{ type: "order", org_id: "crumb", reference: "PO-9", kg: 8, lot_id: "lot-2", text: "Crumb wants PO-9, 8 kg of lot 2", missing: [] }] }));
+  d.loop("order_to_ship", "crumb", "order:PO-9", { order_id: "PO-9", kg: 6, lot_id: "lot-2" });
+  const opens = () => s.events().filter((x) => x.type === "loop_open").length;
+  const reserves = () => s.events().filter((x) => x.type === "reserve").length;
+  const before = [opens(), reserves()];
+  await e.inbound(msg("o9", "Crumb wants PO-9, 8 kg of lot 2"));
+  assert.equal(opens(), before[0]);
+  assert.equal(reserves(), before[1]);
+  assert.equal(s.all("loops").filter((l) => l.org_id === "crumb" && l.status === "open").length, 1);
+  const cap = s.events().find((x) => x.type === "capture" && x.event_id === "o9");
+  assert.equal(cap.items[0].duplicate, true);
+  const ask = s.events().find((x) => x.type === "ask" && x.reason === "kg_mismatch");
+  assert.ok(ask && /6 kg/.test(ask.ask) && /8 kg/.test(ask.ask), "ask names both kg");
+  assert.ok(replies.some((r) => /Which is right/.test(r.text)));
+  s.close();
+});
 test("W15: a forwarded customer message attaches to the matching loop as thread_append, or opens a loop; nothing is drafted to the third party", async () => {
   const { s, d, e, replies, sent, msg } = setup((input) => ({
     items: [{ type: "thread", org_id: input.message.includes("Crumb") ? "crumb" : null, counterpart: input.message.includes("Crumb") ? null : "Marco from the deli", reference: null, text: input.message, missing: [] }],
