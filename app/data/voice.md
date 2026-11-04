@@ -1,4 +1,4 @@
-signed-off: (not yet; GK to replace this line with "signed-off: <date> GK" after reading)
+signed-off: 2026-11-04 GK
 
 # GK's voice
 

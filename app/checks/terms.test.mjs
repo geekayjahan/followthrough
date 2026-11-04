@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Store } from "../src/store.mjs";
 import { Domain } from "../src/domain.mjs";
 import { Engine } from "../src/engine.mjs";
-import { loadTerms, checkDraft } from "../src/terms.mjs";
+import { loadTerms, checkDraft, parseTerms } from "../src/terms.mjs";
 import { fileURLToPath } from "node:url";
 const terms = loadTerms();
 test("terms.md parses into price rows, bag prices and the owner's cadence", () => {
@@ -13,7 +13,8 @@ test("terms.md parses into price rows, bag prices and the owner's cadence", () =
   assert.ok(yeast.explicit.includes(13.5), "agreed price on the row counts");
   assert.deepEqual(terms.bags, { 250: 8, 1000: 28 });
   assert.deepEqual(terms.cadence, { email: 7, sample: 5 });
-  assert.equal(terms.signed_off, false);
+  assert.equal(parseTerms("signed-off: 2026-11-04 GK\n").signed_off, true);
+  assert.equal(parseTerms("signed-off: (not yet; GK to replace this line)\n").signed_off, false);
   assert.ok(terms.never.some((n) => /first-order discount/.test(n)));
 });
 test("F20: a placeholder or a price on no row blocks; a listed price passes", () => {
