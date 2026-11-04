@@ -37,8 +37,8 @@ function fakeBooks({ foreign = [] } = {}) {
 test("the plan reads every invoice line and reconciles to the pack's cash and owed", () => {
   const plan = buildPlan(read("books-seed.json"));
   assert.equal(plan.invoices.length, 6);
-  assert.deepEqual(plan.invoices.find((i) => i.number === "FT-INV-1004").lines, [{ item: "books-item-lot-3", quantity: 7.5, rate: 26 }]);
-  assert.deepEqual(plan.expected, { cash: 3335, owed: 1245 });
+  assert.deepEqual(plan.invoices.find((i) => i.number === "FT-INV-1004").lines, [{ item: "books-item-lot-3", quantity: 7.5, rate: 13 }]);
+  assert.deepEqual(plan.expected, { cash: 2875, owed: 622.5 });
   const broken = read("books-seed.json");
   broken.invoices[0].total = 999;
   assert.throws(() => buildPlan(broken), /not the total/);
@@ -47,8 +47,8 @@ test("the plan reads every invoice line and reconciles to the pack's cash and ow
 test("seeding reaches the expected cash and owed, marks invoices sent, and a re-run creates nothing", async () => {
   const plan = buildPlan(read("books-seed.json")), api = fakeBooks();
   const first = await seed(plan, api, () => {});
-  assert.equal(first.cash, 3335);
-  assert.equal(first.owed, 1245);
+  assert.equal(first.cash, 2875);
+  assert.equal(first.owed, 622.5);
   assert.ok(api.db.invoices.every((i) => i.status === "sent"), "no seeded invoice stays a draft");
   assert.ok(first.ids.STALL_CUSTOMER_ID && first.ids.CASH_ACCOUNT_ID && first.ids.EXPENSE_ACCOUNT_ID);
   const before = api.posts.length, again = await seed(plan, api, () => {});

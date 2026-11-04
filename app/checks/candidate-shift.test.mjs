@@ -42,7 +42,7 @@ test("booted today and read on the demo clock, the shifted pack gives the scenar
   const loop = (key) => s.all("loops").find((l) => l.key === key);
   const at = (time) => new Date(`${target}T${time}:00Z`);
   // Seeded now, three demo days later every untouched commercial loop is cold (SCEN-05).
-  for (const key of ["lead:org-2", "order:order-1", "order:order-2"]) assert.equal(due(loop(key), at("18:00")), true, key);
+  for (const key of ["lead:org-2", "order:ORD-48201", "order:ORD-48202"]) assert.equal(due(loop(key), at("18:00")), true, key);
   // The reference stall day is not due at 18:00 and is due from 21:00 (SCEN-11); the earlier one is overdue.
   assert.equal(due(loop(`stall:${target}`), at("18:00")), false);
   assert.equal(due(loop(`stall:${target}`), at("21:00")), true);
