@@ -104,6 +104,8 @@ export function installIntake(e) {
       provider_id: receipt.id,
       action_id: result.action?.id,
       source: "owner-requested",
+      // The owner can read every reply on the page, delivered or not.
+      message: text.slice(0, 600),
     });
   };
   // Keyword routing: the fallback when no model is configured.
