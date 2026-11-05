@@ -2,7 +2,7 @@
 
 Three minutes, hard limit. Recorded Wed 4 Nov on the shifted synthetic data (`shift-dates.mjs 2026-11-07`, `DEMO_AGE_DAYS=3`, `DEMO_SEND_DELAY_MINUTES=0`). Voiceover is GK as the owner; the close can be Vince. About 250 spoken words, well under the pace a viewer can follow, so every scene has a beat of silence for the screen to land. Not yet rehearsed against the live app: time the first full run and cut from the bottom of the fallback table if it runs long.
 
-Built from `app/demo-scenes.md` and the rehearsal in `docs/handoff.md` §7. Judging weights it serves: Impact 30%, Meta tooling 25%, Demo 25%, Technical depth 20%.
+Built from `app/demo-scenes.md`. Judging weights it serves: Impact 30%, Meta tooling 25%, Demo 25%, Technical depth 20%.
 
 ## Recording setup
 

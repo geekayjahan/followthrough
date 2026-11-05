@@ -59,7 +59,7 @@ function notify(text, kind = "success") {
   el.className = `banner ${kind}`;
   el.textContent = text;
 }
-async function api(path, body) {
+async function api(path, body, retried = false) {
   const response = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     credentials: "same-origin",
@@ -81,6 +81,11 @@ async function api(path, body) {
   if (response.status === 401 && !$("login-form")) {
     location.assign("/login");
     throw new Error("Your session ended. Sign in again.");
+  }
+  // A sign-in in another tab replaces the session cookie; fetch this session's token once and retry.
+  if (!response.ok && !retried && body !== undefined && /CSRF rejected/.test(String(data.error || ""))) {
+    state = await api("/api/state");
+    return api(path, body, true);
   }
   if (!response.ok)
     throw new Error(

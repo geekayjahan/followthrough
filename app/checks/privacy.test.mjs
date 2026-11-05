@@ -11,7 +11,7 @@ const BINARY = /\.(png|jpe?g|gif|ico|wav|ogg|mp3|m4a|pdf|woff2?|lock)$/i;
 const PHONE = /(?<![\w./-])(?:\+44\s?|0)(?:7\d{3}|[12]\d{2,3})\s?\d{3}\s?\d{3,4}(?!\w)/g;
 const FICTIONAL = /^(?:\+44\s?|0)7700\s?900\d{3}$/;
 const EMAIL = /[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)/g;
-const ALLOWED_DOMAINS = new Set(["example.test", "test.invalid", "company.invalid", "beanandbloom.invalid", "kamacoffee.co.uk", "flywheelbygk.com"]);
+const ALLOWED_DOMAINS = new Set(["example.test", "test.invalid", "company.invalid", "beanandbloom.invalid", "kamacoffee.co.uk"]);
 // Addresses the code itself rejects or names as examples of what is refused.
 const ALLOWED_ADDRESSES = new Set(["real@gmail.com"]);
 function files() {

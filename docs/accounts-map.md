@@ -9,19 +9,19 @@ Last updated: 4 Nov 2026, 22:55 UK. Railway column checked against the service's
 ## Who logs in where
 | What | Platform | Login | Owner | Status | Notes |
 |---|---|---|---|---|---|
-| Model API (Muse Spark), live app | dev.meta.ai | info@flywheelbygk.com | GK | Active | Managed Meta account, org "Flywheel by GK", Team ID 1786403422438743. $150 credits. No Business Tools or developer access by design, so it can't be used for WhatsApp. |
+| Model API (Muse Spark), live app | dev.meta.ai | GK's business account | GK | Active | Managed Meta account, org "Flywheel by GK", Team ID 1786403422438743. $150 credits. No Business Tools or developer access by design, so it can't be used for WhatsApp. |
 | Model API, dev and testing | dev.meta.ai | Vince's Meta account | Vince | Active | $150 credits. Fallback key if GK's balance runs low. |
 | Spark Open (open weights) | Baseten | GitHub (geekayjahan) | GK | Claimed | $100 credits. Model meta-models/muse-spark-open-1026. |
 | WhatsApp test number | developers.facebook.com | a teamvince.com mailbox | GK sets up; Vince's mailbox | **Not working (4 Nov)** | Portfolio "Followthrough Demo". Cause not yet diagnosed. Meta sign-in codes go to this inbox. |
 | Zoho test account (app's Books + Mail) | Zoho, EU data centre | Vince's teamvince.com login (the address is `ZOHO_MAIL_FROM`) | Vince | Active | Separate Zoho account from Kāma. Mail user ID 20121059056 (admin console). Coffee alias on teamvince.com added 4 Nov (the address is `MAIL_FROM_COFFEE`). API Mail account ID and Inbox ID still to fetch. |
 | Zoho Books test org | books.zoho.eu | Vince's teamvince.com login | Vince | Verified empty | "Kāma Coffee (Test)", recreated 4 Nov evening as org 20121065432 (first org 20121062531 superseded), Premium Trial created 4 Nov 2026, GBP, Europe/London. 0 invoices, 0 customers, 0 items (rechecked 4 Nov 21:25). Only org on this login. Confirm trial lasts past 9 Nov. |
 | Zoho CRM (demo backdrop only) | crm.zoho.eu | Vince's teamvince.com login | Vince | Activated, empty | CRM org ID 20121062804. Not connected to the app; no OAuth scope. |
-| Real Kāma Books | books.zoho.eu | info@flywheelbygk.com | GK | Do not use | Never connected to the app. Claude's Zoho connectors are signed in here: read-only use only. |
+| Real Kāma Books | books.zoho.eu | GK's business account | GK | Do not use | Never connected to the app. Claude's Zoho connectors are signed in here: read-only use only. |
 | Kāma Instagram / Facebook | Instagram, Facebook | gk@kamacoffee.co.uk | GK | Do not use | Real business account. Keep it away from the hackathon setup. |
-| Real email inbox | Zoho Mail | info@flywheelbygk.com (aliases gk@kamacoffee.co.uk, beans@kamacoffee.co.uk) | GK | Do not use | Never connected to the app. |
+| Real email inbox | Zoho Mail | GK's business mailbox (aliases on kamacoffee.co.uk) | GK | Do not use | Never connected to the app. |
 | Hosting | Railway, project "followthrough" | Vince's Railway account | Vince | Live | https://followthrough-production.up.railway.app (see setup-keys.md §6) |
 | Code | GitHub | geekayjahan | GK | Must be public by submission | Railway builds from `main`, root `/app`. |
-| Hackathon registration | Cerebral Valley | info@flywheelbygk.com | GK | Registered | Vince still to be added to the team. |
+| Hackathon registration | Cerebral Valley | GK's business account | GK | Registered | Vince still to be added to the team. |
 
 ## Books test org: account and contact IDs (read 4 Nov 21:25)
 | Item | Name | ID | Notes |
