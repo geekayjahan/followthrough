@@ -275,19 +275,26 @@ export class Providers {
       if (this.audit) this.audit("alias_fixed", { from, to: this.c.MAIL_FROM_COFFEE, reason: "coffee counterpart at send" });
       from = this.c.MAIL_FROM_COFFEE;
     }
-    const r = await this.zoho(
-      `/api/accounts/${encodeURIComponent(this.c.ZOHO_MAIL_ACCOUNT_ID)}/messages`,
-      {
-        method: "POST",
-        body: {
-          fromAddress: from,
-          toAddress: to,
-          subject: payload.subject || "Following up",
-          content: payload.text,
-          mailFormat: "plaintext",
-        },
-      },
-    );
+    const body = {
+      fromAddress: from,
+      toAddress: to,
+      subject: payload.subject || "Following up",
+      content: payload.text,
+      mailFormat: "plaintext",
+    };
+    const account = encodeURIComponent(this.c.ZOHO_MAIL_ACCOUNT_ID);
+    let r;
+    // A draft that answers a received email goes out as a reply to it (Zoho "reply to an email"), so the
+    // counterpart's mail client threads it. If that message is gone, fall back to a new message and say so.
+    if (payload.reply_to) {
+      try {
+        r = await this.zoho(`/api/accounts/${account}/messages/${encodeURIComponent(payload.reply_to)}`, { method: "POST", body: { ...body, action: "reply" } });
+      } catch (error) {
+        if (this.audit) this.audit("reply_fallback", { reply_to: payload.reply_to, reason: String(error?.message || error) });
+        r = null;
+      }
+    }
+    if (!r) r = await this.zoho(`/api/accounts/${account}/messages`, { method: "POST", body });
     const id = r.data?.messageId;
     if (!id) throw new ProviderError("mail_id_missing", true);
     return { id, to };

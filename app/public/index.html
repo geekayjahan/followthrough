@@ -12,11 +12,12 @@
     <aside class="sidebar">
       <a class="brand" href="/"><b class="mark">f.</b>Followthrough</a>
       <p class="caption">A clear view of the business.</p>
-      <nav aria-label="Main navigation">
-        <a class="active" href="#overview">Where I stand</a
-        ><a href="#loops">Open loops <span id="nav-count"></span></a
-        ><a href="#approvals">Approvals</a><a href="#network">Relationships</a
-        ><a href="#stock">Stock & invoices</a>
+      <nav aria-label="Main navigation" role="tablist">
+        <button class="tab active" role="tab" aria-selected="true" data-view="today">Today</button>
+        <button class="tab" role="tab" aria-selected="false" data-view="followups">Follow-ups <span id="nav-count" class="nav-badge"></span></button>
+        <button class="tab" role="tab" aria-selected="false" data-view="approvals">Needs your OK <span id="nav-approvals" class="nav-badge"></span></button>
+        <button class="tab" role="tab" aria-selected="false" data-view="connections">Connections</button>
+        <button class="tab" role="tab" aria-selected="false" data-view="stock">Stock &amp; money</button>
       </nav>
       <div class="sidebar-bottom">
         <p>Owner workspace</p>
@@ -35,114 +36,130 @@
       <div id="notice" role="status" aria-live="polite"></div>
       <div id="setup"></div>
       <div id="provenance" class="provenance"></div>
-      <section id="brief" class="section brief">
-        <div class="section-heading">
+
+      <section class="view" id="view-today" role="tabpanel">
+        <div id="today-headline" class="headline loading" aria-busy="true">Reading what needs you today…</div>
+        <section class="summary" aria-label="Business summary">
           <div>
-            <h2>Your brief</h2>
-            <p class="small">Scheduled 08:00 and 18:00 London. Ask for it now whenever you like.</p>
+            <span>Cash available</span><strong id="cash">—</strong
+            ><small id="cash-source">Reading source…</small>
           </div>
-          <div class="actions">
-            <button id="brief-compose" class="secondary">Show me the brief now</button>
-            <button id="brief-send" hidden>Send it to my WhatsApp</button>
+          <div>
+            <span>Owed to you</span><strong id="owed">—</strong
+            ><small id="owed-source">Reading source…</small>
           </div>
-        </div>
-        <div id="brief-content"></div>
+          <div>
+            <span>Green coffee in stock</span><strong id="stock-total">—</strong
+            ><small id="stock-source">Reading inventory…</small>
+          </div>
+          <div>
+            <span>Waiting for your OK</span
+            ><strong id="approval-total">—</strong
+            ><small>Drafts, receipts and sales to approve</small>
+          </div>
+          <div>
+            <span>Slipped this week</span
+            ><strong id="leaked-total">—</strong
+            ><small id="leaked-source">Follow-ups that went quiet twice</small>
+          </div>
+        </section>
+        <div id="today-groups" class="groups loading" aria-busy="true">Loading…</div>
+        <section id="brief" class="section brief">
+          <div class="section-heading">
+            <div>
+              <h2>Your WhatsApp brief</h2>
+              <p class="small">Goes out 08:00 and 18:00 London on weekdays. Refresh it now to write fresh drafts.</p>
+            </div>
+            <div class="actions">
+              <button id="brief-compose" class="secondary">Refresh the brief</button>
+              <button id="brief-send" hidden>Send to WhatsApp</button>
+            </div>
+          </div>
+          <div id="brief-content"></div>
+        </section>
       </section>
-      <section class="summary" aria-label="Business summary">
-        <div>
-          <span>Cash available</span><strong id="cash">—</strong
-          ><small id="cash-source">Reading source…</small>
-        </div>
-        <div>
-          <span>Owed to you</span><strong id="owed">—</strong
-          ><small id="owed-source">Reading source…</small>
-        </div>
-        <div>
-          <span>Green coffee in stock</span><strong id="stock-total">—</strong
-          ><small id="stock-source">Reading inventory…</small>
-        </div>
-        <div>
-          <span>Waiting for your approval</span
-          ><strong id="approval-total">—</strong
-          ><small>Each draft sits on its loop below</small>
-        </div>
-        <div>
-          <span>What leaked this week</span
-          ><strong id="leaked-total">—</strong
-          ><small id="leaked-source">Loops that went cold twice</small>
-        </div>
-      </section>
-      <div class="work-grid">
+
+      <section class="view" id="view-followups" role="tabpanel" hidden>
         <section id="loops" class="section">
           <div class="section-heading">
             <div>
-              <h2>The next move</h2>
+              <h2>What needs a nudge</h2>
               <p id="due-count">Reading what needs you today…</p>
             </div>
             <span id="loop-count" class="count">—</span>
           </div>
+          <p class="section-note">Leads, quotes, orders and invoices that have gone quiet. Each one carries its next message, written in your voice, for you to approve, edit or drop.</p>
           <div id="loop-content" class="loading" aria-busy="true">
-            Loading your open loops…
+            Loading your follow-ups…
           </div>
         </section>
+      </section>
+
+      <section class="view" id="view-approvals" role="tabpanel" hidden>
         <section id="approvals" class="section">
           <div class="section-heading">
             <div>
-              <h2>Also waiting on you</h2>
-              <p>Introductions, receipts and stall sales.</p>
+              <h2>Say yes or no</h2>
+              <p>Introductions, receipts to book, stall sales and shipments to confirm.</p>
             </div>
           </div>
           <div id="action-content" class="loading" aria-busy="true">
             Loading pending actions…
           </div>
         </section>
-      </div>
-      <section id="network" class="section">
-        <div class="section-heading">
-          <div>
-            <h2>Your business network</h2>
-            <p>
-              Select an organisation to see its background and source evidence.
-            </p>
-          </div>
-          <span class="map-key">● Organisation &nbsp; ─ Connection</span>
-        </div>
-        <div id="network-content" class="loading" aria-busy="true">
-          Loading relationships…
-        </div>
-        <div id="lead-content"></div>
       </section>
-      <div class="inventory-grid">
-        <section id="stock" class="section">
+
+      <section class="view" id="view-connections" role="tabpanel" hidden>
+        <section id="network" class="section">
           <div class="section-heading">
             <div>
-              <h2>What’s in the store</h2>
-              <p>Green coffee, by lot.</p>
+              <h2>Who you know, and who they know</h2>
+              <p>
+                Pick a business to see what we found about it and the warm way in.
+              </p>
             </div>
+            <span class="map-key">● Business &nbsp; ─ Connection</span>
           </div>
-          <div id="stock-content" class="loading">Loading inventory…</div>
+          <div id="network-content" class="loading" aria-busy="true">
+            Loading connections…
+          </div>
+          <div id="lead-content"></div>
         </section>
-        <section class="section">
-          <div class="section-heading">
-            <div>
-              <h2>Invoices</h2>
-              <p id="invoice-source">Freshness follows the Books read.</p>
+      </section>
+
+      <section class="view" id="view-stock" role="tabpanel" hidden>
+        <div class="inventory-grid">
+          <section id="stock" class="section">
+            <div class="section-heading">
+              <div>
+                <h2>Green coffee by lot</h2>
+                <p>What’s left of each lot.</p>
+              </div>
             </div>
-          </div>
-          <div id="invoice-content" class="loading">Loading invoices…</div>
+            <div id="stock-content" class="loading">Loading inventory…</div>
+          </section>
+          <section class="section">
+            <div class="section-heading">
+              <div>
+                <h2>Invoices</h2>
+                <p id="invoice-source">Freshness follows the Books read.</p>
+              </div>
+            </div>
+            <div id="invoice-content" class="loading">Loading invoices…</div>
+          </section>
+        </div>
+        <section class="section activity">
+          <details>
+            <summary>
+              Activity log <span id="event-count"></span>
+            </summary>
+            <p class="small">
+              Everything the app did, and the briefs it sent or missed. Briefs go
+              at 08:00 and 18:00, Europe/London, while the app is running and jobs are enabled.
+            </p>
+            <div id="activity-content"></div>
+          </details>
         </section>
-      </div>
-      <section class="section activity">
-        <details>
-          <summary>
-            Activity & scheduled briefs <span id="event-count"></span>
-          </summary>
-          <p class="small">
-            Briefs are scheduled for 08:00 and 18:00, Europe/London, while the
-            app is running and jobs are enabled.
-          </p>
-          <div id="activity-content"></div>
-        </details>
       </section>
       <footer>
         Followthrough <span>Every open loop has a next move.</span>
