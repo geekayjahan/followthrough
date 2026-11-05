@@ -141,7 +141,7 @@ export class Engine {
     const closing = this.closingDate(demoNow(this.c));
     const closingText = closing ? longDate(closing.closing_date) : null;
     const r = await this.p.model(
-      "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. Name the shared connection when supplied. Never name another buyer or roaster.",
+      "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. A price per kg comes only from price_list, quoted at its List price; never invent one. Name the shared connection when supplied. Never name another buyer or roaster.",
       {
         voice_file: voice.text,
         loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, reserved_kg: loop.reserved_kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases, supplier_shortfall: loop.shortfall || null, stall_date: loop.stall_date || null, market: loop.market || null, documents_to_send: loop.type === "stall" ? unsentDocuments(loop) : null },
@@ -152,6 +152,8 @@ export class Engine {
         path: names,
         cadence: rule.rule,
         shipment_closing_date: closingText ? { date: closingText, note: "Name this closing date in the message." } : null,
+        // Pinned: Price list. The same rows checkDraft enforces, so a quoted price can pass the check.
+        price_list: this.terms().lots.map((l) => ({ lot: l.name, list_per_kg_gbp: l.list })),
       },
       { maxTokens: 900, voice_file: true },
     );
