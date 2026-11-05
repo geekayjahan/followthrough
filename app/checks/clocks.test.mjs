@@ -39,7 +39,7 @@ test("E7: a receipt is cold 7 days after it arrives unbooked, a compliance date 
   assert.ok(!ids.includes("compliance:cs"), "31 days out is not yet cold");
   assert.ok(ids.includes("compliance:ins"), "30 days out is cold");
   assert.equal(s.all("loops").find((l) => l.key === "compliance:old"), undefined, "done dates open nothing");
-  assert.match(brief.text, /Public liability insurance renewal: due \d{4}-\d{2}-\d{2}, 30 days away/);
+  assert.match(brief.text, /Public liability insurance renewal:\* due \d{4}-\d{2}-\d{2}, 30 days away/);
   assert.match(brief.text, /receipt unbooked since/);
   assert.equal(due(s.all("loops").find((l) => l.key === "compliance:cs"), new Date(Date.now() + 86400000)), true, "due tomorrow");
   s.close();
@@ -59,7 +59,7 @@ test("F22 and W4: a calendar stall day opens a loop with cash-up due 21:00; 3 da
   assert.ok(!s.all("loops").some((l) => l.key === `stall:${iso(-20)}`), "cashed-up days open nothing");
   assert.ok(three.loops.some((l) => l.id === loop.id));
   assert.ok(!three.loops.some((l) => l.key === `stall:${iso(9)}`));
-  assert.match(three.text, /Stall Clevedon Sunday Market \d{4}-\d{2}-\d{2}: signed application form not sent to the organiser, 3 days out/);
+  assert.match(three.text, /Stall Clevedon Sunday Market \d{4}-\d{2}-\d{2}:\* signed application form not sent to the organiser, 3 days out/);
   assert.ok(!three.text.includes("transport"), "transport is not named 3 days out");
   const draft = three.actions.find((a) => a.loop_id === loop.id);
   assert.equal(draft.payload.to, "market@example.test");
