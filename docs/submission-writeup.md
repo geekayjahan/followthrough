@@ -61,7 +61,7 @@ https://github.com/geekayjahan/followthrough
 
 ### 3-Minute Demo Video
 
-[paste the link, tested while logged out]
+https://youtu.be/WgxoR8faiuA
 
 ### Describe your use of Meta products to build the submitted project
 

@@ -4,7 +4,7 @@
 
 Our entry to the Meta Global AI Developer Hackathon (Startup track), built on **Muse Spark Open**, **Muse Voice Transcribe** and the **WhatsApp Cloud API**.
 
-- Demo video (3 min): [link]
+- Demo video (3 min): https://youtu.be/WgxoR8faiuA
 - Live app: https://followthrough-production.up.railway.app (owner login)
 
 ## The problem
