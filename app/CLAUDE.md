@@ -21,7 +21,7 @@ This project follows spec engineering. `app/spec.html` is the canonical input; t
 
 ## §3 Workflow map
 
-S1 spec → S2 build → S3 eval → S4 debug → S5 strip. Each stage reads upstream artifacts only. Blueprints live in the kit's `modules/`; the trace format is in `modules/shared-rules.md`.
+S1 spec → S2 build → S3 eval → S4 debug → S5 strip. Each stage reads upstream artifacts only. The trace format is one line per decision in `app/claude-progress.txt`: `<ISO timestamp>  <session>  <event>  RATIONALE: <why>`, stamped with the real clock.
 
 ## §4 Artifact map
 

@@ -20,7 +20,7 @@ Out of scope from day one: moving money or any bank write, replacing Zoho Books 
 
 ## 2. How we got from spec to a running app
 
-We used the Product Builder Kit's spec-engineering arc: spec, build, eval, debug. The spec is the source of truth and the code is regenerated from it, so every lesson from the build went back into the spec first. Every decision has one line of reasoning in `app/claude-progress.txt`.
+We used a spec-engineering arc: spec, build, eval, debug. The spec is the source of truth and the code is regenerated from it, so every lesson from the build went back into the spec first. Every decision has one line of reasoning in `app/claude-progress.txt`.
 
 | Date | Stage | What happened |
 |---|---|---|
@@ -128,7 +128,7 @@ We would rather list these than have a reviewer find them.
 | LIMIT-01b: a failed mail read is not retried automatically | By design for now; needs operator repair. |
 | Secret scan has no patterns for Meta, Zoho or Baseten tokens | Gap. Keys have stayed in `.env` and Railway, but the scan would not catch one of these. |
 | Container runs as root | Gap. Low risk on Railway; a non-root user is a one-line change. |
-| Formal S3 judge scorecard | Not produced. Evidence is the 91 checks, the 13 probes, nine browser cases and live one-call checks. The kit's reviewers are simulated; for money, data or safety a human still signs off. |
+| Formal S3 judge scorecard | Not produced. Evidence is the 91 checks, the 13 probes, nine browser cases and live one-call checks. The eval's reviewers are simulated; for money, data or safety a human still signs off. |
 
 Run `node app/checks/adversarial-review-2026-10-29.mjs` to see the current state of every finding.
 

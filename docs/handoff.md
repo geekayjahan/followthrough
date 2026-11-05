@@ -8,7 +8,7 @@ For a fresh Claude Code session on `main`. Written 30 Oct 2026 after the S2 buil
 
 ## 1. Read in this order (about 20 minutes)
 
-1. `CLAUDE.md`, `app/CLAUDE.md`, `modules/shared-rules.md` (trace lines only through `node scripts/trace.mjs`, one-way doors defended first, no CDN assets).
+1. `CLAUDE.md`, `app/CLAUDE.md` (trace lines stamped with the real clock, one-way doors defended first, no CDN assets).
 2. `app/spec.html` revision 8: §2, Pinned words, §3, Open Questions.
 3. `app/evals.md`: every row. S3 grades these.
 4. `app/feature-list.json` rows FT-13 to FT-28: what the build added, the evals each row serves, and its tests.
@@ -95,7 +95,7 @@ Not built, by decision: Lapsed and referral (W8, W9), Monday plan (W10), deliver
 - No new runtime package or CDN asset without a one-way defence committed first, on its own.
 - A change that serves no spec line or eval row is an invention; stop and ask.
 - Main is the only branch. The old build branches are deleted; their useful files were copied in on 29 Oct.
-- Trace lines only through `node scripts/trace.mjs <session> "<event>" "<why>"`.
+- Trace lines are appended to `app/claude-progress.txt` with the real clock, in the format given in `app/CLAUDE.md` §3.
 
 ## 6. Open decisions for GK
 

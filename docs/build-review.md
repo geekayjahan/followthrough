@@ -165,7 +165,7 @@ Also, for the receipts path: three photographed receipts from the synthetic supp
 GK's read on 29 Oct: the v0 build and the original spec were one workflow deep (email chase) and an inch deep everywhere else. The product is "the owner talks about whatever is on her plate, in any order, and it comes back as loops, facts and next moves, with the outbound strategy handled". Spec revision 6 and `app/workflows.md` (118 workflows, 20 Core) are the new contract. This section is what a build agent should be told.
 
 ### Read, in this order
-1. `CLAUDE.md`, `app/CLAUDE.md`, `modules/shared-rules.md`, `modules/s2-build/build-blueprint.md`.
+1. `CLAUDE.md`, `app/CLAUDE.md`.
 2. `app/spec.html` revision 6 (sections 2, Pinned words, 3, 5, 6) and `app/workflows.md` (engine rules, Core set, assumptions).
 3. `app/evals.md`: the original 28 rows, T1 to T10, the Roaster Pipeline ports, W1 to W14.
 4. This file, sections 2 to 4, for what v0 got right and wrong.
