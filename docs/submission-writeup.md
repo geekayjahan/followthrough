@@ -22,7 +22,7 @@ Build for Your World
 
 ### X post link (Most Viral)
 
-[paste after the thread in docs/x-post.md is posted]
+[link to the X post, once posted]
 
 ### Project Description
 
@@ -174,5 +174,4 @@ The hard part was making "yes" safe. A voice note saying "yes, send it" has to m
 1. The repo must be public and carry a LICENSE file. The organisers call an open source repo mandatory.
 2. Paste the video link and the X post link into the two bracketed fields above and into the README.
 3. The video should say "built during the hackathon". The first commit is 28 Oct, so "ten days" and "26 Oct" do not match the history.
-4. `docs/x-post.md` still says "£120 cash" for the stall sale. The data pack and the video script say £60.
 5. The count of automated checks moves as fixes land. Run `npm --prefix app test` before quoting it anywhere new.
