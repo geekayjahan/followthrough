@@ -77,7 +77,7 @@ test("F19: a supplier balance below what is reserved gives a supplier_diff namin
   assert.equal(d.freeKg("lot-4"), -15);
   assert.equal(d.reserve(d.loop("order_unconfirmed", "r3", "business:r3:PO-3").id, "lot-4", 10).ok, false, "a further reservation on the short lot is refused");
   const brief = await e.brief(new Date(), { manual: true, send: false });
-  assert.match(brief.text, /Yeast Maceration is 15 kg short of what you've promised \(40 kg at the supplier, 55 reserved\)\. 2 counterparts affected/);
+  assert.match(brief.text, /Yeast Maceration\* is 15 kg short of what you've promised \(40 kg at the supplier, 55 reserved\)\. 2 counterparts affected/);
   const orgs = brief.actions.map((x) => x.payload.org_id).sort();
   assert.deepEqual(orgs, ["r1", "r2"]);
   assert.equal(drafts.length, 2);

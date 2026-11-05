@@ -200,7 +200,7 @@ function render() {
       ? provenance
       : provenance
         ? JSON.stringify(provenance)
-        : "Source provenance has not been supplied. Treat records as unverified.";
+        : "Where this data came from has not been recorded. Treat records as unverified.";
   const booksOkay = books.available === true && !books.error;
   $("cash").textContent = booksOkay
     ? money(books.cash, books.currency)
@@ -231,8 +231,9 @@ function render() {
   const leaked = state.leaked || {};
   $("leaked-total").textContent = Number.isFinite(leaked.count) ? String(leaked.count) : "—";
   $("leaked-source").textContent = Number.isFinite(leaked.count)
-    ? `${leaked.count === 1 ? "loop" : "loops"} that went cold twice in ${leaked.window_days} days · ${leaked.briefed || 0} briefed`
+    ? `${leaked.count === 1 ? "follow-up" : "follow-ups"} that went quiet twice in ${leaked.window_days} days · ${leaked.briefed || 0} briefed`
     : "Computed from the action log";
+  renderToday();
   renderLoops();
   renderActions();
   renderGraph();
@@ -255,7 +256,7 @@ function loopCard(loop) {
   const status = loopStatus(loop), action = loopAction(loop);
   const stage = loop.stage ? `<span class="tag">${esc(loop.stage)}</span>` : "";
   const head = `<div class="loop-head"><div><h3>${esc(loop.title || orgName(loop.org_id))}</h3><span class="tag ${status.attention ? "attention" : ""}">${esc(status.label)}</span> ${stage}</div><span class="small">${esc(human(loop.type))}</span></div><p class="why">${esc(loop.why || loop.next_move || "")}</p>`;
-  if (!action) return `<article class="loop-row" data-loop="${esc(loop.id)}">${head}<p class="small">${loop.type === "lead" && !list(state.qualifications).some((q) => String(q.org_id) === String(loop.org_id)) ? "Checking their shop before any draft." : "No draft waiting. The next brief will carry one if it goes cold."}</p></article>`;
+  if (!action) return `<article class="loop-row" data-loop="${esc(loop.id)}">${head}<p class="small">${loop.type === "lead" && !list(state.qualifications).some((q) => String(q.org_id) === String(loop.org_id)) ? "Checking their shop before any draft." : "No message waiting. The next brief will write one if this goes quiet."}</p></article>`;
   return `<article class="loop-row has-action" data-loop="${esc(loop.id)}" data-action="${esc(action.id)}">${head}${actionBody(action)}</article>`;
 }
 function actionBody(action) {
@@ -263,6 +264,94 @@ function actionBody(action) {
   if (action.status === "held")
     return `<p class="action-target">${esc(view.target)} · sends ${esc(date(action.send_at))}</p><div class="draft">${esc(messageText(action) || view.summary)}</div><div class="actions"><button class="secondary" data-command="undo">Undo, don't send</button></div>`;
   return `<p class="action-target">${esc(view.target)}</p>${view.body}<div class="edit-slot"></div><div class="actions"><button data-command="approve">${esc(view.button)}</button>${action.kind === "message" ? '<button class="secondary" data-command="edit">Edit message</button>' : ""}<button class="quiet danger" data-command="drop">Drop</button></div>`;
+}
+
+// Plain-English group for a follow-up, matching the brief's own labels.
+function loopGroup(loop) {
+  if (loop.status === "parked") return "Parked";
+  const why = String(loop.why || loop.title || "");
+  if (loop.type === "lead") return /warm lead/.test(why) ? "Warm leads" : "Leads";
+  if (loop.type === "invoice") return "Overdue invoices";
+  if (loop.type === "lot_low") return "Stock running low";
+  if (loop.type === "stall") return "Stall days";
+  if (["compliance", "receipt"].includes(loop.type)) return "Receipts & dates";
+  return "Orders, quotes & samples";
+}
+const GROUP_ORDER = ["Warm leads", "Leads", "Overdue invoices", "Orders, quotes & samples", "Stock running low", "Stall days", "Receipts & dates", "Parked"];
+const GROUP_NOTE = {
+  "Warm leads": "Someone you know can introduce you.",
+  Leads: "New businesses worth a first message.",
+  "Overdue invoices": "Money owed past its due date.",
+  "Orders, quotes & samples": "Conversations in progress that have gone quiet.",
+  "Stock running low": "Lots under a fifth of what you started with.",
+  "Stall days": "Paperwork before, cashing up after.",
+  "Receipts & dates": "Receipts to book and dates not to miss.",
+  Parked: "Three chases unanswered. Nothing more goes out until they reply.",
+};
+function openLoops() {
+  return list(state.loops).filter((l) => !["closed", "done", "cancelled", "declined"].includes(l.status));
+}
+// A short line about why this follow-up is listed, without the business name repeated.
+function whyShort(loop) {
+  const why = String(loop.why || loop.next_move || "");
+  const name = String(loop.title || "");
+  return name && why.startsWith(name + ": ") ? why.slice(name.length + 2) : why;
+}
+function todayRow(loop) {
+  const status = loopStatus(loop), action = loopAction(loop);
+  const head = `<div class="row-head"><div><strong>${esc(loop.title || orgName(loop.org_id))}</strong><em>${esc(whyShort(loop))}</em></div><span class="tag ${status.attention ? "attention" : ""}">${esc(status.label)}</span></div>`;
+  if (!action) return `<article class="today-row" data-loop="${esc(loop.id)}">${head}</article>`;
+  return `<article class="today-row has-action" data-loop="${esc(loop.id)}" data-action="${esc(action.id)}">${head}<details class="row-draft"><summary>${action.status === "held" ? "Sending soon, see the message" : "Read the message and decide"}</summary>${actionBody(action)}</details></article>`;
+}
+function renderToday() {
+  const loops = openLoops();
+  const due = loops.filter((l) => l.due_today === true);
+  const tally = new Map();
+  for (const l of due) tally.set(loopGroup(l), (tally.get(loopGroup(l)) || 0) + 1);
+  const COUNT_WORDS = {
+    "Warm leads": ["warm lead", "warm leads"], Leads: ["lead", "leads"], "Overdue invoices": ["overdue invoice", "overdue invoices"],
+    "Orders, quotes & samples": ["order or quote", "orders and quotes"], "Stock running low": ["lot running low", "lots running low"],
+    "Stall days": ["stall day", "stall days"], "Receipts & dates": ["receipt or date", "receipts and dates"], Parked: ["parked", "parked"],
+  };
+  const breakdown = [...tally].map(([k, n]) => `${n} ${(COUNT_WORDS[k] || [k, k])[n === 1 ? 0 : 1]}`).join(", ");
+  const drafts = loops.filter((l) => loopAction(l)).length;
+  installContent(
+    "today-headline",
+    due.length
+      ? `<p class="headline-main"><strong>${due.length} ${due.length === 1 ? "thing needs" : "things need"} you today</strong></p><p class="headline-sub"><em>${esc(breakdown)}</em>${drafts ? ` · <strong>${drafts}</strong> ${drafts === 1 ? "message is" : "messages are"} written and waiting for your yes` : ""}</p>`
+      : `<p class="headline-main"><strong>Nothing needs you today</strong></p><p class="headline-sub"><em>${loops.length} ${loops.length === 1 ? "follow-up is" : "follow-ups are"} ticking along. The next brief will say if any go quiet.</em></p>`,
+  );
+  const groups = new Map();
+  for (const l of loops) {
+    const g = loopGroup(l);
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(l);
+  }
+  const sortRows = (rows) => rows.sort((a, b) => Number(b.due_today === true) - Number(a.due_today === true) || Number(Boolean(loopAction(b))) - Number(Boolean(loopAction(a))) || (Date.parse(a.due_at) || Infinity) - (Date.parse(b.due_at) || Infinity));
+  const html = GROUP_ORDER.filter((g) => groups.has(g))
+    .map((g, i) => {
+      const rows = sortRows(groups.get(g));
+      const urgent = rows.filter((l) => l.due_today === true).length;
+      return `<details class="group" ${i < 2 || urgent ? "open" : ""}><summary><span class="group-title">${esc(g)}</span><span class="group-meta">${urgent ? `<span class="tag attention">${urgent} today</span>` : ""}<span class="count">${rows.length}</span></span></summary><p class="group-note">${esc(GROUP_NOTE[g] || "")}</p>${rows.map(todayRow).join("")}</details>`;
+    })
+    .join("");
+  installContent("today-groups", html || empty("Room to breathe.", "Nothing is open. Refresh sources to check for new activity."));
+}
+// WhatsApp markup to safe HTML: *bold*, _italic_, bullets.
+function waToHtml(text) {
+  const inline = (line) => esc(line).replace(/\*([^*\n]+)\*/g, "<strong>$1</strong>").replace(/(^|\s)_([^_\n]+)_(?=\s|$|[.,;:])/g, "$1<em>$2</em>");
+  const out = [];
+  let bullets = [];
+  const flush = () => { if (bullets.length) out.push(`<ul>${bullets.map((b) => `<li>${b}</li>`).join("")}</ul>`); bullets = []; };
+  for (const raw of String(text || "").split("\n")) {
+    const line = raw.trim();
+    if (!line) { flush(); continue; }
+    if (line.startsWith("• ")) { bullets.push(inline(line.slice(2))); continue; }
+    flush();
+    out.push(`<p>${inline(line)}</p>`);
+  }
+  flush();
+  return out.join("");
 }
 function renderLoops() {
   const loops = list(state.loops)
@@ -294,12 +383,12 @@ function renderActions() {
   const pending = pendingActions(),
     attention = attentionActions();
   const technical = (action) =>
-    `<details><summary>Technical action details</summary><pre>${esc(JSON.stringify({ id: action.id, kind: action.kind, payload: action.payload, version: action.version, hash: action.hash, status: action.status, receipt: action.receipt }, null, 2))}</pre></details>`;
+    `<details><summary>Exact details</summary><pre>${esc(JSON.stringify({ id: action.id, kind: action.kind, payload: action.payload, version: action.version, hash: action.hash, status: action.status, receipt: action.receipt }, null, 2))}</pre></details>`;
   const flagged = attention
     .map((action) => {
       const view = actionPresentation(action),
         working = ["executing", "sending"].includes(action.status);
-      return `<article class="action attention-action"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">${working ? "Outcome pending" : "Needs reconciliation"}</span></div><p class="outcome-warning">${working ? "This action has started. Its provider outcome is not yet confirmed." : "The external outcome is unconfirmed. Check the provider record or inbox and reconcile this action before any further write."} Refresh sources to check its current status.</p>${view.body}${action.error ? `<p class="small">${esc(action.error)}</p>` : ""}${technical(action)}</article>`;
+      return `<article class="action attention-action"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">${working ? "Outcome pending" : "Check the outcome"}</span></div><p class="outcome-warning">${working ? "This action has started. Its provider outcome is not yet confirmed." : "The external outcome is unconfirmed. Check the provider record or inbox and reconcile this action before any further write."} Refresh sources to check its current status.</p>${view.body}${action.error ? `<p class="small">${esc(action.error)}</p>` : ""}${technical(action)}</article>`;
     })
     .join("");
   // Pinned: Held. An approved message with no open loop waits here until send_at; Undo stops it.
@@ -318,12 +407,13 @@ function renderActions() {
       return `<article class="action" data-action="${esc(action.id)}"><div class="action-head"><h3>${esc(view.title)}</h3><span class="tag attention">Needs approval</span></div>${actionBody(action)}${technical(action)}</article>`;
     })
     .join("");
+  $("nav-approvals").textContent = attention.length + heldActions().filter((a) => !openLoop(a)).length + pending.filter((a) => !openLoop(a)).length || "";
   installContent(
     "action-content",
     flagged + held + proposed ||
       empty(
         "Nothing else waiting on you.",
-        "Drafts sit on their loop above. Introductions, receipts and stall sales appear here.",
+        "Messages to customers live under Follow-ups. Introductions, receipts, stall sales and shipments appear here.",
       ),
   );
 }
@@ -534,10 +624,11 @@ if ($("login-form")) {
     }),
   );
   const showBrief = (brief) => {
-    const cards = list(brief.cards);
+    const cards = list(brief.cards), warnings = list(brief.warnings);
+    const when = new Date().toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" });
     installContent(
       "brief-content",
-      `<pre class="brief-text">${esc(brief.text)}</pre>${cards.length ? `<div class="brief-cards">${cards.map((c) => `<pre class="brief-text card">${esc(c.text)}</pre>`).join("")}</div>` : ""}<p class="small">${brief.sent ? "Sent to your WhatsApp." : "Composed only; nothing was sent."}${brief.demoAgeDays ? ` Demo clock is ${brief.demoAgeDays} days ahead.` : ""}</p>`,
+      `<div class="brief-card"><div class="brief-head"><strong>Last brief · ${esc(when)}</strong><span class="small">${brief.sent ? "Sent to your WhatsApp." : "Composed only; nothing was sent."}${brief.demoAgeDays ? ` Demo clock is ${brief.demoAgeDays} days ahead.` : ""}</span></div><div class="brief-body">${waToHtml(brief.text)}</div></div>${cards.length ? `<details class="group" open><summary><span class="group-title">Messages in this brief</span><span class="count">${cards.length}</span></summary><p class="group-note">Each one goes to your phone as a card with Approve and Drop buttons.</p><div class="brief-cards">${cards.map((c) => `<div class="brief-card draft-card">${waToHtml(c.text)}</div>`).join("")}</div></details>` : ""}${warnings.length ? `<div class="banner"><strong>Worth knowing</strong>${warnings.map((w) => `<p>${esc(w)}</p>`).join("")}</div>` : ""}`,
     );
     $("brief-send").hidden = !(state.setup && state.setup.whatsapp);
   };
@@ -559,6 +650,21 @@ if ($("login-form")) {
       notify("Brief sent.");
     }),
   );
+  const views = ["today", "followups", "approvals", "connections", "stock"];
+  const showView = (name) => {
+    const view = views.includes(name) ? name : "today";
+    for (const v of views) $(`view-${v}`).hidden = v !== view;
+    document.querySelectorAll(".sidebar .tab").forEach((tab) => {
+      const on = tab.dataset.view === view;
+      tab.classList.toggle("active", on);
+      tab.setAttribute("aria-selected", String(on));
+    });
+    if (location.hash !== `#${view}`) history.replaceState(null, "", `#${view}`);
+    window.scrollTo({ top: 0 });
+  };
+  document.querySelectorAll(".sidebar .tab").forEach((tab) => tab.addEventListener("click", () => showView(tab.dataset.view)));
+  window.addEventListener("hashchange", () => showView(location.hash.slice(1)));
+  showView(location.hash.slice(1));
   $("logout").addEventListener("click", (event) =>
     busy(event.currentTarget, async () => {
       await api("/api/logout", {});
@@ -666,6 +772,8 @@ if ($("login-form")) {
   load().catch((error) => {
     notify(error.message, "error");
     [
+      "today-headline",
+      "today-groups",
       "loop-content",
       "action-content",
       "network-content",
