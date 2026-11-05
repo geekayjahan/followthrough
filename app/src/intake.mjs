@@ -33,13 +33,13 @@ export function installIntake(e) {
         seen = e.s.get("inbound", `mail:${id}`);
       if (seen) continue;
       const org_id = person?.org || threaded.org_id;
-      e.s.put("inbound", `mail:${id}`, { status: "processing" });
+      e.s.put("inbound", `mail:${id}`, { status: "processing", org_id, loop_id: threaded?.id || null, subject: String(m.subject || ""), from, at: new Date().toISOString() });
       try {
         const text = newReplyContent(await e.p.mailContent(id));
-        e.d.receive(org_id, text, "email", id, threaded?.id, { subject: String(m.subject || "") });
+        e.d.receive(org_id, text, "email", id, threaded?.id, { subject: String(m.subject || ""), message_id: id, from_address: from });
         if (replyClass(`${m.subject || ""}\n${text}`) !== "auto_reply")
           await e.classifyIntake(text, org_id, "email", id);
-        e.s.put("inbound", `mail:${id}`, { status: "completed" });
+        e.s.put("inbound", `mail:${id}`, { ...e.s.get("inbound", `mail:${id}`), status: "completed" });
       } catch {
         e.s.put("inbound", `mail:${id}`, {
           status: "failed",

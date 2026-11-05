@@ -427,7 +427,7 @@ export class Domain {
     this.revoke(id, reason);
     this.s.audit("loop_close", { loop_id: id, reason });
   }
-  receive(org_id, text, source, event_id, loop_id, { subject = "" } = {}) {
+  receive(org_id, text, source, event_id, loop_id, { subject = "", message_id = null, from_address = null } = {}) {
     if (!this.s.get("orgs", org_id))
       throw Error("Unknown synthetic organization");
     if (this.blocked(org_id)) {
@@ -464,7 +464,13 @@ export class Domain {
       return;
     }
     this.s.del("reply_holds", org_id);
-    this.appendThread(selected.id, { from: "counterpart", source, text: String(text).slice(0, 4000) });
+    this.appendThread(selected.id, { from: "counterpart", source, text: String(text).slice(0, 4000), ...(source === "email" ? { subject, message_id, from_address } : {}) });
+    // An email reply keeps its id and subject on the loop, so the next draft answers in that thread.
+    if (source === "email" && message_id) {
+      const l = this.s.get("loops", selected.id);
+      l.last_inbound_mail = { message_id: String(message_id), subject, from_address, text: String(text).slice(0, 4000), at: new Date().toISOString() };
+      this.s.put("loops", selected.id, l);
+    }
     if (classification === "soft_no") this.close(selected.id, "human reply");
     else this.touch(selected.id, source);
     this.s.audit("reply", {

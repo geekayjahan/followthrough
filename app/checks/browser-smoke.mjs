@@ -19,6 +19,12 @@ async (page) => {
   await page.locator('#provenance').filter({ hasText: 'TEST FIXTURE ONLY' }).waitFor();
   const initial = await read();
   check(initial.provenance.includes('TEST FIXTURE ONLY'), 'Protected isolated fixture loaded');
+  check(await page.locator('#view-today').isVisible() && await page.locator('#today-headline strong').count() > 0 &&
+    !(await page.locator('#view-followups').isVisible()),
+    'Today opens first with a headline and the other views hidden');
+  await page.getByRole('tab', { name: /Follow-ups/ }).click();
+  check(await page.locator('#view-followups').isVisible() && !(await page.locator('#view-today').isVisible()),
+    'Follow-ups tab shows only its view');
 
   await page.getByRole('button', { name: 'Edit message', exact: true }).click();
   const revised = 'Hello Harbour Roasters, shall we discuss the revised sample quote?';
@@ -48,12 +54,14 @@ async (page) => {
     afterReload.loops.find(loop => loop.type === 'order_to_ship').status === 'closed',
     'Shipment closure survives page reload');
 
+  await page.getByRole('tab', { name: 'Connections' }).click();
   await page.getByRole('button', { name: 'View Bean & Bloom background', exact: true }).click();
   check((await page.locator('#lead-content summary').textContent()).includes('Bean & Bloom') &&
     await page.locator('#network-content svg .node').count() === initial.orgs.length &&
     await page.locator('#network-content svg line').count() === initial.edges.length,
     'Complete network selects the corresponding background');
   const dueCount = afterReload.loops.filter(loop => loop.due_today).length;
+  await page.getByRole('tab', { name: /Follow-ups/ }).click();
   check((await page.locator('#loops .section-heading').textContent()).includes(`${dueCount} due today`) &&
     (await page.locator('#today').textContent()).includes('London time'),
     'Due-today count and London-time label agree with stored state');
@@ -64,6 +72,7 @@ async (page) => {
       `No document overflow at ${width}px`);
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole('tab', { name: 'Today' }).click();
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: 'output/playwright/desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });

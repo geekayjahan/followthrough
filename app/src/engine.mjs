@@ -137,16 +137,19 @@ export class Engine {
     const names = path.map((id) => this.s.get("orgs", id)?.name);
     const thread = this.d.thread(loop.id, 6);
     const lastAsk = [...thread].reverse().find((m) => m.from === "counterpart")?.text || null;
+    // The email this draft answers: the latest counterpart email on the loop, kept for a threaded reply.
+    const inbound = loop.last_inbound_mail || [...thread].reverse().find((m) => m.from === "counterpart" && m.source === "email" && m.message_id) || null;
     const rule = cadence(loop, this.d.cadence);
     const closing = this.closingDate(demoNow(this.c));
     const closingText = closing ? longDate(closing.closing_date) : null;
     const r = await this.p.model(
-      "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. A price per kg comes only from price_list, quoted at its List price; never invent one. Name the shared connection when supplied. Never name another buyer or roaster.",
+      "Write the owner's next message to this counterpart in the owner's own voice: use the voice file's samples as examples and obey its rules. Answer what the counterpart last asked, then stop; as long as the moment needs and no longer. JSON {text:string,subject:string}. When inbound_email is present this is a reply to that email: answer it directly, pick up its wording and specifics, do not re-introduce yourself or the business, do not repeat its content back, and leave subject as the original subject. Every figure, date, organisation and commitment must come from the loop, the thread, the lot or the warm path; keep a [placeholder] for any fact you do not have. A price per kg comes only from price_list, quoted at its List price; never invent one. Name the shared connection when supplied. Never name another buyer or roaster.",
       {
         voice_file: voice.text,
         loop: { type: loop.type, stage: loop.stage, next_stage: nextStage(loop.stage, org.type), next_move: loop.next_move, last_touch: loop.last_touch, invoice_number: loop.invoice_number, amount: loop.amount, invoice_due: loop.invoice_due, kg: loop.kg, reserved_kg: loop.reserved_kg, lot: loop.lot_id ? this.s.get("lots", loop.lot_id)?.name : null, chases: loop.chases, supplier_shortfall: loop.shortfall || null, stall_date: loop.stall_date || null, market: loop.market || null, documents_to_send: loop.type === "stall" ? unsentDocuments(loop) : null },
         organization: org.name,
         counterpart_name: person.name || null,
+        inbound_email: inbound ? { subject: inbound.subject || null, from: inbound.from_address || inbound.sender || null, text: inbound.text || lastAsk } : null,
         thread,
         counterpart_last_asked: lastAsk,
         path: names,
@@ -210,7 +213,8 @@ export class Engine {
         ...(from ? { from, coffee } : {}),
         text: template?.text || r.text,
         template,
-        subject: `${r.subject} [FT:${loop.id}]`,
+        subject: `${inbound?.subject ? `Re: ${String(inbound.subject).replace(/^\s*(re|aw|fwd?)\s*:\s*/i, "").replace(/\s*\[FT:[a-f0-9-]{36}\]\s*/g, " ").trim()}` : r.subject} [FT:${loop.id}]`,
+        ...(inbound?.message_id ? { reply_to: String(inbound.message_id) } : {}),
         org_id: org.id,
         source: "configured model",
         path,
@@ -616,8 +620,8 @@ export class Engine {
           ? "Mark as shipped"
           : `Record ${a.kind} in Books`;
     const body = a.payload.text || a.payload.description || "Review pending action";
-    const frame = `${who}\n${how}\n\n`;
-    const tail = "\n\nApprove, or reply with changes.";
+    const frame = `*${who}*\n_${how}_\n\n`;
+    const tail = "\n\n_Approve, or reply with changes._";
     const room = 1024 - frame.length - tail.length;
     const shown =
       body.length > room
@@ -727,19 +731,24 @@ export class Engine {
     // Workflow C15: the brief names the lot, the shortfall and how many counterparts are affected.
     const shortfalls = this.s.all("shortfalls").filter((d) => d.affected.some((a) => this.s.get("loops", a.loop_id)?.shortfall));
     const line = loops.length
-      ? `${loops.length} need you: ${[...counts]
+      ? `*${loops.length} need you:* _${[...counts]
           .map(([k, n]) => `${n} ${n === 1 ? k : k.replace(/lead$|invoice$|lot$|order$|quote$/, "$&s")}`)
-          .join(", ")}.`
-      : "Nothing needs you right now.";
+          .join(", ")}._`
+      : "*Nothing needs you right now.*";
     const label = slot === "manual" ? london(now).time : slot;
+    // WhatsApp markup: *bold* for the name, the rest of the line plain, so the text still reads on any client.
+    const bold = (line) => {
+      const i = line.indexOf(": ");
+      return i > 0 ? `*${line.slice(0, i)}:* ${line.slice(i + 2)}` : line;
+    };
     const text = [
-      `Followthrough ${label}`,
+      `*Followthrough ${label}*`,
       line,
-      ...shortfalls.map((d) => `${d.lot} is ${d.shortfall_kg} kg short of what you've promised (${d.supplier_kg} kg at the supplier, ${d.reserved_kg} reserved). ${d.affected.length} ${d.affected.length === 1 ? "counterpart" : "counterparts"} affected; drafts below.`),
-      ...loops.map((l) => `• ${this.why(l, demoNow(this.c, now))}`),
-      ...parked.map((l) => `• ${this.title(l)}: parked, ${l.chases} chases unanswered`),
+      ...shortfalls.map((d) => `*${d.lot}* is ${d.shortfall_kg} kg short of what you've promised (${d.supplier_kg} kg at the supplier, ${d.reserved_kg} reserved). ${d.affected.length} ${d.affected.length === 1 ? "counterpart" : "counterparts"} affected; drafts below.`),
+      ...loops.map((l) => `• ${bold(this.why(l, demoNow(this.c, now)))}`),
+      ...parked.map((l) => `• *${this.title(l)}:* _parked, ${l.chases} chases unanswered_`),
       cards.length
-        ? `\n${cards.length} to approve below${kept.length > cards.length ? `, ${kept.length - cards.length} more in Where I stand` : ""}.`
+        ? `\n*${cards.length} to approve below*${kept.length > cards.length ? `, ${kept.length - cards.length} more in Where I stand` : ""}.`
         : "",
       ...warnings,
       `Where I stand: ${this.c.APP_URL}`,
