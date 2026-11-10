@@ -35,3 +35,47 @@ test("no checked-in file holds a real phone number or a non-allowlisted email", 
   }
   assert.deepEqual(found, []);
 });
+
+// The current tree can be clean while an earlier commit still publishes the data, so the same rule runs over history.
+const COMMIT_DOMAINS = new Set(["users.noreply.github.com", "anthropic.com", "github.com", "flywheelbygk.com"]);
+function git(args) {
+  return execFileSync("git", args, { cwd: repo, encoding: "utf8", maxBuffer: 512 * 1024 * 1024 });
+}
+function leaks(text) {
+  const out = [];
+  const bare = text.replace(/https?:\/\/\S+/g, "");
+  for (const m of bare.matchAll(PHONE)) if (!FICTIONAL.test(m[0].replace(/\s/g, ""))) out.push(`phone ${m[0].slice(0, 4)}…`);
+  for (const m of bare.matchAll(EMAIL))
+    if (!ALLOWED_DOMAINS.has(m[1].toLowerCase()) && !ALLOWED_ADDRESSES.has(m[0].toLowerCase()) && !/^\d+\.\d+\.\d+$/.test(m[1])) out.push(`email @${m[1]}`);
+  return out;
+}
+test("no commit in history adds a real phone number or a non-allowlisted email", (t) => {
+  let log, people, messages;
+  try {
+    if (git(["rev-parse", "--is-shallow-repository"]).trim() === "true") return t.skip("shallow clone: history not available");
+    log = git(["log", "HEAD", "-p", "--no-color", "--unified=0", "--no-renames", "--format=commit %h"]);
+    people = git(["log", "HEAD", "--format=%h %ae %ce"]);
+    messages = git(["log", "HEAD", "--format=commit %h%n%B"]);
+  } catch {
+    return t.skip("not a git checkout");
+  }
+  const found = new Set();
+  let commit = "", file = "";
+  for (const line of log.split("\n")) {
+    if (line.startsWith("commit ")) commit = line.slice(7);
+    else if (line.startsWith("+++ ")) file = line.slice(6);
+    else if (line.startsWith("+") && !BINARY.test(file)) for (const l of leaks(line.slice(1))) found.add(`${commit} ${file}: ${l}`);
+  }
+  for (const line of people.split("\n").filter(Boolean)) {
+    const [hash, ...emails] = line.split(" ");
+    for (const e of emails) {
+      const domain = e.split("@")[1]?.toLowerCase() || "";
+      if (!COMMIT_DOMAINS.has(domain)) found.add(`${hash} commit metadata: email @${domain}`);
+    }
+  }
+  for (const line of messages.split("\n")) {
+    if (line.startsWith("commit ")) commit = line.slice(7);
+    else for (const m of line.matchAll(EMAIL)) if (!COMMIT_DOMAINS.has(m[1].toLowerCase()) && !ALLOWED_DOMAINS.has(m[1].toLowerCase())) found.add(`${commit} message: email @${m[1]}`);
+  }
+  assert.deepEqual([...found], []);
+});

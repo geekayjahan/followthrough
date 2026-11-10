@@ -53,7 +53,7 @@ At the time of writing: 91 automated checks pass, the syntax check is clean and 
 | None of GK's own Zoho, Google, Meta or mail accounts are connected, not even a second organisation inside them | Access to an account exposes all of it. Every test service runs on Vince's accounts. |
 | Fresh Zoho Books organisation and a separate mailbox | The app can never see or touch the real Kāma books or inbox. |
 | Separate Meta test app and business portfolio for WhatsApp | Test recipients are the owners' phones only. |
-| `docs/accounts-map.md` records names and IDs only | Anyone can check which account a key belongs to without the key itself appearing anywhere. |
+| `docs/accounts-map.md` records account names and owners only | Anyone can check which account a key belongs to without the key, or the account's ID, appearing anywhere. |
 
 ### 3.3 Secrets
 

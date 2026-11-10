@@ -39,7 +39,7 @@ The demo runs on a test copy of Kāma Coffee: the brand, lots and prices are rea
 
 ## Run it
 
-Node 22.5 or newer. Keys go in `app/.env` only (template in `app/.env.example`).
+Node 24 (the version the container and CI run; 22.5 is the minimum). Keys go in `app/.env` only (template in `app/.env.example`).
 
 ```bash
 npm --prefix app install
@@ -57,7 +57,7 @@ Full setup, from keys to the Books seed: [docs/setup-keys.md](docs/setup-keys.md
 
 ### Where each key comes from
 
-When hosted, values live only in Railway Variables (service `followthrough`). This table lists names and sources, never values. Whose account each service lives on, the non-secret IDs and what is already set: [docs/accounts-map.md](docs/accounts-map.md).
+When hosted, values live only in Railway Variables (service `followthrough`). This table lists names and sources, never values. Whose account each service lives on: [docs/accounts-map.md](docs/accounts-map.md). How the app is secured and how to report a problem: [SECURITY.md](SECURITY.md).
 
 | Service | Variables | Source |
 |---|---|---|
