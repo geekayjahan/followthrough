@@ -1,5 +1,5 @@
 # Followthrough on one always-on container (spec T5). Keys come from the host's variables, never the image.
-FROM node:24-slim
+FROM node:26-slim
 WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
