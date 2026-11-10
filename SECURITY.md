@@ -33,4 +33,4 @@ Please report a vulnerability privately through the repository's Security tab ("
 
 ## History
 
-On 10 November 2026 the repository history was rewritten to remove account identifiers, mailbox addresses and early example data that named real businesses. Files deleted before publication were removed from every commit, and documentation and data files show their current content throughout. Source code history is unchanged apart from replaced names.
+On 10 November 2026 the repository history was rewritten to remove account identifiers, mailbox addresses and early example data that named real businesses. Files deleted before publication, and the course material and build tooling used during the build, were removed from every commit. Documentation and data files show their current content throughout. Source code history is unchanged apart from replaced names.

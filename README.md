@@ -69,7 +69,7 @@ When hosted, values live only in Railway Variables (service `followthrough`). Th
 
 ## How it was built
 
-By spec engineering with Claude Code, using the Product Builder Kit (its blueprints are in `modules/`, its skills in `.claude/`). The spec came first, then a build split into 28 features, each tied to a spec line and the checks that prove it. 96 automated checks pass.
+By spec engineering with Claude Code, using the Product Builder Kit. The spec came first, then a build split into 28 features, each tied to a spec line and the checks that prove it. 97 automated checks pass, and they run on every push.
 
 | Read this | For |
 |---|---|

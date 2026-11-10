@@ -12,8 +12,7 @@
   "sources": [
     "app/spec.html",
     "app/evals.md",
-    "app/feature-list.json",
-    "modules/s2-build/build-blueprint.md"
+    "app/feature-list.json"
   ],
   "stack": {
     "runtime": {
